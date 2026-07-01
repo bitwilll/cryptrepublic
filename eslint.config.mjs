@@ -7,5 +7,13 @@ const compat = new FlatCompat({ baseDirectory: dirname(fileURLToPath(import.meta
 export default [
   { ignores: [".next/**", "node_modules/**", "contracts/**", "*.jsx", "image-slot.js"] },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
-  { rules: { "@typescript-eslint/no-explicit-any": "error" } },
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
+  },
 ];
