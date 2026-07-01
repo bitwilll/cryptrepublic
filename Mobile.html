@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>CryptRepublic — Mobile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#0a1929; --navy2:#0a2540; --ink:#0f1f33;
+    --blue:#1957d3; --blue-d:#0e3a9b; --cyan:#00b3e6;
+    --gold:#c8a96a; --gold-d:#9d8246;
+    --paper:#f6f7f9; --card:#ffffff; --line:#e5eaef;
+    --muted:#5a6a7d; --success:#1f8a5b;
+    --sans:'Archivo',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;border-radius:0}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--card);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden}
+  img,svg{display:block;max-width:100%}
+  a{color:inherit}
+  .wrap{max-width:560px;margin:0 auto;padding:0 18px}
+  .kicker{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.22em;color:var(--blue);text-transform:uppercase}
+  .kicker::before{content:"▮ "}
+  h1,h2,h3{margin:0;font-weight:900;text-transform:uppercase;letter-spacing:-.01em;line-height:1}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:15px 22px;
+    font-weight:800;font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;
+    border:1px solid transparent;cursor:pointer;
+    clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+    transition:background .18s, transform .15s}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--blue);color:#fff}
+  .btn-ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+  .btn-gold{background:var(--gold);color:var(--navy)}
+  .btn-block{width:100%}
+
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.3,1)}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion: reduce){.reveal{opacity:1;transform:none;transition:none}*{animation:none !important}}
+
+  /* ── strips & header ── */
+  .gov-strip{background:var(--navy);border-bottom:3px solid var(--gold);color:#9fb3d0;
+    font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;text-align:center;padding:8px 12px}
+  .gov-strip b{color:var(--gold);font-weight:600}
+  header.site{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.9);
+    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{display:flex;align-items:center;gap:9px;text-decoration:none;font-weight:800;font-size:16.5px;letter-spacing:-.01em}
+  .burger{background:none;border:1px solid var(--line);padding:8px;cursor:pointer}
+  .sheet{display:none;border-top:1px solid var(--line);background:#fff}
+  .sheet.open{display:block}
+  .sheet a{display:block;text-decoration:none;font-weight:800;font-size:14px;text-transform:uppercase;letter-spacing:.06em;
+    padding:14px 18px;border-bottom:1px solid var(--paper)}
+  .sheet a.hl{color:var(--blue)}
+
+  /* ── hero ── */
+  .hero{background:
+    repeating-linear-gradient(0deg, rgba(10,25,41,.045) 0 1px, transparent 1px 56px),
+    repeating-linear-gradient(90deg, rgba(10,25,41,.045) 0 1px, transparent 1px 56px),
+    radial-gradient(420px 320px at 90% -5%, rgba(25,87,211,.10), transparent 60%),
+    var(--paper);
+    padding:44px 0 48px}
+  .badge{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);
+    padding:7px 12px 7px 9px;font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+  .badge .dot{width:7px;height:7px;background:var(--success)}
+  .hero h1{font-size:clamp(34px,9.6vw,44px);margin-top:18px}
+  .hero h1 em{font-style:normal;color:var(--blue)}
+  .hero p.lede{font-size:15.5px;color:var(--muted);margin:16px 0 0}
+  .hero-ctas{display:grid;gap:10px;margin-top:24px}
+  .hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:18px 12px;margin-top:34px}
+  .hero-stats b{display:block;font-family:var(--mono);font-size:21px;font-weight:700;letter-spacing:-.02em}
+  .hero-stats span{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+
+  /* ── PASSPORT FLIP (in-place, never overflows) ── */
+  .pass-zone{margin-top:42px}
+  .pflip{position:relative;width:min(330px,88vw);aspect-ratio:7/10;margin:0 auto;perspective:1400px;cursor:pointer;
+    animation:float 7s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .pface{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;
+    transform:rotateY(-180deg);opacity:0;pointer-events:none;
+    transition:transform .65s cubic-bezier(.4,.08,.2,1), opacity .4s ease .12s}
+  .pface.on{transform:rotateY(0deg);opacity:1;pointer-events:auto;transition:transform .65s cubic-bezier(.4,.08,.2,1), opacity .3s ease}
+  .ptabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:min(330px,88vw);margin:16px auto 0}
+  .ptabs button{appearance:none;border:1px solid var(--line);background:#fff;padding:10px 6px;cursor:pointer;
+    font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.12em;color:var(--muted)}
+  .ptabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .phint{text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--muted);
+    text-transform:uppercase;margin-top:12px}
+
+  /* face: cover */
+  .passport{background:linear-gradient(155deg,#0d2c4e 0%,var(--navy2) 55%,#081c33 100%);
+    border:1px solid rgba(200,169,106,.55);color:#e8e0cc;box-shadow:0 26px 60px -22px rgba(10,37,64,.45)}
+  .passport::before{content:"";position:absolute;inset:9px;border:1px solid rgba(200,169,106,.35);pointer-events:none}
+  .pp-inner{position:absolute;inset:0;padding:28px 24px;display:flex;flex-direction:column}
+  .pp-seal{margin:12px auto 0}
+  .pp-title{text-align:center;margin-top:16px;font-size:19px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#f0e9d8}
+  .pp-sub{text-align:center;font-family:var(--mono);font-size:8.5px;letter-spacing:.3em;color:var(--gold);font-weight:700;margin-top:7px}
+  .pp-rows{margin-top:auto;border-top:1px solid rgba(200,169,106,.45);padding-top:14px;display:grid;gap:10px}
+  .pp-row span{display:block;font-family:var(--mono);font-size:8px;letter-spacing:.22em;color:var(--gold);font-weight:600}
+  .pp-row b{font-family:var(--mono);font-size:13px;font-weight:500;color:#f0e9d8}
+  .pp-mrz{margin-top:12px;font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;color:rgba(232,224,204,.55);
+    overflow:hidden;white-space:nowrap}
+
+  /* face: NFT plate */
+  .pb-back{background:radial-gradient(circle at 50% 42%,#11355c,#0a2540 72%);
+    border:1px solid rgba(200,169,106,.5);display:flex;flex-direction:column;align-items:center;gap:11px;padding:16px 18px 13px}
+  .nft-head{display:flex;align-items:center;gap:10px;width:100%}
+  .nft-head b{display:block;font-size:12.5px;font-weight:900;letter-spacing:.06em;color:#fff;text-transform:uppercase;line-height:1.1}
+  .nft-head span{display:block;font-family:var(--mono);font-size:7px;letter-spacing:.18em;color:var(--gold);margin-top:2px}
+  .nft-frame{position:relative;width:100%;flex:1;min-height:0;border:1px solid rgba(200,169,106,.6);background:#081c33;padding:9px}
+  .nft-frame svg{width:100%;height:100%}
+  .nft-frame::after{content:"";position:absolute;top:4px;right:4px;width:11px;height:11px;
+    border-top:2px solid var(--gold);border-right:2px solid var(--gold);opacity:.85;pointer-events:none}
+  .nft-holo{position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg,transparent 30%,rgba(0,179,230,.16) 45%,rgba(200,169,106,.16) 55%,transparent 70%)}
+  .nft-meta{width:100%;display:grid;gap:6px;border-top:1px solid rgba(255,255,255,.14);padding-top:9px}
+  .nft-meta div{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .nft-meta span{font-family:var(--mono);font-size:6.5px;letter-spacing:.18em;color:rgba(255,255,255,.5);text-transform:uppercase}
+  .nft-meta b{font-family:var(--mono);font-size:9px;font-weight:700;color:#e8e0cc;letter-spacing:.04em;white-space:nowrap}
+  .nft-oath{font-family:var(--mono);font-size:6.5px;letter-spacing:.26em;color:var(--gold);text-transform:uppercase}
+
+  /* face: bio-data page */
+  .pb-inside{border:1px solid #c9c2ae;
+    background:
+      repeating-radial-gradient(circle at 18% 8%, rgba(25,87,211,.05) 0 1px, transparent 1px 7px),
+      repeating-radial-gradient(circle at 86% 92%, rgba(200,169,106,.08) 0 1px, transparent 1px 6px),
+      #f8f5ee;
+    box-shadow:inset 0 0 70px rgba(10,37,64,.10)}
+  .dp-head{display:flex;justify-content:space-between;gap:8px;padding:11px 13px 7px;
+    font-family:var(--mono);font-size:7px;letter-spacing:.12em;color:var(--blue-d);font-weight:600;border-bottom:2px solid var(--navy2)}
+  .dp-body{padding:11px 13px 0;display:flex;flex-direction:column;gap:11px}
+  .dp-top{display:grid;grid-template-columns:88px 1fr;gap:11px}
+  .dp-photo{position:relative;width:88px;height:112px;background:#e7e3d6;border:1px solid #c9c2ae;overflow:hidden}
+  .dp-holo{position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg,transparent 28%,rgba(0,179,230,.20) 44%,rgba(200,169,106,.22) 56%,transparent 72%)}
+  .dp-corner{position:absolute;width:11px;height:11px;border-color:var(--gold-d);border-style:solid;border-width:0}
+  .dp-corner.tl{top:3px;left:3px;border-top-width:2px;border-left-width:2px}
+  .dp-corner.br{bottom:3px;right:3px;border-bottom-width:2px;border-right-width:2px}
+  .dp-fields{display:grid;grid-template-columns:1fr 1fr;gap:5px 9px;align-content:start}
+  .dp-fields div.w{grid-column:1/-1}
+  .dp-fields span,.dp-meta span{display:block;font-family:var(--mono);font-size:6px;letter-spacing:.12em;color:#8a93a3;font-weight:600;text-transform:uppercase}
+  .dp-fields b{display:block;font-size:9.5px;font-weight:800;letter-spacing:.02em;color:var(--navy);line-height:1.25}
+  .dp-row2{display:grid;grid-template-columns:80px 1fr;gap:11px;align-items:start}
+  .dp-qr svg{width:80px;height:80px;border:1px solid #c9c2ae;background:#fff}
+  .dp-qr span{display:block;font-family:var(--mono);font-size:5.5px;letter-spacing:.1em;color:#8a93a3;margin-top:4px;text-align:center;font-weight:600}
+  .dp-meta{display:grid;gap:6px;align-content:start}
+  .dp-meta b{display:block;font-size:8.5px;font-weight:800;color:var(--navy);line-height:1.3}
+  .dp-meta b.addr{font-family:var(--mono);font-size:7.5px;font-weight:600;word-break:break-all}
+  .dp-mrz{position:absolute;left:0;right:0;bottom:0;padding:7px 11px 8px;border-top:1px dashed #b9b2a0;
+    font-family:var(--mono);font-size:8px;letter-spacing:.4px;line-height:1.55;color:#2a3850;
+    white-space:nowrap;overflow:hidden;background:rgba(255,255,255,.65)}
+
+  /* ── ticker ── */
+  .ticker{background:var(--navy);color:#cfe0f5;overflow:hidden}
+  .ticker-track{display:flex;white-space:nowrap;animation:marquee 40s linear infinite;width:max-content}
+  .ticker span{display:inline-flex;align-items:center;gap:20px;padding:11px 11px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em}
+  .ticker i{font-style:normal;color:var(--gold)}
+  @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* ── sections ── */
+  section.block{padding:56px 0}
+  .sec-head{margin-bottom:28px}
+  .sec-head h2{font-size:clamp(24px,6.6vw,30px);margin-top:8px}
+  .sec-head h2 em{font-style:normal;color:var(--blue)}
+  .sec-head p{color:var(--muted);font-size:14.5px;margin:12px 0 0}
+  .stack{display:grid;gap:14px}
+  .pillar{background:var(--paper);border:1px solid var(--line);padding:24px 20px;position:relative}
+  .pillar::after{content:"";position:absolute;top:0;right:0;width:14px;height:14px;
+    border-top:2px solid var(--blue);border-right:2px solid var(--blue);opacity:.55}
+  .pillar h3{font-size:16.5px;letter-spacing:.01em}
+  .pillar p{color:var(--muted);font-size:13.5px;margin:8px 0 0}
+  .pillar .more{display:inline-block;margin-top:14px;font-size:12.5px;font-weight:800;color:var(--blue);text-decoration:none;
+    text-transform:uppercase;letter-spacing:.06em}
+  .step{background:#fff;border:1px solid var(--line);padding:24px 20px;position:relative}
+  .step .bar{position:absolute;top:0;left:0;height:3px;width:100%;background:linear-gradient(90deg,var(--blue),var(--cyan))}
+  .step .n{font-family:var(--mono);font-size:11px;color:var(--blue);font-weight:700;letter-spacing:.16em}
+  .step .n small{color:var(--muted);font-weight:500;margin-left:6px}
+  .step h3{font-size:17px;margin-top:8px}
+  .step p{color:var(--muted);font-size:13.5px;margin:8px 0 0}
+
+  .gray{background:var(--paper)}
+  .holdings{background:
+    radial-gradient(420px 300px at 110% 0%, rgba(25,87,211,.25), transparent 55%),
+    var(--navy);color:#fff}
+  .holdings .kicker{color:var(--gold)}
+  .holdings .sec-head p{color:rgba(255,255,255,.7)}
+  .holdings h2 em{color:var(--gold)}
+  .aum b{font-size:clamp(48px,13vw,64px);letter-spacing:-.04em;font-weight:800;line-height:1}
+  .aum .delta{display:block;font-family:var(--mono);color:#7cffa6;font-weight:700;font-size:12px;margin-top:8px}
+  .hold{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);padding:20px 18px;position:relative}
+  .hold::after{content:"";position:absolute;top:0;right:0;width:14px;height:14px;
+    border-top:2px solid var(--gold);border-right:2px solid var(--gold);opacity:.8}
+  .hold .hk{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--gold)}
+  .hold b{display:block;font-size:24px;letter-spacing:-.02em;margin-top:7px}
+  .hold span{display:block;color:rgba(255,255,255,.62);font-size:12.5px;margin-top:6px;line-height:1.5}
+  .claim{background:linear-gradient(160deg, rgba(200,169,106,.18), rgba(200,169,106,.05));
+    border:1px solid rgba(200,169,106,.45);padding:24px 20px}
+  .claim .hk{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--gold)}
+  .claim b{display:block;font-size:40px;letter-spacing:-.03em;color:var(--gold);line-height:1.05;margin-top:6px}
+  .claim span{display:block;color:rgba(255,255,255,.66);font-size:11.5px;margin-top:6px;font-family:var(--mono)}
+
+  .vote-card{background:#fff;border:1px solid var(--line);padding:24px 20px;position:relative}
+  .vote-card::after{content:"";position:absolute;top:0;right:0;width:14px;height:14px;
+    border-top:2px solid var(--blue);border-right:2px solid var(--blue);opacity:.55}
+  .vote-card h3{font-size:19px;margin-top:8px}
+  .vote-card p{color:var(--muted);font-size:13.5px}
+  .tally .bar{height:14px;display:flex;border:1px solid var(--line);background:var(--paper);margin-top:16px}
+  .tally .bar i{display:block;height:100%}
+  .tally .legend{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+  .tally .legend div{border:1px solid var(--line);border-left-width:3px;padding:8px 9px;background:#fff}
+  .tally .legend span{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.1em;color:var(--muted)}
+  .tally .legend b{display:block;font-family:var(--mono);font-size:15px;margin-top:2px}
+
+  .emb-chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);
+    padding:9px 13px;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  .chip .cc{font-family:var(--mono);font-size:9px;color:var(--blue);font-weight:700}
+  .chip .n{color:var(--muted);font-weight:600;font-size:11px}
+
+  .quote{background:#fff;border:1px solid var(--line);padding:22px 20px;position:relative}
+  .quote::after{content:"";position:absolute;top:0;right:0;width:14px;height:14px;
+    border-top:2px solid var(--blue);border-right:2px solid var(--blue);opacity:.55}
+  .quote p{font-size:14px;line-height:1.6;font-weight:500;margin:0}
+  .quote footer{margin-top:14px}
+  .quote footer b{display:block;font-size:13.5px}
+  .quote footer span{color:var(--muted);font-size:10.5px;font-family:var(--mono);letter-spacing:.06em}
+
+  .cta{background:linear-gradient(160deg,#0d2c4e, var(--navy) 70%);color:#fff;text-align:center}
+  .cta h2{font-size:clamp(26px,7.6vw,34px)}
+  .cta h2 em{font-style:normal;color:var(--gold)}
+  .cta p{color:rgba(255,255,255,.7);margin:14px 0 0;font-size:14.5px}
+  .cta .hero-ctas{margin-top:26px}
+
+  footer.site{background:var(--navy);color:rgba(255,255,255,.66)}
+  .foot{display:grid;grid-template-columns:1fr 1fr;gap:26px;padding:44px 0 32px}
+  .foot h4{color:#fff;font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin:0 0 12px}
+  .foot a{display:block;text-decoration:none;font-size:13px;padding:4px 0;color:rgba(255,255,255,.66)}
+  .legal{border-top:1px solid rgba(255,255,255,.1);padding:18px 0 26px;text-align:center;
+    font-size:9.5px;font-family:var(--mono);letter-spacing:.08em;display:grid;gap:6px}
+  .legal a{color:var(--gold);font-weight:700;text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="gov-strip" role="note"><b>★</b> OFFICIAL PORTAL — NETWORK STATE №001 · BLK 21 408 932</div>
+
+<header class="site" data-screen-label="Mobile nav">
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="#top">
+        <svg width="26" height="26" viewBox="0 0 30 30" fill="none">
+          <polygon points="15,1 25,5 29,15 25,25 15,29 5,25 1,15 5,5" stroke="#1957d3" stroke-width="1.8" fill="none"/>
+          <text x="15" y="19.5" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" fill="#1957d3">CR</text>
+        </svg>
+        CryptRepublic
+      </a>
+      <button class="burger" id="burger" aria-label="Open menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" stroke="#0f1f33" stroke-width="2" fill="none"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </nav>
+  </div>
+  <div class="sheet" id="sheet">
+    <a href="#why">Why CryptRepublic</a>
+    <a href="#how">How it works</a>
+    <a href="#holdings">Sovereign holdings</a>
+    <a href="#governance">Governance</a>
+    <a href="#embassies">Embassies</a>
+    <a href="Auth.html" class="hl">Sign in / Register</a>
+    <a href="Dashboard.html" class="hl">Mint passport →</a>
+  </div>
+</header>
+
+<!-- ── HERO ── -->
+<section class="hero" id="top" data-screen-label="Mobile hero">
+  <div class="wrap">
+    <span class="badge"><span class="dot"></span> RATIFIED BY THE CABINET · 48 392 CITIZENS</span>
+    <h1>Become a citizen of the first <em>network state.</em></h1>
+    <p class="lede">A sovereign collective without territory. Mint a soulbound passport, vote on every law, and share in the Republic's assets.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-primary btn-block" href="Dashboard.html">Mint your passport →</a>
+      <a class="btn btn-ghost btn-block" href="Auth.html">Sign in / Register</a>
+    </div>
+    <div class="hero-stats">
+      <div><b data-count="48392">0</b><span>Citizens</span></div>
+      <div><b data-count="91">0</b><span>Countries</span></div>
+      <div><b data-count="27">0</b><span>Embassies</span></div>
+      <div><b data-prefix="$" data-count="428" data-suffix="M">$0</b><span>Sovereign assets</span></div>
+    </div>
+
+    <!-- PASSPORT — in-place flip, three faces -->
+    <div class="pass-zone" data-screen-label="Passport specimen">
+      <div class="pflip" id="pflip" role="button" tabindex="0" aria-label="Specimen passport — tap to flip through cover, NFT plate, and bio-data page">
+
+        <!-- FACE 0 · COVER -->
+        <div class="pface passport on" data-face="0">
+          <div class="pp-inner">
+            <svg class="pp-seal" width="58" height="58" viewBox="0 0 64 64" fill="none">
+              <polygon points="32,2 53,11 62,32 53,53 32,62 11,53 2,32 11,11" stroke="#c8a96a" stroke-width="1.6" fill="none"/>
+              <polygon points="32,8 48,15 55,32 48,49 32,56 16,49 9,32 16,15" stroke="#c8a96a" stroke-width=".6" fill="none"/>
+              <text x="32" y="38" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="17" fill="#c8a96a">CR</text>
+              <text x="32" y="48" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="5" fill="#c8a96a" letter-spacing="2">MMXXVI</text>
+            </svg>
+            <div class="pp-title">CryptRepublic</div>
+            <div class="pp-sub">SOULBOUND PASSPORT · SPECIMEN</div>
+            <div class="pp-rows">
+              <div class="pp-row"><span>CITIZEN №</span><b>00 001</b></div>
+              <div class="pp-row"><span>VALIDITY</span><b style="color:#c8a96a">PERPETUAL</b></div>
+              <div class="pp-row"><span>SEALED AT</span><b>GENESIS · BLK 0</b></div>
+            </div>
+            <div class="pp-mrz">P&lt;CRYPT&lt;&lt;NAKAMOTO&lt;&lt;SATOSHI&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</div>
+          </div>
+        </div>
+
+        <!-- FACE 1 · NFT PLATE -->
+        <div class="pface pb-back" data-face="1">
+          <div class="nft-head">
+            <svg width="32" height="32" viewBox="0 0 64 64" fill="none">
+              <polygon points="32,2 53,11 62,32 53,53 32,62 11,53 2,32 11,11" stroke="#c8a96a" stroke-width="1.6" fill="none"/>
+              <text x="32" y="39" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="18" fill="#c8a96a">CR</text>
+            </svg>
+            <div>
+              <b>CryptRepublic</b>
+              <span>CITIZEN NFT · GENESIS EDITION</span>
+            </div>
+          </div>
+          <div class="nft-frame">
+            <svg id="nftArt" aria-hidden="true"></svg>
+            <i class="nft-holo"></i>
+          </div>
+          <div class="nft-meta">
+            <div><span>TOKEN</span><b>CR-PASSPORT #00001</b></div>
+            <div><span>EDITION</span><b>1 OF 1 · SOULBOUND</b></div>
+            <div><span>MINTED</span><b>GENESIS · BLK 0</b></div>
+          </div>
+          <span class="nft-oath">THE BEARER IS OBSERVED · ART. II §1</span>
+        </div>
+
+        <!-- FACE 2 · BIO-DATA -->
+        <div class="pface pb-inside" data-face="2">
+          <div class="dp-head">
+            <span>CRYPTREPUBLIC · NS №001</span>
+            <span>PASSPORT / PASSEPORT</span>
+          </div>
+          <div class="dp-body">
+            <div class="dp-top">
+              <div class="dp-photo">
+                <svg viewBox="0 0 92 118" width="88" height="112" aria-hidden="true">
+                  <rect width="92" height="118" fill="#dfdacb"/>
+                  <circle cx="46" cy="44" r="21" fill="#9aa5b4"/>
+                  <path d="M 12 118 Q 12 76 46 76 Q 80 76 80 118 Z" fill="#9aa5b4"/>
+                  <rect x="30" y="24" width="32" height="14" fill="#7d8896" opacity=".85"/>
+                  <text x="46" y="112" text-anchor="middle" font-size="5" fill="#8a93a3" letter-spacing="1">DIGITAL LIKENESS</text>
+                </svg>
+                <i class="dp-holo"></i>
+                <b class="dp-corner tl"></b><b class="dp-corner br"></b>
+              </div>
+              <div class="dp-fields">
+                <div><span>TYPE</span><b>P</b></div>
+                <div><span>PASSPORT №</span><b>NS-0000001</b></div>
+                <div class="w"><span>SURNAME</span><b>NAKAMOTO</b></div>
+                <div class="w"><span>GIVEN NAMES</span><b>SATOSHI</b></div>
+                <div><span>CITIZEN №</span><b>00 001</b></div>
+                <div><span>NATIONALITY</span><b>CRYPTREPUBLICAN</b></div>
+                <div><span>INDUCTED</span><b>03 JAN 2009</b></div>
+                <div><span>EXPIRY</span><b style="color:var(--gold-d)">PERPETUAL</b></div>
+              </div>
+            </div>
+            <div class="dp-row2">
+              <div class="dp-qr">
+                <svg id="dpQr" aria-hidden="true"></svg>
+                <span>SCAN TO VERIFY ON CHAIN</span>
+              </div>
+              <div class="dp-meta">
+                <div><span>AUTHORITY</span><b>CABINET OF THE REPUBLIC</b></div>
+                <div><span>GENESIS ADDRESS</span><b class="addr">1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa</b></div>
+                <div><span>SEALED</span><b>BLK 0 · 18:15:05 UTC</b></div>
+              </div>
+            </div>
+          </div>
+          <div class="dp-mrz">P&lt;CRYNAKAMOTO&lt;&lt;SATOSHI&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;<br />NS0000001CRY0901038X&lt;PERPETUAL&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;04</div>
+        </div>
+      </div>
+
+      <div class="ptabs" role="tablist">
+        <button class="on" data-go="0" role="tab" aria-selected="true">COVER</button>
+        <button data-go="1" role="tab" aria-selected="false">NFT PLATE</button>
+        <button data-go="2" role="tab" aria-selected="false">BIO-DATA</button>
+      </div>
+      <div class="phint">TAP PASSPORT OR TABS TO FLIP — SPECIMEN №00 001</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TICKER ── -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track" id="tickerTrack">
+    <span><i>●</i> CITIZEN №48 392 INDUCTED — BUENOS AIRES</span>
+    <span><i>●</i> AMENDMENT §47 IN DEBATE — 13 421 YEA</span>
+    <span><i>●</i> Q2 DIVIDEND $138.50 / CITIZEN</span>
+    <span><i>●</i> TREASURY $14.2M — +4.81% / 60D</span>
+    <span><i>●</i> BLOCK 21 408 932 SEALED — 8.0s</span>
+  </div>
+</div>
+
+<!-- ── WHY ── -->
+<section class="block" id="why" data-screen-label="Why">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Why CryptRepublic</div>
+      <h2>A nation built for the <em>borderless century.</em></h2>
+    </div>
+    <div class="stack">
+      <article class="pillar reveal">
+        <h3>Cryptographically sovereign identity</h3>
+        <p>A soulbound passport you cannot lose, sell, or have revoked. Signed by the chain, witnessed by seven citizens, valid in perpetuity.</p>
+        <a class="more" href="Dashboard.html">See the passport →</a>
+      </article>
+      <article class="pillar reveal">
+        <h3>Direct, total democracy</h3>
+        <p>No representatives. Every citizen votes on every amendment, and the parliament — the chain — never adjourns.</p>
+        <a class="more" href="Dashboard.html">Explore governance →</a>
+      </article>
+      <article class="pillar reveal">
+        <h3>A share of everything</h3>
+        <p>Real estate, patents, equity and crypto reserves — $428M of sovereign assets owned in equal share by every citizen, paying quarterly dividends.</p>
+        <a class="more" href="#holdings">View the holdings →</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW ── -->
+<section class="block gray" id="how" data-screen-label="How it works">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">How it works</div>
+      <h2>Three steps to <em>citizenship.</em></h2>
+    </div>
+    <div class="stack">
+      <div class="step reveal"><div class="bar"></div>
+        <div class="n">STEP 01 <small>· ~3 MIN</small></div>
+        <h3>Attest &amp; swear the oath</h3>
+        <p>Inscribe your name, bind the oath of entry, and choose the motto that lives on your passport forever.</p>
+      </div>
+      <div class="step reveal"><div class="bar" style="opacity:.55"></div>
+        <div class="n">STEP 02 <small>· ~24 H</small></div>
+        <h3>Seven witnesses sign</h3>
+        <p>Citizens of three years' standing attest your induction. Their signatures are bound to your credential in perpetuity.</p>
+      </div>
+      <div class="step reveal"><div class="bar" style="opacity:.3"></div>
+        <div class="n">STEP 03 <small>· NEXT BLOCK</small></div>
+        <h3>Sealed on chain</h3>
+        <p>Your passport is minted soulbound. Voting power activates in 72 hours — your first dividend accrues from day one.</p>
+      </div>
+      <a class="btn btn-primary btn-block reveal" href="Dashboard.html">Begin your application →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOLDINGS ── -->
+<section class="block holdings" id="holdings" data-screen-label="Holdings">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Sovereign holdings</div>
+      <h2>Owned by the Republic. <em>Paid to the people.</em></h2>
+    </div>
+    <div class="aum reveal">
+      <b><span data-prefix="$" data-count="428" data-suffix=".4M">$0</span></b>
+      <span class="delta">▲ +12.4% YoY · AUDITED ON CHAIN</span>
+    </div>
+    <div class="stack" style="margin-top:24px">
+      <div class="hold reveal"><div class="hk">REAL ESTATE · 7 TITLES</div><b>$173.5M</b>
+        <span>Embassies in Lisbon, Tokyo, New York, Berlin &amp; more — plus farmland and an 820-acre solar estate.</span></div>
+      <div class="hold reveal"><div class="hk">PATENTS &amp; IP · 4 FAMILIES</div><b>$51.0M</b>
+        <span>Soulbound credentials, pseudonymous voting and embassy interop — licensed in 40+ jurisdictions.</span></div>
+      <div class="hold reveal"><div class="hk">EQUITY STAKES · 3 POSITIONS</div><b>$133.4M</b>
+        <span>Validator pool §14 (16% of network), Republic Bridge Inc., Translation Council OpCo.</span></div>
+      <div class="hold reveal"><div class="hk">CRYPTO RESERVES</div><b>$99.4M</b>
+        <span>Stablecoin, Bitcoin and staked-ETH reserves in 4-of-7 multisig cold storage.</span></div>
+      <div class="claim reveal">
+        <div class="hk">YOUR QUARTERLY DIVIDEND</div>
+        <b>$138.50</b>
+        <span>PER CITIZEN · PAID IN $CRYPT · VESTS 2026.06.30</span>
+        <a class="btn btn-gold btn-block" href="Dashboard.html" style="margin-top:18px">Claim in the dashboard →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── GOVERNANCE ── -->
+<section class="block gray" id="governance" data-screen-label="Governance">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Governance · live</div>
+      <h2>The parliament <em>never adjourns.</em></h2>
+    </div>
+    <div class="vote-card reveal">
+      <div class="kicker" style="color:var(--gold-d)">AMENDMENT §47 · CLOSES IN 18H</div>
+      <h3>Embassy Quorum Threshold</h3>
+      <p style="margin-top:10px">Reduce minimum citizen attestation from 100 to 73 for embassy operational quorum.</p>
+      <div class="tally">
+        <div class="bar">
+          <i style="width:74%;background:var(--success)"></i>
+          <i style="width:23%;background:var(--gold)"></i>
+          <i style="width:3%;background:#b9c3cf"></i>
+        </div>
+        <div class="legend">
+          <div style="border-left-color:var(--success)"><span>YEA</span><b>13 421</b></div>
+          <div style="border-left-color:var(--gold)"><span>NAY</span><b>4 102</b></div>
+          <div style="border-left-color:#b9c3cf"><span>ABST.</span><b>281</b></div>
+        </div>
+      </div>
+      <a class="btn btn-primary btn-block" href="Dashboard.html" style="margin-top:18px">Cast your oath →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── EMBASSIES ── -->
+<section class="block" id="embassies" data-screen-label="Embassies">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Embassies</div>
+      <h2>27 cities. <em>One Republic.</em></h2>
+    </div>
+    <div class="emb-chips reveal">
+      <span class="chip"><span class="cc">TYO</span> Tokyo <span class="n">6 210</span></span>
+      <span class="chip"><span class="cc">NYC</span> New York <span class="n">5 402</span></span>
+      <span class="chip"><span class="cc">LIS</span> Lisbon <span class="n">4 108</span></span>
+      <span class="chip"><span class="cc">TLL</span> Tallinn <span class="n">3 814</span></span>
+      <span class="chip"><span class="cc">BER</span> Berlin <span class="n">3 210</span></span>
+      <span class="chip"><span class="cc">BUE</span> B. Aires <span class="n">2 890</span></span>
+      <span class="chip"><span class="cc">SIN</span> Singapore <span class="n">2 402</span></span>
+      <span class="chip"><span class="cc">LAG</span> Lagos <span class="n">1 894</span></span>
+      <span class="chip" style="border-style:dashed;color:var(--muted)">+19 MORE</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── QUOTES ── -->
+<section class="block gray" data-screen-label="Citizen voices">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Voices of the Republic</div>
+      <h2>Why citizens <em>stayed.</em></h2>
+    </div>
+    <div class="stack">
+      <article class="quote reveal">
+        <p>"I was a tax resident of three countries before CryptRepublic. Now I am a citizen of one — and it answers only to its citizens."</p>
+        <footer><b>Christine Sidonie</b><span>CITIZEN №01 482 · LISBON</span></footer>
+      </article>
+      <article class="quote reveal">
+        <p>"The passport cannot be sold. That alone changed how I think about identity. Six months in, the Republic feels more real than my birth nation."</p>
+        <footer><b>Georg Klausner</b><span>CITIZEN №02 117 · VIENNA</span></footer>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="block cta" data-screen-label="CTA">
+  <div class="wrap reveal">
+    <div class="kicker" style="color:var(--gold)">The census is open</div>
+    <h2 style="margin-top:10px">One passport. One oath.<br /><em>One Republic.</em></h2>
+    <p>Mint your soulbound passport and take your seat in a parliament that never adjourns.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-gold btn-block" href="Dashboard.html">Mint passport №48 393 →</a>
+      <a class="btn btn-ghost btn-block" href="Auth.html" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.3)">Sign in / Register</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site" data-screen-label="Footer">
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <h4>Republic</h4>
+        <a href="#why">Why CryptRepublic</a>
+        <a href="#holdings">Sovereign holdings</a>
+        <a href="#governance">Governance</a>
+        <a href="#embassies">Embassies</a>
+      </div>
+      <div>
+        <h4>Citizens</h4>
+        <a href="Dashboard.html">Citizen dashboard</a>
+        <a href="Dashboard.html">Mint a passport</a>
+        <a href="Auth.html">Sign in / Register</a>
+        <a href="Dashboard.html">Claim dividends</a>
+      </div>
+    </div>
+    <div class="legal">
+      <span>© CRYPTREPUBLIC · MMXXVI · NETWORK STATE №001</span>
+      <span>YOU HAVE BEEN OBSERVED</span>
+      <span><a href="Home.html?desktop=1">VIEW DESKTOP VERSION →</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Menu sheet
+  const burger = document.getElementById('burger');
+  const sheet = document.getElementById('sheet');
+  burger.addEventListener('click', () => sheet.classList.toggle('open'));
+  sheet.querySelectorAll('a').forEach(a => a.addEventListener('click', () => sheet.classList.remove('open')));
+
+  // Passport flip — in-place faces, never overflows the viewport
+  const pflip = document.getElementById('pflip');
+  const faces = [...pflip.querySelectorAll('.pface')];
+  const ptabs = [...document.querySelectorAll('.ptabs button')];
+  let face = 0;
+  function showFace(i) {
+    face = (i + faces.length) % faces.length;
+    faces.forEach((f, k) => f.classList.toggle('on', k === face));
+    ptabs.forEach((b, k) => { b.classList.toggle('on', k === face); b.setAttribute('aria-selected', k === face); });
+  }
+  pflip.addEventListener('click', () => showFace(face + 1));
+  pflip.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showFace(face + 1); }
+  });
+  ptabs.forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); showFace(parseInt(b.dataset.go, 10)); }));
+
+  // Reveal on scroll (with failsafes)
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => {
+    if (el.getBoundingClientRect().top < window.innerHeight * 1.05) el.classList.add('in');
+    else io.observe(el);
+  });
+  setTimeout(() => document.querySelectorAll('.reveal:not(.in)').forEach(el => el.classList.add('in')), 1800);
+
+  // Count-up (with failsafe)
+  const fmt = (n) => n.toLocaleString('en-US').replace(/,/g, ' ');
+  const setFinal = (el) => { el.textContent = (el.dataset.prefix || '') + fmt(parseFloat(el.dataset.count)) + (el.dataset.suffix || ''); el.dataset.done = '1'; };
+  const cio = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      const el = e.target; cio.unobserve(el);
+      if (el.dataset.done) return;
+      const target = parseFloat(el.dataset.count), prefix = el.dataset.prefix || '', suffix = el.dataset.suffix || '';
+      const t0 = performance.now(), dur = 1200;
+      (function tick(now) {
+        if (el.dataset.done) return;
+        const p = Math.min(1, ((now || performance.now()) - t0) / dur);
+        el.textContent = prefix + fmt(Math.round(target * (1 - Math.pow(1 - p, 3)))) + suffix;
+        if (p < 1) requestAnimationFrame(tick); else el.dataset.done = '1';
+      })(performance.now());
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('[data-count]').forEach(el => cio.observe(el));
+  setTimeout(() => document.querySelectorAll('[data-count]').forEach(el => { if (!el.dataset.done) setFinal(el); }), 2500);
+
+  // Ticker loop
+  const track = document.getElementById('tickerTrack');
+  track.innerHTML += track.innerHTML;
+
+  // QR glyph (decorative specimen)
+  (function () {
+    const n = 25, s = document.getElementById('dpQr');
+    if (!s) return;
+    let seed = 20090103;
+    const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+    const finder = (ox, oy) =>
+      `<rect x="${ox}" y="${oy}" width="7" height="7"/><rect x="${ox + 1}" y="${oy + 1}" width="5" height="5" fill="#fff"/><rect x="${ox + 2}" y="${oy + 2}" width="3" height="3"/>`;
+    let cells = '';
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+      const inF = (x < 8 && y < 8) || (x >= n - 8 && y < 8) || (x < 8 && y >= n - 8);
+      if (!inF && rnd() > 0.52) cells += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
+    }
+    s.setAttribute('viewBox', `-1.5 -1.5 ${n + 3} ${n + 3}`);
+    s.innerHTML = `<rect x="-1.5" y="-1.5" width="${n + 3}" height="${n + 3}" fill="#fff"/><g fill="#0a1929" shape-rendering="crispEdges">${finder(0, 0)}${finder(n - 7, 0)}${finder(0, n - 7)}${cells}</g>`;
+  })();
+
+  // NFT identicon
+  (function () {
+    const s = document.getElementById('nftArt');
+    if (!s) return;
+    const n = 10;
+    let seed = 20090103;
+    const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+    const pal = ['#c8a96a', '#1957d3', '#00b3e6', '#e8e0cc'];
+    let cells = '';
+    for (let y = 0; y < n; y++) for (let x = 0; x < n / 2; x++) {
+      if (rnd() <= 0.46) continue;
+      const c = pal[Math.floor(rnd() * pal.length)];
+      cells += `<rect x="${x}" y="${y}" width="1" height="1" fill="${c}"/><rect x="${n - 1 - x}" y="${y}" width="1" height="1" fill="${c}"/>`;
+    }
+    s.setAttribute('viewBox', `0 0 ${n} ${n}`);
+    s.innerHTML = `<rect width="${n}" height="${n}" fill="#081c33"/><g shape-rendering="crispEdges">${cells}</g>`;
+  })();
+</script>
+</body>
+</html>

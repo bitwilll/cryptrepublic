@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>CryptRepublic · Network State №001</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #f0eee9; }
+  body { font-family: 'Manrope', system-ui, sans-serif; }
+  *, *::before, *::after { box-sizing: border-box; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="landings.jsx"></script>
+<script type="text/babel" src="landing-os.jsx"></script>
+<script type="text/babel" src="landing-census.jsx"></script>
+<script type="text/babel" src="landing-programme.jsx"></script>
+
+<script type="text/babel" data-presets="env,react">
+function App() {
+  return (
+    <DesignCanvas initialZoom={0.42}>
+      <DCSection
+        id="programme"
+        title="Direction 00 — Programme (e-Residency aligned)"
+        subtitle="Government-issued programme aesthetic: deep navy, royal blue, Manrope sans, photographic hero, three pillars, three-step process, big stat blocks, testimonials, newsletter. The Mint Passport button links to the dashboard prototype."
+      >
+        <DCArtboard id="programme" label="Programme · e-Residency aligned" width={1440} height={4400}>
+          <LandingProgramme />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection
+        id="alternates"
+        title="Alternate directions"
+        subtitle="Earlier Brutalist-Swiss explorations — same content, different visual languages. Useful for mixing tone."
+      >
+        <DCArtboard id="manifesto" label="01 · Manifesto (cream)" width={1440} height={3680}>
+          <LandingManifesto />
+        </DCArtboard>
+        <DCArtboard id="ledger" label="02 · Operating Ledger (forest dark)" width={1440} height={3680}>
+          <LandingOperatingLedger />
+        </DCArtboard>
+        <DCArtboard id="census" label="03 · Census (minimal white)" width={1440} height={3680}>
+          <LandingCensus />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection
+        id="dashboard"
+        title="Citizen dashboard — interactive prototype"
+        subtitle="Mint flow, governance voting, treasury, embassies. Open the artboard fullscreen (↗) for the best experience."
+      >
+        <DCArtboard id="dashboard-frame" label="Dashboard · open ↗" width={1440} height={900}>
+          <iframe src="Dashboard.html" style={{ width: '100%', height: '100%', border: 'none', display: 'block' }} />
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

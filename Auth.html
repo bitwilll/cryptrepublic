@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Citizen Access — CryptRepublic</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#0a1929; --navy2:#0a2540; --ink:#0f1f33;
+    --blue:#1957d3; --blue-d:#0e3a9b; --cyan:#00b3e6;
+    --gold:#c8a96a; --gold-d:#9d8246;
+    --paper:#f6f7f9; --card:#ffffff; --line:#e5eaef;
+    --muted:#5a6a7d; --success:#1f8a5b;
+    --sans:'Archivo',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;border-radius:0}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+
+  .gov-strip{background:var(--navy);border-bottom:3px solid var(--gold);color:#9fb3d0;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase}
+  .gov-strip .in{max-width:1200px;margin:0 auto;padding:9px 24px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .gov-strip b{color:var(--gold);font-weight:600}
+
+  .auth{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 34px)}
+
+  /* ── LEFT: state pane ── */
+  .pane{background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 64px),
+    radial-gradient(900px 500px at 80% -10%, rgba(25,87,211,.35), transparent 60%),
+    var(--navy);
+    color:#fff;padding:56px 56px 40px;display:flex;flex-direction:column}
+  .brand{display:flex;align-items:center;gap:11px;text-decoration:none;font-weight:800;font-size:19px;letter-spacing:-.01em;color:#fff}
+  .pane h1{font-size:clamp(34px,4vw,54px);font-weight:900;text-transform:uppercase;letter-spacing:-.01em;line-height:.98;margin:auto 0 0}
+  .pane h1 b{color:var(--gold)}
+  .pane .sub{color:rgba(255,255,255,.66);font-size:15.5px;max-width:440px;margin:18px 0 0}
+  .pane-stats{display:flex;gap:clamp(20px,3vw,44px);margin-top:36px;flex-wrap:wrap}
+  .pane-stats b{display:block;font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:-.02em}
+  .pane-stats span{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.16em;color:rgba(255,255,255,.5);text-transform:uppercase}
+  .doctrine{margin-top:auto;padding-top:40px;border-top:1px solid rgba(255,255,255,.14)}
+  .doctrine p{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;line-height:1.6;color:#e8e0cc;margin:0;max-width:460px}
+  .doctrine cite{display:block;margin-top:10px;font-style:normal;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--gold)}
+
+  /* ── RIGHT: form panel ── */
+  .panel{display:flex;align-items:center;justify-content:center;padding:48px 24px}
+  .form-card{width:100%;max-width:460px;background:var(--card);border:1px solid var(--line);position:relative;
+    box-shadow:0 30px 70px -30px rgba(10,37,64,.25)}
+  .form-card::after{content:"";position:absolute;top:0;right:0;width:18px;height:18px;
+    border-top:2px solid var(--blue);border-right:2px solid var(--blue);opacity:.6;pointer-events:none}
+  .fc-head{padding:24px 28px 0}
+  .fc-kicker{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.24em;color:var(--blue);text-transform:uppercase}
+  .fc-kicker::before{content:"▮ "}
+  .fc-head h2{font-size:26px;font-weight:900;text-transform:uppercase;letter-spacing:-.01em;margin:10px 0 0}
+
+  .tabs{display:grid;grid-template-columns:1fr 1fr;margin:22px 28px 0;border:1px solid var(--line);background:var(--paper)}
+  .tabs button{appearance:none;border:0;background:transparent;padding:12px 10px;cursor:pointer;
+    font-family:var(--mono);font-size:11.5px;font-weight:700;letter-spacing:.14em;color:var(--muted)}
+  .tabs button.on{background:var(--navy);color:#fff}
+
+  .fc-body{padding:24px 28px 28px}
+  .sec-label{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.2em;color:var(--muted);
+    text-transform:uppercase;display:flex;align-items:center;gap:12px;margin:0 0 12px}
+  .sec-label::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .wallets{display:grid;gap:9px}
+  .wallet{display:flex;align-items:center;gap:14px;padding:13px 14px;border:1px solid var(--line);background:#fff;
+    cursor:pointer;font-family:inherit;text-align:left;transition:border-color .15s, transform .15s}
+  .wallet:hover{border-color:var(--blue);transform:translateY(-1px)}
+  .wallet .glyph{width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    font-family:var(--mono);font-size:12px;font-weight:700;color:#fff}
+  .wallet b{display:block;font-size:14px;font-weight:800;letter-spacing:.01em}
+  .wallet span{display:block;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.04em;margin-top:1px}
+  .wallet .go{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--blue);font-weight:700}
+
+  .divider{display:flex;align-items:center;gap:12px;margin:22px 0;
+    font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.2em;color:var(--muted)}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .field{margin-bottom:14px}
+  .field label{display:block;font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.18em;
+    color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+  .field input{width:100%;padding:13px 14px;border:1px solid var(--line);background:var(--paper);
+    font-family:var(--sans);font-size:15px;color:var(--ink);outline:none;transition:border-color .15s}
+  .field input:focus{border-color:var(--blue);background:#fff}
+  .field .err{display:none;font-family:var(--mono);font-size:10px;color:#a23a3a;margin-top:5px;letter-spacing:.06em}
+  .field.bad input{border-color:#a23a3a}
+  .field.bad .err{display:block}
+
+  .submit{width:100%;padding:16px 20px;border:0;background:var(--blue);color:#fff;cursor:pointer;
+    font-family:var(--sans);font-weight:800;font-size:13.5px;letter-spacing:.1em;text-transform:uppercase;
+    clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+    transition:background .18s, transform .15s}
+  .submit:hover{background:var(--blue-d);transform:translateY(-1px)}
+  .submit:active{transform:translateY(1px)}
+  .submit.gold{background:var(--gold);color:var(--navy)}
+  .submit.gold:hover{background:var(--gold-d);color:#fff}
+
+  .console{margin-top:18px;background:var(--navy);color:#7cffa6;font-family:var(--mono);font-size:11px;
+    letter-spacing:.04em;padding:12px 14px;min-height:62px;line-height:1.7}
+  .console .dim{color:#9fb3d0}
+  .console .gold{color:var(--gold)}
+
+  .fc-foot{padding:0 28px 24px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--muted)}
+  .fc-foot a{color:var(--blue);font-weight:700;text-decoration:none}
+
+  .hidden{display:none !important}
+
+  /* ── RESPONSIVE ── */
+  @media (max-width:980px){
+    .auth{grid-template-columns:1fr}
+    .pane{padding:36px 24px 30px;min-height:0}
+    .pane h1{margin-top:26px;font-size:clamp(28px,7vw,40px)}
+    .doctrine{display:none}
+    .pane-stats{margin-top:24px}
+    .panel{padding:28px 16px 48px}
+  }
+  @media (max-width:480px){
+    .fc-head,.fc-body{padding-left:18px;padding-right:18px}
+    .tabs{margin-left:18px;margin-right:18px}
+    .fc-foot{padding-left:18px;padding-right:18px}
+  }
+  @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+
+<div class="gov-strip" role="note">
+  <div class="in">
+    <span><b>★</b> CITIZEN ACCESS — OFFICIAL PORTAL OF THE NETWORK STATE №001</span>
+    <span>BLK 21 408 932 · CHAIN ONLINE</span>
+  </div>
+</div>
+
+<div class="auth">
+
+  <!-- LEFT — state pane -->
+  <aside class="pane" data-screen-label="Auth left pane">
+    <a class="brand" href="Home.html">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <polygon points="15,1 25,5 29,15 25,25 15,29 5,25 1,15 5,5" stroke="#c8a96a" stroke-width="1.8" fill="none"/>
+        <text x="15" y="19.5" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#c8a96a">CR</text>
+      </svg>
+      CryptRepublic
+    </a>
+
+    <h1>Citizen<br />access <b>point.</b></h1>
+    <p class="sub" style="font-size: 17px">Authenticate with your sovereign wallet — the key that is also your passport — or with the e-mail bound to your citizen record.</p>
+
+    <div class="pane-stats" style="text-align: center">
+      <div><b>48 392</b><span style="font-size: 12px">Citizens</span></div>
+      <div><b>21 408 932</b><span style="font-size: 12px">Block height</span></div>
+      <div><b>100.00%</b><span style="font-size: 12px">Uptime · 30d</span></div>
+    </div>
+
+    <div class="doctrine">
+      <p style="font-size: 14px">"No clerk shall stand between a citizen and the Republic. The chain authenticates; the chain admits."</p>
+      <cite style="font-size: 13px">— CONSTITUTION ART. II §4 · RATIFIED MMXXVI</cite>
+    </div>
+  </aside>
+
+  <!-- RIGHT — form panel -->
+  <main class="panel" data-screen-label="Auth form">
+    <div class="form-card">
+      <div class="fc-head">
+        <div class="fc-kicker">FORM CR-AUTH-01</div>
+        <h2 id="formTitle">Sign in to the Republic</h2>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button id="tabIn" class="on" role="tab" aria-selected="true">SIGN IN</button>
+        <button id="tabUp" role="tab" aria-selected="false">REGISTER</button>
+      </div>
+
+      <div class="fc-body">
+        <!-- wallets -->
+        <p class="sec-label" id="walletLabel">WITH SOVEREIGN WALLET</p>
+        <div class="wallets">
+          <button class="wallet" data-wallet="MetaMask" data-addr="0x7a3f…d402">
+            <span class="glyph" style="background:#e2761b">MM</span>
+            <span><b>MetaMask</b><span>Browser signature · EIP-4361</span></span>
+            <span class="go">CONNECT →</span>
+          </button>
+          <button class="wallet" data-wallet="WalletConnect" data-addr="0x91cc…08be">
+            <span class="glyph" style="background:#3b99fc">WC</span>
+            <span><b>WalletConnect</b><span>Scan from any mobile wallet</span></span>
+            <span class="go">CONNECT →</span>
+          </button>
+          <button class="wallet" data-wallet="Ledger" data-addr="0xb002…77f1">
+            <span class="glyph" style="background:#0a1929;border:1px solid var(--line)">LD</span>
+            <span><b>Ledger</b><span>Hardware signature · cold seal</span></span>
+            <span class="go">CONNECT →</span>
+          </button>
+        </div>
+
+        <div class="divider" style="font-size: 15px">OR WITH E-MAIL</div>
+
+        <!-- email form -->
+        <form id="emailForm" novalidate>
+          <div class="field hidden" id="fName">
+            <label for="inName">FULL OR CHOSEN NAME</label>
+            <input id="inName" type="text" autocomplete="name" placeholder="A. Nakadai" />
+            <div class="err">› NAME IS REQUIRED FOR THE CITIZEN RECORD</div>
+          </div>
+          <div class="field" id="fEmail">
+            <label for="inEmail" style="font-size: 13px">E-MAIL OF RECORD</label>
+            <input id="inEmail" type="email" autocomplete="email" placeholder="citizen@example.org" />
+            <div class="err">› ENTER A VALID E-MAIL ADDRESS</div>
+          </div>
+          <div class="field" id="fPass">
+            <label for="inPass" id="passLabel" style="font-size: 14px">PASSPHRASE</label>
+            <input id="inPass" type="password" autocomplete="current-password" placeholder="••••••••••••" />
+            <div class="err">› PASSPHRASE MUST BE AT LEAST 8 CHARACTERS</div>
+          </div>
+          <button class="submit" id="submitBtn" type="submit">AUTHENTICATE →</button>
+        </form>
+
+        <div class="console" id="console" aria-live="polite">
+          <span class="dim">&gt; cr-auth v2.6 · awaiting credentials…</span>
+        </div>
+      </div>
+
+      <div class="fc-foot">
+        <span id="footSwap" style="font-size: 12px">No record yet? <a href="#" id="footLink">Register &amp; mint a passport</a></span>
+        <span><a href="#" style="font-size: 13px">Recover via 7 witnesses</a></span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const tabIn = document.getElementById('tabIn');
+  const tabUp = document.getElementById('tabUp');
+  const formTitle = document.getElementById('formTitle');
+  const walletLabel = document.getElementById('walletLabel');
+  const fName = document.getElementById('fName');
+  const passLabel = document.getElementById('passLabel');
+  const submitBtn = document.getElementById('submitBtn');
+  const footSwap = document.getElementById('footSwap');
+  const consoleEl = document.getElementById('console');
+  let mode = 'in';
+  let busy = false;
+
+  function setMode(m) {
+    mode = m;
+    const signin = m === 'in';
+    tabIn.classList.toggle('on', signin);
+    tabUp.classList.toggle('on', !signin);
+    tabIn.setAttribute('aria-selected', signin);
+    tabUp.setAttribute('aria-selected', !signin);
+    formTitle.textContent = signin ? 'Sign in to the Republic' : 'Register as a citizen';
+    walletLabel.textContent = signin ? 'WITH SOVEREIGN WALLET' : 'REGISTER WITH WALLET';
+    fName.classList.toggle('hidden', signin);
+    passLabel.textContent = signin ? 'PASSPHRASE' : 'CHOOSE A PASSPHRASE';
+    document.getElementById('inPass').autocomplete = signin ? 'current-password' : 'new-password';
+    submitBtn.textContent = signin ? 'AUTHENTICATE →' : 'CREATE RECORD & PROCEED TO MINT →';
+    submitBtn.classList.toggle('gold', !signin);
+    footSwap.innerHTML = signin
+      ? 'No record yet? <a href="#" id="footLink">Register &amp; mint a passport</a>'
+      : 'Already a citizen? <a href="#" id="footLink">Sign in instead</a>';
+    bindFootLink();
+    log(['<span class="dim">&gt; mode: ' + (signin ? 'SIGN-IN' : 'REGISTRATION') + ' · awaiting credentials…</span>']);
+  }
+  function bindFootLink() {
+    const l = document.getElementById('footLink');
+    if (l) l.addEventListener('click', (e) => { e.preventDefault(); setMode(mode === 'in' ? 'up' : 'in'); });
+  }
+  tabIn.addEventListener('click', () => setMode('in'));
+  tabUp.addEventListener('click', () => setMode('up'));
+  bindFootLink();
+
+  function log(lines) { consoleEl.innerHTML = lines.join('<br>'); }
+  function seq(lines, done) {
+    busy = true;
+    let shown = [];
+    lines.forEach((l, i) => {
+      setTimeout(() => {
+        shown.push(l);
+        log(shown);
+        if (i === lines.length - 1) { busy = false; if (done) done(); }
+      }, 520 * (i + 1));
+    });
+  }
+
+  // Wallet connect (simulated)
+  document.querySelectorAll('.wallet').forEach((w) => {
+    w.addEventListener('click', () => {
+      if (busy) return;
+      const name = w.dataset.wallet, addr = w.dataset.addr;
+      seq([
+        '<span class="dim">&gt; requesting ' + name + ' session…</span>',
+        '<span class="dim">&gt; sign-in with chain · EIP-4361 message issued</span>',
+        '&gt; signature verified · ' + addr,
+        mode === 'in'
+          ? '<span class="gold">&gt; passport located · CITIZEN №04 392 · session sealed ✓</span>'
+          : '<span class="gold">&gt; no passport on record · routing to mint…</span>',
+        '<span class="dim">&gt; redirecting…</span>',
+      ], () => { window.location.href = 'Dashboard.html'; });
+    });
+  });
+
+  // Email form
+  document.getElementById('emailForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (busy) return;
+    const name = document.getElementById('inName');
+    const email = document.getElementById('inEmail');
+    const pass = document.getElementById('inPass');
+    let ok = true;
+    const need = (el, holder, valid) => { holder.classList.toggle('bad', !valid); if (!valid) ok = false; };
+    if (mode === 'up') need(name, fName, name.value.trim().length > 1);
+    need(email, document.getElementById('fEmail'), /.+@.+\..+/.test(email.value));
+    need(pass, document.getElementById('fPass'), pass.value.length >= 8);
+    if (!ok) { log(['<span class="dim">&gt; validation failed · correct the fields marked in red</span>']); return; }
+    seq(mode === 'in' ? [
+      '<span class="dim">&gt; verifying e-mail of record…</span>',
+      '&gt; oath hash matched · 0x9f3a…cafe',
+      '<span class="gold">&gt; session sealed · CITIZEN №04 392 ✓</span>',
+      '<span class="dim">&gt; redirecting…</span>',
+    ] : [
+      '<span class="dim">&gt; creating citizen record…</span>',
+      '&gt; record CR-' + Math.floor(100000 + Math.random() * 899999) + ' written to mempool',
+      '<span class="gold">&gt; record created · passport not yet minted</span>',
+      '<span class="dim">&gt; routing to mint flow…</span>',
+    ], () => { window.location.href = 'Dashboard.html'; });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Citizen Dashboard · CryptRepublic</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { font-family: 'Archivo', system-ui, sans-serif; }
+  button { font-family: inherit; }
+  /* Smooth screen transitions */
+  .dash-screen-enter { opacity: 0; transform: translateY(6px); }
+  .dash-screen-active { opacity: 1; transform: translateY(0); transition: opacity .25s ease, transform .25s ease; }
+
+  /* ── responsive shell ── */
+  .cr-backdrop{position:fixed;inset:0;background:rgba(10,25,41,.55);z-index:999;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+  .cr-burger{display:none !important}
+  .cr-sidebar{scrollbar-width:thin}
+  @media (max-width:1024px){
+    .cr-app{display:block !important}
+    .cr-burger{display:inline-flex !important;align-items:center;justify-content:center}
+    .cr-sidebar{position:fixed !important;top:0;left:0;bottom:0;width:282px;min-height:100vh;
+      transform:translateX(-105%);transition:transform .28s cubic-bezier(.3,.7,.3,1);z-index:1000;overflow-y:auto}
+    .cr-sidebar.open{transform:translateX(0);box-shadow:24px 0 80px rgba(0,0,0,.35)}
+  }
+  @media (max-width:860px){
+    .cr-hide-sm{display:none !important}
+  }
+  @media (max-width:760px){
+    .cr-main [style*="grid-template-columns"]{grid-template-columns:1fr !important}
+    .cr-main [style*="padding: 32px"]{padding:16px !important}
+    .cr-main [style*="font-size: 84px"]{font-size:46px !important}
+    .cr-main [style*="font-size: 72px"]{font-size:42px !important}
+    .cr-main [style*="font-size: 68px"]{font-size:38px !important}
+    .cr-main [style*="font-size: 56px"]{font-size:34px !important}
+    .cr-main [style*="font-size: 48px"]{font-size:30px !important}
+    .cr-main [style*="font-size: 44px"]{font-size:28px !important}
+    .cr-main [style*="font-size: 42px"]{font-size:28px !important}
+    .cr-main [style*="font-size: 40px"]{font-size:26px !important}
+    .cr-main aside{position:static !important}
+    .cr-topbar{padding:12px 16px !important}
+  }
+  button{transition:opacity .15s ease, transform .12s ease}
+  button:active{transform:translateY(1px)}
+
+  /* ═══ Gov retheme: squared corners + Archivo / IBM Plex Mono ═══ */
+  *{border-radius:0 !important}
+  [style*="Manrope"]{font-family:'Archivo',system-ui,sans-serif !important}
+  [style*="Newsreader"]{font-family:'Archivo',system-ui,sans-serif !important;font-style:normal !important;font-weight:700 !important}
+  [style*="JetBrains"],[style*="Instrument"]{font-family:'IBM Plex Mono',ui-monospace,monospace !important;font-style:normal !important}
+  svg text{font-family:'IBM Plex Mono',ui-monospace,monospace}
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+// Theme tokens are exposed via window.CR_TOKENS() so child screens can call useTokens()
+const { useState, useEffect, useMemo, useRef } = React;
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "theme": "programme",
+  "wordmark": "single",
+  "fontPair": "manrope-newsreader",
+  "citizenBase": 101600,
+  "logoVariant": "seal",
+  "heroVariant": "default"
+}/*EDITMODE-END*/;
+
+const THEMES = {
+  programme: { // Default — e-Residency aligned
+    name: 'Programme',
+    bg: '#f6f7f9', cardBg: '#ffffff', fg: '#0a1929', muted: '#5a6a7d',
+    rule: '#e5eaef', tag: '#5a6a7d', gold: '#1957d3', goldDeep: '#0e3a9b',
+    success: '#1f8a5b', selectedBg: '#eef3fc',
+    passportBg: '#0a2540', passportFg: '#e8e0cc',
+    sidebarBg: '#0a1929', sidebarFg: '#ffffff', sidebarMuted: 'rgba(255,255,255,0.55)',
+    accentGold: '#c8a96a',
+  },
+  forest: { // Brutalist Swiss forest dark
+    name: 'Operating Ledger',
+    bg: '#06100b', cardBg: '#0c1a14', fg: '#e8e0cc', muted: 'rgba(232,224,204,0.65)',
+    rule: '#1f3a2e', tag: '#c8a96a', gold: '#c8a96a', goldDeep: '#9d8246',
+    success: '#7cffa6', selectedBg: '#0e2218',
+    passportBg: '#06100b', passportFg: '#e8e0cc',
+    sidebarBg: '#020906', sidebarFg: '#e8e0cc', sidebarMuted: 'rgba(232,224,204,0.55)',
+    accentGold: '#c8a96a',
+  },
+  paper: { // Cream Manifesto
+    name: 'Manifesto',
+    bg: '#f4f1ea', cardBg: '#ffffff', fg: '#0a0a0a', muted: 'rgba(10,10,10,0.62)',
+    rule: '#0a0a0a', tag: '#0a0a0a', gold: '#9d8246', goldDeep: '#705a2d',
+    success: '#1f8a5b', selectedBg: '#fffef8',
+    passportBg: '#0a0a0a', passportFg: '#f4f1ea',
+    sidebarBg: '#0a0a0a', sidebarFg: '#f4f1ea', sidebarMuted: 'rgba(244,241,234,0.55)',
+    accentGold: '#c8a96a',
+  },
+};
+
+let CURRENT_TWEAKS = TWEAK_DEFAULTS;
+window.CR_TOKENS = function () { return THEMES[CURRENT_TWEAKS.theme] || THEMES.programme; };
+
+function useTweaks(defaults) {
+  const [t, setT] = useState(defaults);
+  useEffect(() => { CURRENT_TWEAKS = t; }, [t]);
+
+  function setTweak(keyOrObj, val) {
+    setT((prev) => {
+      const edits = typeof keyOrObj === 'string' ? { [keyOrObj]: val } : keyOrObj;
+      const next = { ...prev, ...edits };
+      try { window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*'); } catch (e) {}
+      return next;
+    });
+  }
+  return [t, setTweak];
+}
+
+// ─── SEAL + WORDMARK ───────────────────────────────────────────────────
+function Seal({ size = 32, color = '#fff' }) {
+  const r = size / 2;
+  const oct = Array.from({ length: 8 }, (_, i) => {
+    const a = (Math.PI * 2 * i) / 8 - Math.PI / 8;
+    return `${r + r * Math.cos(a)},${r + r * Math.sin(a)}`;
+  }).join(' ');
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'block' }}>
+      <polygon points={oct} fill="none" stroke={color} strokeWidth={size * 0.04} />
+      <polygon points={oct} fill="none" stroke={color} strokeWidth={size * 0.01} transform={`scale(0.82) translate(${size * 0.11},${size * 0.11})`} />
+      <text x="50%" y="58%" textAnchor="middle" fontFamily="'Newsreader', serif" fontSize={size * 0.42} fill={color}>CR</text>
+    </svg>
+  );
+}
+
+function Wordmark({ variant, color, mutedColor }) {
+  if (variant === 'monogram') {
+    return <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ width: 36, height: 36, background: color, color: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ color: mutedColor, fontFamily: "'Newsreader', serif", fontSize: 22, fontWeight: 500 }}>CR</span>
+      </div>
+      <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-0.01em', color }}>CryptRepublic</div>
+    </div>;
+  }
+  if (variant === 'stacked') {
+    return <div style={{ color, fontFamily: "'Newsreader', serif", lineHeight: 0.9 }}>
+      <div style={{ fontSize: 22, fontStyle: 'italic' }}>Crypt</div>
+      <div style={{ fontSize: 22, fontStyle: 'italic', marginLeft: 18 }}>Republic</div>
+    </div>;
+  }
+  if (variant === 'serif') {
+    return <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <Seal size={32} color={color} />
+      <div style={{ fontFamily: "'Newsreader', serif", fontStyle: 'italic', fontWeight: 500, fontSize: 22, color, letterSpacing: '-0.01em' }}>CryptRepublic</div>
+    </div>;
+  }
+  // single (default)
+  return <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <Seal size={32} color={color} />
+    <div style={{ fontWeight: 800, fontSize: 18, letterSpacing: '-0.01em', color }}>CryptRepublic</div>
+  </div>;
+}
+
+// ─── ICONS ─────────────────────────────────────────────────────────────
+function NavIcon({ kind, color, size = 18 }) {
+  const p = { stroke: color, strokeWidth: 1.6, fill: 'none' };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: 'block', flexShrink: 0 }}>
+      {kind === 'home' && <g {...p}><path d="M3 11 L12 3 L21 11" /><path d="M5 10 V21 H19 V10" /><rect x="10" y="14" width="4" height="7" /></g>}
+      {kind === 'gov' && <g {...p}><path d="M3 21 H21" /><path d="M3 21 L3 10 L21 10 L21 21" /><path d="M2 10 L12 4 L22 10" /><line x1="7" y1="10" x2="7" y2="21" /><line x1="12" y1="10" x2="12" y2="21" /><line x1="17" y1="10" x2="17" y2="21" /></g>}
+      {kind === 'treasury' && <g {...p}><rect x="3" y="6" width="18" height="14" rx="1" /><path d="M3 10 H21" /><circle cx="12" cy="15" r="2.5" /></g>}
+      {kind === 'population' && <g {...p}><circle cx="12" cy="12" r="9" /><ellipse cx="12" cy="12" rx="9" ry="4" /><ellipse cx="12" cy="12" rx="4" ry="9" /></g>}
+      {kind === 'passport' && <g {...p}><rect x="5" y="3" width="14" height="18" rx="1" /><circle cx="12" cy="10" r="3" /><path d="M9 16 H15" /><path d="M9 18 H15" /></g>}
+      {kind === 'embassy' && <g {...p}><path d="M3 21 H21" /><path d="M5 21 V11" /><path d="M19 21 V11" /><path d="M3 11 L12 5 L21 11" /><rect x="10" y="14" width="4" height="7" /></g>}
+      {kind === 'mint' && <g {...p}><circle cx="12" cy="12" r="9" /><path d="M12 7 V17" /><path d="M7 12 H17" /></g>}
+      {kind === 'holdings' && <g {...p}><polygon points="12,3 21,8 21,16 12,21 3,16 3,8" /><polyline points="3,8 12,13 21,8" /><line x1="12" y1="13" x2="12" y2="21" /></g>}
+      {kind === 'wallet' && <g {...p}><rect x="3" y="7" width="18" height="12" rx="2" /><path d="M3 9 H 17 V 5 H 5 Q 3 5 3 7 Z" /><circle cx="17" cy="13" r="1.5" fill={color} /></g>}
+    </svg>
+  );
+}
+
+// ─── SIDEBAR ───────────────────────────────────────────────────────────
+function Sidebar({ t, current, goto, citizenNo, wordmark, open }) {
+  const items = [
+    { id: 'home', label: 'Citizen home', icon: 'home' },
+    { id: 'governance', label: 'Constitution & votes', icon: 'gov', badge: 14 },
+    { id: 'treasury', label: 'Treasury', icon: 'treasury' },
+    { id: 'population', label: 'Population', icon: 'population' },
+    { id: 'passport', label: 'Your passport', icon: 'passport' },
+    { id: 'holdings', label: 'Sovereign holdings', icon: 'holdings', badge: '$' },
+    { id: 'embassies', label: 'Embassies', icon: 'embassy' },
+    { id: 'wallet', label: 'Wallet & chain', icon: 'wallet' },
+  ];
+
+  return (
+    <aside className={'cr-sidebar' + (open ? ' open' : '')} style={{
+      background: t.sidebarBg, color: t.sidebarFg, padding: '22px 18px 18px',
+      display: 'flex', flexDirection: 'column', gap: 18, minHeight: '100vh',
+      borderRight: `1px solid ${t.rule}`,
+    }}>
+      <div style={{ padding: '0 8px 14px', borderBottom: `1px solid rgba(255,255,255,0.10)` }}>
+        <Wordmark variant={wordmark} color={t.sidebarFg} mutedColor={t.sidebarBg} />
+        <div style={{ marginTop: 8, fontSize: 11, color: t.sidebarMuted, fontWeight: 600, letterSpacing: '0.04em' }}>
+          NETWORK STATE №001
+        </div>
+      </div>
+
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {items.map((it) => (
+          <button key={it.id} onClick={() => goto(it.id)} style={{
+            display: 'flex', alignItems: 'center', gap: 12, padding: '11px 12px',
+            background: current === it.id ? 'rgba(255,255,255,0.08)' : 'transparent',
+            border: 'none', color: t.sidebarFg, borderRadius: 8, cursor: 'pointer',
+            fontSize: 14, fontWeight: 600, fontFamily: 'inherit', textAlign: 'left',
+            borderLeft: current === it.id ? `2px solid ${t.accentGold}` : '2px solid transparent',
+            paddingLeft: current === it.id ? 10 : 12,
+          }}>
+            <NavIcon kind={it.icon} color={current === it.id ? t.accentGold : t.sidebarFg} />
+            <span style={{ flex: 1 }}>{it.label}</span>
+            {it.badge && (
+              <span style={{ fontSize: 10, fontWeight: 700, background: t.accentGold, color: t.sidebarBg, padding: '2px 7px', borderRadius: 999, letterSpacing: '0.04em' }}>
+                {it.badge}
+              </span>
+            )}
+          </button>
+        ))}
+      </nav>
+
+      <div style={{ borderTop: `1px solid rgba(255,255,255,0.10)`, paddingTop: 14, marginTop: 8 }}>
+        <button onClick={() => goto('mint')} style={{
+          width: '100%', padding: '11px 12px', borderRadius: 8, border: 'none',
+          background: current === 'mint' ? t.accentGold : 'rgba(255,255,255,0.08)',
+          color: current === 'mint' ? t.sidebarBg : t.sidebarFg, fontFamily: 'inherit', fontWeight: 700,
+          fontSize: 13, letterSpacing: '0.04em', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <NavIcon kind="mint" color={current === 'mint' ? t.sidebarBg : t.accentGold} />
+          MINT A PASSPORT
+        </button>
+      </div>
+
+      {/* Citizen card */}
+      <div style={{ marginTop: 'auto', padding: 14, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)', borderRadius: 10 }}>
+        <div style={{ fontSize: 10, color: t.sidebarMuted, fontWeight: 700, letterSpacing: '0.12em' }}>CITIZEN</div>
+        <div style={{ fontSize: 15, fontWeight: 700, marginTop: 4, fontFamily: "'Newsreader', serif", fontStyle: 'italic' }}>A. Nakadai</div>
+        <div style={{ fontSize: 11, color: t.sidebarMuted, marginTop: 2, fontFamily: "'JetBrains Mono', monospace" }}>№{citizenNo} · Lisbon</div>
+        <div style={{ marginTop: 10, padding: '6px 8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, fontSize: 11, fontFamily: "'JetBrains Mono', monospace", display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ color: t.sidebarMuted }}>BLK</span>
+          <LiveNumber base={21408932} step={2} interval={1200} style={{ color: t.accentGold }} />
+        </div>
+        <a href="Auth.html" style={{ display: 'block', marginTop: 10, fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', color: t.sidebarMuted, textDecoration: 'none', fontFamily: "'JetBrains Mono', monospace" }}>SIGN OUT →</a>
+      </div>
+    </aside>
+  );
+}
+
+// ─── TOPBAR ────────────────────────────────────────────────────────────
+function Topbar({ t, current, onMenu }) {
+  const titles = {
+    home: ['Citizen home', 'Your standing in the Republic'],
+    governance: ['Constitution & Active Votes', '14 amendments open · 5 closing this week'],
+    treasury: ['Treasury', '$14.2M reserve · governed by every citizen'],
+    population: ['Population', '48,392 citizens · 91 countries · live census'],
+    passport: ['Your passport', 'Soulbound credential · sealed at block 21 408 920'],
+    embassies: ['Embassies', '27 cities · 22 countries · 4 opening Q2'],
+    holdings: ['Sovereign Holdings', '$428M AUM · real estate, patents & equity owned by every citizen'],
+    wallet: ['Wallet & chain', 'CryptRepublic L2 · 0x7a3f…d402 · 2 480 $CRYPT'],
+    mint: ['Mint a passport', 'Onboarding flow · 72-hour activation'],
+  };
+  const [title, sub] = titles[current] || titles.home;
+  return (
+    <header className="cr-topbar" style={{
+      padding: '20px 32px', borderBottom: `1px solid ${t.rule}`, background: t.cardBg,
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
+      position: 'sticky', top: 0, zIndex: 40,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+        <button className="cr-burger" onClick={onMenu} aria-label="Open navigation" style={{
+          background: 'transparent', border: `1px solid ${t.rule}`, borderRadius: 8,
+          padding: 8, cursor: 'pointer', color: t.fg, flexShrink: 0,
+        }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
+        </button>
+        <div style={{ minWidth: 0 }}>
+          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', color: t.fg, fontFamily: "'Newsreader', serif", fontStyle: 'italic', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</h1>
+          <div className="cr-hide-sm" style={{ fontSize: 13, color: t.muted, marginTop: 2 }}>{sub}</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 12, color: t.muted, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.06em' }}>
+        <span style={{ color: t.gold, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#1f8a5b', boxShadow: '0 0 8px #1f8a5b' }} />
+          CHAIN ONLINE
+        </span>
+        <span className="cr-hide-sm">QUORUM 73%</span>
+        <span className="cr-hide-sm">14:22 UTC</span>
+        <a href="Home.html" style={{ color: t.fg, textDecoration: 'none', padding: '8px 14px', border: `1px solid ${t.rule}`, borderRadius: 999, fontSize: 12, fontWeight: 700 }}>← Site</a>
+      </div>
+    </header>
+  );
+}
+window.Topbar = Topbar;
+
+// ─── APP ───────────────────────────────────────────────────────────────
+function App() {
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [current, setCurrent] = useState('home');
+  const [citizenNo, setCitizenNo] = useState('04392');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const t = THEMES[tweaks.theme] || THEMES.programme;
+
+  function goto(id) { setCurrent(id); setMenuOpen(false); window.scrollTo({ top: 0, behavior: 'instant' }); }
+  function onMintComplete(newNo) { setCitizenNo(newNo); setCurrent('home'); }
+
+  // Override CR_TOKENS so screens get the live theme
+  useEffect(() => { window.CR_TOKENS = () => t; }, [t]);
+
+  // Resolve heroVariant if any (homescreen variation)
+  return (
+    <div className="cr-app" style={{ background: t.bg, color: t.fg, minHeight: '100vh', display: 'grid', gridTemplateColumns: '260px 1fr' }}>
+      {menuOpen && <div className="cr-backdrop" onClick={() => setMenuOpen(false)} />}
+      <Sidebar t={t} current={current} goto={goto} citizenNo={citizenNo} wordmark={tweaks.wordmark} open={menuOpen} />
+      <main className="cr-main" style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        <Topbar t={t} current={current} onMenu={() => setMenuOpen(true)} />
+        <ScreenSwitcher current={current} goto={goto} citizenNo={citizenNo} onMintComplete={onMintComplete} />
+      </main>
+      <TweaksUI t={t} tweaks={tweaks} setTweak={setTweak} />
+    </div>
+  );
+}
+
+function ScreenSwitcher({ current, goto, citizenNo, onMintComplete }) {
+  const [mounted, setMounted] = useState(current);
+  useEffect(() => { setMounted(current); }, [current]);
+  const screens = {
+    home: <HomeScreen goto={goto} citizenNo={citizenNo} />,
+    governance: <GovernanceScreen goto={goto} />,
+    treasury: <TreasuryScreen goto={goto} />,
+    population: <PopulationScreen />,
+    passport: <PassportScreen citizenNo={citizenNo} />,
+    embassies: <EmbassiesScreen />,
+    holdings: <HoldingsScreen />,
+    wallet: <WalletScreen citizenNo={citizenNo} />,
+    mint: <MintScreen onComplete={onMintComplete} />,
+  };
+  return (
+    <div key={mounted} className="dash-screen-enter dash-screen-active" style={{ minHeight: 0 }}>
+      {screens[mounted] || screens.home}
+    </div>
+  );
+}
+
+// ─── TWEAKS PANEL (built-in, minimal — host protocol + controls) ───────
+function TweaksUI({ t, tweaks, setTweak }) {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    function onMsg(e) {
+      const data = e && e.data;
+      if (!data || typeof data !== 'object') return;
+      if (data.type === '__activate_edit_mode') setOpen(true);
+      if (data.type === '__deactivate_edit_mode') setOpen(false);
+    }
+    window.addEventListener('message', onMsg);
+    try { window.parent.postMessage({ type: '__edit_mode_available' }, '*'); } catch (e) {}
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  function close() {
+    setOpen(false);
+    try { window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*'); } catch (e) {}
+  }
+
+  if (!open) return null;
+
+  const SectionLabel = ({ children }) => (
+    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', color: 'rgba(0,0,0,0.45)', textTransform: 'uppercase', marginTop: 12, marginBottom: 4 }}>{children}</div>
+  );
+
+  const themeOptions = [
+    { key: 'programme', label: 'Programme', sw: ['#0a1929', '#1957d3', '#c8a96a'] },
+    { key: 'forest', label: 'Operating', sw: ['#0c1a14', '#c8a96a', '#e8e0cc'] },
+    { key: 'paper', label: 'Manifesto', sw: ['#f4f1ea', '#0a0a0a', '#9d8246'] },
+  ];
+
+  return (
+    <div style={{
+      position: 'fixed', right: 16, bottom: 16, zIndex: 2147483646,
+      width: 300, maxHeight: 'calc(100vh - 32px)',
+      background: 'rgba(250,249,247,0.96)', color: '#0a1929',
+      border: '0.5px solid rgba(0,0,0,0.10)', borderRadius: 14,
+      boxShadow: '0 12px 40px rgba(0,0,0,0.18)', fontFamily: "'Manrope', sans-serif",
+      backdropFilter: 'blur(20px) saturate(160%)', WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+      overflow: 'hidden', display: 'flex', flexDirection: 'column',
+    }}>
+      <div style={{ padding: '12px 14px', borderBottom: '1px solid rgba(0,0,0,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <b style={{ fontSize: 13, fontWeight: 700 }}>Tweaks</b>
+        <button onClick={close} style={{ border: 0, background: 'transparent', cursor: 'pointer', fontSize: 16, lineHeight: 1, color: 'rgba(0,0,0,0.55)' }}>×</button>
+      </div>
+      <div style={{ padding: '4px 14px 14px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12 }}>
+
+        <SectionLabel>Theme · color palette</SectionLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          {themeOptions.map((th) => (
+            <button key={th.key} onClick={() => setTweak('theme', th.key)} style={{
+              padding: 10, background: '#fff', border: `1px solid ${tweaks.theme === th.key ? '#1957d3' : 'rgba(0,0,0,0.08)'}`,
+              borderRadius: 8, cursor: 'pointer', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 6,
+            }}>
+              <div style={{ display: 'flex', gap: 3 }}>
+                {th.sw.map((c, i) => <div key={i} style={{ width: 16, height: 16, background: c, border: '1px solid rgba(0,0,0,0.08)' }} />)}
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 700 }}>{th.label}</div>
+            </button>
+          ))}
+        </div>
+
+        <SectionLabel>Light / dark</SectionLabel>
+        <Segmented value={tweaks.theme === 'forest' ? 'dark' : 'light'} options={[
+          { k: 'light', l: 'Light' }, { k: 'dark', l: 'Dark' },
+        ]} onChange={(v) => setTweak('theme', v === 'dark' ? 'forest' : 'programme')} />
+
+        <SectionLabel>Logo / wordmark</SectionLabel>
+        <Segmented value={tweaks.wordmark} options={[
+          { k: 'single', l: 'Mark + text' },
+          { k: 'monogram', l: 'Monogram' },
+          { k: 'serif', l: 'Serif' },
+          { k: 'stacked', l: 'Stacked' },
+        ]} onChange={(v) => setTweak('wordmark', v)} />
+
+        <SectionLabel>Hero variant (homescreen)</SectionLabel>
+        <Segmented value={tweaks.heroVariant} options={[
+          { k: 'default', l: 'Observed' },
+          { k: 'numeric', l: 'Numeric' },
+        ]} onChange={(v) => setTweak('heroVariant', v)} />
+
+        <SectionLabel>Citizen population (live count)</SectionLabel>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <input type="range" min="1000" max="500000" step="100" value={tweaks.citizenBase}
+            onChange={(e) => setTweak('citizenBase', parseInt(e.target.value, 10))}
+            style={{ flex: 1, accentColor: '#1957d3' }} />
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: 'rgba(0,0,0,0.65)', minWidth: 60, textAlign: 'right' }}>
+            {tweaks.citizenBase.toLocaleString('en-US').replace(/,/g, ' ')}
+          </span>
+        </div>
+
+        <SectionLabel>Type pairing</SectionLabel>
+        <Segmented value={tweaks.fontPair} options={[
+          { k: 'manrope-newsreader', l: 'Manrope + Newsreader' },
+          { k: 'mono-serif', l: 'JetBrains + Instrument' },
+        ]} onChange={(v) => setTweak('fontPair', v)} />
+
+        <div style={{ marginTop: 16, padding: '10px 12px', background: 'rgba(0,0,0,0.04)', borderRadius: 8, fontSize: 11, color: 'rgba(0,0,0,0.6)', lineHeight: 1.45 }}>
+          Hint: open the canvas via <a href="CryptRepublic.html" style={{ color: '#1957d3', fontWeight: 700 }}>← Site</a> to see the three landing directions.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Segmented({ value, options, onChange }) {
+  return (
+    <div style={{ display: 'flex', background: 'rgba(0,0,0,0.06)', borderRadius: 8, padding: 2 }}>
+      {options.map((o) => (
+        <button key={o.k} onClick={() => onChange(o.k)} style={{
+          flex: 1, padding: '7px 8px', border: 0,
+          background: value === o.k ? '#fff' : 'transparent',
+          color: '#0a1929', borderRadius: 6, fontFamily: 'inherit',
+          fontSize: 11, fontWeight: 600, cursor: 'pointer',
+          boxShadow: value === o.k ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+        }}>{o.l}</button>
+      ))}
+    </div>
+  );
+}
+
+// Apply font pair globally
+function ApplyFontPair() {
+  return null; // placeholder; we'll inject via CSS variables in main render
+}
+
+window.App = App;
+</script>
+
+<!-- Screen + helper modules -->
+<script type="text/babel" src="dash-home.jsx"></script>
+<script type="text/babel" src="dash-gov-treasury.jsx"></script>
+<script type="text/babel" src="dash-population-embassies.jsx"></script>
+<script type="text/babel" src="dash-holdings.jsx"></script>
+<script type="text/babel" src="dash-mint.jsx"></script>
+
+<script type="text/babel" data-presets="env,react">
+// Mount after all the module scripts have evaluated.
+function mount() {
+  if (typeof App === 'undefined' || typeof HomeScreen === 'undefined') {
+    return requestAnimationFrame(mount);
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+}
+mount();
+</script>
+</body>
+</html>
