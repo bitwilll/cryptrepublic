@@ -27,6 +27,7 @@ const RPC_URL = "http://127.0.0.1:8545";
 // anvil default account #0 — LOCAL/THROWAWAY dev key ONLY.
 const ADMIN_PK = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" as Hex;
 const ADMIN_ADDR = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" as Address;
+const ZERO_BYTES32 = ("0x" + "0".repeat(64)) as Hex;
 
 export interface AnvilDeployment {
   rpcUrl: string;
@@ -35,7 +36,26 @@ export interface AnvilDeployment {
   token: Address;
   staking: Address;
   treasury: Address;
+  governance: Address;
+  distributor: Address;
   admin: { address: Address; privateKey: Hex };
+  /**
+   * LOCAL-ONLY. Admin-mint one passport per address so `totalCitizens()` reaches
+   * `minCitizensForProposal` (3 on anvil) and each address OWNS a soulbound
+   * tokenId (1..N in order). Admin holds `PASSPORT_ADMIN_ROLE`, so `adminMint`
+   * works. nameHash/motto/domicile are opaque local placeholders (a genesis
+   * citizen's nameHash is untranslatable by design — never asserted).
+   */
+  seedCitizensForGovernance(addresses: Address[]): void;
+  /**
+   * LOCAL-ONLY. Open a dividend epoch funded from the treasury GENESIS supply.
+   * Draws `amount` treasury -> admin (admin self-grants GOVERNANCE_ROLE to
+   * `disburse`, same pattern as `fundCryptAndRewards`, so NO supply is minted),
+   * then — admin holds `FUNDER_ROLE` on the distributor — `approve(distributor,
+   * amount)` + `openEpoch(amount)` (which PULLS the funds). Amount must be
+   * obviously sufficient (>= snapshotCitizens so perCitizen > 0).
+   */
+  openDividendEpoch(amount: bigint): void;
   /**
    * LOCAL-ONLY. Fund a test wallet with $CRYPT and top up the staking reward pool
    * from the treasury GENESIS supply (moves existing supply — never mints), so no
@@ -143,10 +163,14 @@ export async function startAnvilWithContracts(seedCitizens: Address[]): Promise<
     const token = created("CryptToken");
     const staking = created("CryptStaking");
     const treasury = created("CryptTreasury");
+    const governance = created("CryptGovernance");
+    const distributor = created("DividendDistributor");
     if (!passport) throw new Error("passport address not found in broadcast");
     if (!token) throw new Error("token address not found in broadcast");
     if (!staking) throw new Error("staking address not found in broadcast");
     if (!treasury) throw new Error("treasury address not found in broadcast");
+    if (!governance) throw new Error("governance address not found in broadcast");
+    if (!distributor) throw new Error("distributor address not found in broadcast");
 
     // Assert the passport actually has code before proceeding.
     const code = await client.getBytecode({ address: passport });
@@ -210,6 +234,36 @@ export async function startAnvilWithContracts(seedCitizens: Address[]): Promise<
       castSend(staking, "fundRewards(uint256)", [rewardAmount.toString()]);
     };
 
+    // Admin-mint one soulbound passport per address (admin holds PASSPORT_ADMIN_ROLE).
+    // nameHash/motto/domicile are opaque local placeholders (never asserted against
+    // the app's nameHashOf — a genesis/admin-mint nameHash is untranslatable).
+    const seedCitizensForGovernance = (addresses: Address[]): void => {
+      for (const who of addresses) {
+        const nameHash = keccak256(toBytes(who)); // deterministic, opaque placeholder
+        castSend(passport, "adminMint(address,bytes32,bytes32,bytes32)", [
+          who,
+          nameHash,
+          ZERO_BYTES32,
+          ZERO_BYTES32,
+        ]);
+      }
+    };
+
+    // Open a dividend epoch funded from treasury genesis. Draw `amount` treasury ->
+    // admin (same less-privileged disburse path as fundCryptAndRewards, no mint),
+    // then approve + openEpoch (admin holds FUNDER_ROLE; openEpoch PULLS the funds).
+    const openDividendEpoch = (amount: bigint): void => {
+      const GOVERNANCE_ROLE = keccak256(toBytes("GOVERNANCE_ROLE"));
+      castSend(treasury, "grantRole(bytes32,address)", [GOVERNANCE_ROLE, ADMIN_ADDR]);
+      castSend(treasury, "disburse(address,address,uint256)", [
+        token,
+        ADMIN_ADDR,
+        amount.toString(),
+      ]);
+      castSend(token, "approve(address,uint256)", [distributor, amount.toString()]);
+      castSend(distributor, "openEpoch(uint256)", [amount.toString()]);
+    };
+
     return {
       rpcUrl: RPC_URL,
       chainId: 31337,
@@ -217,8 +271,12 @@ export async function startAnvilWithContracts(seedCitizens: Address[]): Promise<
       token,
       staking,
       treasury,
+      governance,
+      distributor,
       admin: { address: ADMIN_ADDR, privateKey: ADMIN_PK },
       fundCryptAndRewards,
+      seedCitizensForGovernance,
+      openDividendEpoch,
       stop,
     };
   } catch (e) {
