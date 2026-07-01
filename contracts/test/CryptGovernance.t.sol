@@ -16,6 +16,18 @@ contract MockTarget {
         lastValue = v;
         called = true;
     }
+
+    function recordAndReturn(uint256 v) external returns (uint256) {
+        lastValue = v;
+        called = true;
+        return v * 2;
+    }
+}
+
+contract Reverter {
+    function boom() external pure {
+        revert("boom");
+    }
 }
 
 contract CryptGovernanceTest is Test {
@@ -287,6 +299,79 @@ contract CryptGovernanceTest is Test {
         vm.prank(citizens[1]);
         vm.expectRevert(CryptGovernance.Unauthorized.selector);
         gov.cancel(id);
+    }
+
+    function test_CancelAfterExecuteReverts() public {
+        uint256 id = _passProposal(5);
+        vm.warp(block.timestamp + VOTING_PERIOD + EXEC_DELAY + 1);
+        gov.execute(id);
+        vm.prank(admin);
+        vm.expectRevert(CryptGovernance.AlreadyExecuted.selector);
+        gov.cancel(id);
+    }
+
+    function test_CancelTwiceReverts() public {
+        vm.prank(citizens[0]);
+        uint256 id = gov.propose(address(target), 0, _payload(1), keccak256("d"));
+        vm.prank(citizens[0]);
+        gov.cancel(id);
+        vm.prank(citizens[0]);
+        vm.expectRevert(CryptGovernance.AlreadyCancelled.selector);
+        gov.cancel(id);
+    }
+
+    function test_ExecuteReturnsData() public {
+        vm.prank(citizens[0]);
+        uint256 id = gov.propose(
+            address(target),
+            0,
+            abi.encodeWithSelector(MockTarget.recordAndReturn.selector, 21),
+            keccak256("d")
+        );
+        for (uint256 i; i < 3; i++) {
+            vm.prank(citizens[i]);
+            gov.castVote(id, _tokenIdOf(citizens[i]), CryptGovernance.Vote.For);
+        }
+        vm.warp(block.timestamp + VOTING_PERIOD + EXEC_DELAY + 1);
+        bytes memory ret = gov.execute(id);
+        assertEq(abi.decode(ret, (uint256)), 42);
+    }
+
+    function test_ExecuteFailedReverts() public {
+        // Allowlist a target whose call will revert (record on a non-contract selector).
+        Reverter r = new Reverter();
+        vm.prank(admin);
+        gov.setTargetAllowed(address(r), true);
+        vm.prank(citizens[0]);
+        uint256 id = gov.propose(
+            address(r), 0, abi.encodeWithSelector(Reverter.boom.selector), keccak256("d")
+        );
+        for (uint256 i; i < 3; i++) {
+            vm.prank(citizens[i]);
+            gov.castVote(id, _tokenIdOf(citizens[i]), CryptGovernance.Vote.For);
+        }
+        vm.warp(block.timestamp + VOTING_PERIOD + EXEC_DELAY + 1);
+        vm.expectRevert(CryptGovernance.ExecutionFailed.selector);
+        gov.execute(id);
+    }
+
+    function test_StateNonexistentIsPending() public view {
+        assertEq(uint256(gov.state(999)), uint256(CryptGovernance.State.Pending));
+    }
+
+    function test_ExecuteNotSucceededReverts() public {
+        // A defeated proposal cannot be executed.
+        vm.prank(citizens[0]);
+        uint256 id = gov.propose(address(target), 0, _payload(1), keccak256("d"));
+        vm.warp(block.timestamp + VOTING_PERIOD + EXEC_DELAY + 1); // no votes -> Defeated
+        vm.expectRevert(CryptGovernance.NotSucceeded.selector);
+        gov.execute(id);
+    }
+
+    function test_ReceiveEth() public {
+        (bool ok,) = address(gov).call{value: 1 ether}("");
+        assertTrue(ok);
+        assertEq(address(gov).balance, 1 ether);
     }
 
     function test_Setters() public {

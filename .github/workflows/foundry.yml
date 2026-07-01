@@ -14,3 +14,18 @@ jobs:
       - run: forge fmt --check
       - run: forge build
       - run: forge test -vvv
+      - name: Coverage gate
+        # --ir-minimum: the plain (optimizer-off) coverage build hits "stack too deep" on the
+        # CryptGovernance 13-field struct getter. The local gate in contracts/audit/triage.md is
+        # authoritative; this surfaces the summary in CI.
+        run: forge coverage --ir-minimum --report summary
+      - name: Static analysis (slither)
+        run: |
+          pip install slither-analyzer || true
+          slither . --filter-paths "lib/|test/|script/" \
+            || echo "::warning::slither reported findings — see contracts/audit/triage.md"
+        continue-on-error: true
+      - name: Solhint
+        run: npx --yes solhint 'src/**/*.sol' \
+          || echo "::warning::solhint findings — see contracts/audit/triage.md"
+        continue-on-error: true

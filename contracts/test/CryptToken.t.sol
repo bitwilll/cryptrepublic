@@ -98,6 +98,23 @@ contract CryptTokenTest is Test {
         token.transfer(alice, 1e18);
     }
 
+    function test_PauseSetsPausedFlag() public {
+        vm.startPrank(admin);
+        token.grantRole(token.PAUSER_ROLE(), admin);
+        token.pause();
+        vm.stopPrank();
+        assertTrue(token.paused());
+    }
+
+    function test_UnpauseClearsPausedFlag() public {
+        vm.startPrank(admin);
+        token.grantRole(token.PAUSER_ROLE(), admin);
+        token.pause();
+        token.unpause();
+        vm.stopPrank();
+        assertFalse(token.paused());
+    }
+
     function test_UnpauseRestoresTransfer() public {
         vm.startPrank(admin);
         token.grantRole(token.PAUSER_ROLE(), admin);
