@@ -22,6 +22,7 @@
     "guard:secrets": "bash scripts/guard-no-secret-columns.sh"
   },
   "dependencies": {
+    "@node-rs/argon2": "2.0.2",
     "@prisma/client": "^6.19.3",
     "next": "15.1.0",
     "react": "19.0.0",
@@ -51,7 +52,8 @@
       "@prisma/engines",
       "prisma",
       "esbuild",
-      "sharp"
+      "sharp",
+      "@node-rs/argon2"
     ]
   }
 }
