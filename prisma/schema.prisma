@@ -78,8 +78,41 @@ model CitizenshipApplication {
   motto          String?
   oathAcceptedAt DateTime?
   kycStatus      String    @default("NONE") // KycStatus union
+  // --- Wave 5 (mint) additions. ALL PUBLIC data — never a key/seed. ---
+  // The verified LinkedWallet/embedded EVM address bound at witness-request time
+  // (applicant-binding rule). PUBLIC address, not a secret.
+  applicantAddress String?
+  // The on-chain applicant nonce + deadline captured at witness-request time
+  // (stringified bigints), used to reject stale sigs and to reconstruct the exact
+  // attestations[] at seal time.
+  witnessNonce    String?
+  witnessDeadline String?
+  // Client-reported cache of the sealed mint (authoritative source is the chain,
+  // reconciled by PassportView via readPassportStatus).
+  sealTxHash     String?
+  citizenTokenId String?
+  sealedAt       DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
+  witnessSignatures WitnessSignature[]
+
   @@index([status])
+}
+
+/// One collected EIP-712 witness signature over an applicant's Attestation. ALL
+/// columns are PUBLIC data (a checksummed address + an EIP-712 signature + the
+/// nonce/deadline the sig is bound to) — never a key, seed, or password.
+model WitnessSignature {
+  id             String                 @id @default(cuid())
+  applicationId  String
+  application    CitizenshipApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  witnessAddress String // checksummed EVM address (recovered on submit)
+  signature      String // 0x EIP-712 signature (PUBLIC data, not a secret)
+  nonce          String // the applicant on-chain nonce this sig is bound to
+  deadline       String // unix seconds (stringified)
+  createdAt      DateTime               @default(now())
+
+  @@unique([applicationId, witnessAddress]) // no duplicate witness (mirrors on-chain DuplicateWitness)
+  @@index([applicationId])
 }
