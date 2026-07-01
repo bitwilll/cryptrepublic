@@ -116,3 +116,101 @@ model WitnessSignature {
   @@unique([applicationId, witnessAddress]) // no duplicate witness (mirrors on-chain DuplicateWitness)
   @@index([applicationId])
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// Wave 7 — off-chain DASHBOARD CONTENT. ALL PUBLIC content — no secret columns.
+// Anything trustless (tallies, proposal state, claimable, treasury balances,
+// citizen/census count, dividend/disbursement history) reads from chain, NEVER
+// from these models. These hold only off-chain-by-nature content.
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Off-chain rich content for an on-chain CryptGovernance proposal. Linked to the
+/// on-chain proposalId; tallies + state ALWAYS read from chain, never here.
+model GovernanceProposalContent {
+  id              String            @id @default(cuid())
+  chainId         Int
+  proposalId      String // on-chain proposalId (stringified uint256)
+  title           String
+  tag             String // PROCEDURAL|CULTURAL|FISCAL|CIVIC|TECHNICAL (union)
+  body            String // rich text / markdown
+  descriptionHash String? // 0x bytes32 — MUST match the on-chain proposal.descriptionHash
+  createdAt       DateTime          @default(now())
+  comments        ProposalComment[]
+
+  @@unique([chainId, proposalId])
+  @@index([chainId, tag])
+}
+
+/// A dissent/discussion comment on a proposal (the "Dissent on the floor" thread).
+model ProposalComment {
+  id                String                    @id @default(cuid())
+  proposalRef       GovernanceProposalContent @relation(fields: [proposalContentId], references: [id], onDelete: Cascade)
+  proposalContentId String
+  authorAddress     String // checksummed EVM address (citizen; verified on-chain at write time)
+  citizenTokenId    String? // resolved tokenId (display "Citizen №…")
+  body              String
+  upvotes           Int                       @default(0)
+  createdAt         DateTime                  @default(now())
+
+  @@index([proposalContentId])
+}
+
+/// Sovereign-holdings asset register (the mockup ASSETS array). Off-chain by nature.
+model AssetCatalogEntry {
+  id             String @id @default(cuid())
+  ref            String @unique // "RE-001" etc.
+  kind           String // re|ip|eq|tr
+  name           String
+  location       String
+  valueUsd       BigInt // whole USD
+  yieldBps       Int // 480 = 4.8%
+  annualYieldUsd BigInt
+  status         String
+  acquiredAt     String // freeform ("2024.11.04" / "ongoing")
+
+  @@index([kind])
+}
+
+/// Embassy directory (the mockup EMB array). Off-chain by nature.
+model EmbassyDirectory {
+  code         String @id // "LIS"
+  name         String
+  neighborhood String
+  hours        String
+  foundedAt    String
+  brandColor   String
+  city         String
+  country      String
+}
+
+/// Per-city census node — coords for the map + top-cities. Per-city population
+/// is aggregated LIVE from CitizenshipApplication.domicileCity (minted citizens
+/// only); seededCount is a labeled SEEDED SNAPSHOT for demonstrative geography,
+/// never merged into the trustless totalCitizens() headline.
+model CityCensus {
+  code        String  @id // "LIS"
+  name        String
+  lat         Float
+  long        Float
+  hasEmbassy  Boolean @default(false)
+  seededCount Int     @default(0)
+}
+
+/// Treasury allocation TARGETS (the mockup ALLOC array) — governance-ratified
+/// intent, NOT live balances. Live balances read from CryptTreasury.balanceOf.
+model TreasuryAllocation {
+  id        String @id @default(cuid())
+  bucket    String @unique // "embassy_ops" — matches an on-chain allocationBps bucket key when set
+  label     String
+  targetBps Int // 3800 = 38%
+  color     String
+}
+
+/// Constitution / doctrine text (preamble, Article IV doctrine, etc.).
+model ConstitutionText {
+  id       String  @id @default(cuid())
+  key      String  @unique // "preamble" | "doctrine_art_iv" | "dividend_legal_note"
+  title    String
+  body     String
+  citation String? // "CONSTITUTION ART. IV §1 · RATIFIED MMXXVI"
+}

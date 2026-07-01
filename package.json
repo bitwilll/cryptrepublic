@@ -19,8 +19,12 @@
     "e2e": "playwright test",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
+    "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "guard:secrets": "bash scripts/guard-no-secret-columns.sh"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "2.0.2",
@@ -59,6 +63,7 @@
     "jsdom": "25.0.1",
     "prettier": "3.3.3",
     "prisma": "^6.19.3",
+    "tsx": "4.19.2",
     "typescript": "5.6.3",
     "vitest": "2.1.5"
   },

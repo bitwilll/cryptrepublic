@@ -15,6 +15,7 @@ export default defineConfig({
       "config/**/*.test.ts",
       "app/**/*.test.ts",
       "app/**/*.test.tsx",
+      "prisma/**/*.test.ts",
     ],
     // The LOCAL-ANVIL integration test spawns anvil + runs Foundry scripts and
     // mutates config/contracts.ts; it is a SEPARATE run (see package.json
