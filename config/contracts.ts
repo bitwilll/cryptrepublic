@@ -17,6 +17,9 @@ export interface ContractEntry {
   passport?: `0x${string}`;
   token?: `0x${string}`;
   staking?: `0x${string}`;
+  governance?: `0x${string}`;
+  treasury?: `0x${string}`;
+  distributor?: `0x${string}`;
 }
 
 /** Keyed by chainId. 31337 = local anvil (filled by scripts/emit-contract-addresses.mjs). */
@@ -57,4 +60,49 @@ export function stakingAddress(chainId: number): `0x${string}` {
     throw new Error(`Staking not deployed on chain ${chainId}`);
   }
   return addr;
+}
+
+/** The CryptGovernance address for a chain. Throws when unregistered. */
+export function governanceAddress(chainId: number): `0x${string}` {
+  const addr = contractEntry(chainId).governance;
+  if (!addr) {
+    throw new Error(`Governance not deployed on chain ${chainId}`);
+  }
+  return addr;
+}
+
+/** The CryptTreasury address for a chain. Throws when unregistered. */
+export function treasuryAddress(chainId: number): `0x${string}` {
+  const addr = contractEntry(chainId).treasury;
+  if (!addr) {
+    throw new Error(`Treasury not deployed on chain ${chainId}`);
+  }
+  return addr;
+}
+
+/** The DividendDistributor address for a chain. Throws when unregistered. */
+export function distributorAddress(chainId: number): `0x${string}` {
+  const addr = contractEntry(chainId).distributor;
+  if (!addr) {
+    throw new Error(`Distributor not deployed on chain ${chainId}`);
+  }
+  return addr;
+}
+
+/**
+ * Non-throwing availability probes (constraint #11). Every UI card that touches a
+ * Wave-7 contract MUST test availability with these (never with a try/catch
+ * around the throwing accessor in render) before reading, so an unregistered
+ * chain renders an empty/unavailable state instead of crashing.
+ */
+export function governanceAvailable(chainId: number): boolean {
+  return Boolean(contractEntry(chainId).governance);
+}
+
+export function treasuryAvailable(chainId: number): boolean {
+  return Boolean(contractEntry(chainId).treasury);
+}
+
+export function distributorAvailable(chainId: number): boolean {
+  return Boolean(contractEntry(chainId).distributor);
 }

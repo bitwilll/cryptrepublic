@@ -1,6 +1,17 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import { CONTRACTS, contractEntry, passportAddress, stakingAddress } from "./contracts";
+import {
+  CONTRACTS,
+  contractEntry,
+  passportAddress,
+  stakingAddress,
+  governanceAddress,
+  treasuryAddress,
+  distributorAddress,
+  governanceAvailable,
+  treasuryAvailable,
+  distributorAvailable,
+} from "./contracts";
 
 describe("contract registry", () => {
   it("contractEntry returns an object for a known chain (may be empty pre-emit)", () => {
@@ -62,5 +73,29 @@ describe("stakingAddress", () => {
     } else {
       expect(true).toBe(true);
     }
+  });
+});
+
+describe("Wave 7 accessors (governance / treasury / distributor)", () => {
+  it("throw when unregistered on a placeholder chain", () => {
+    expect(() => governanceAddress(84532)).toThrow(/Governance not deployed/);
+    expect(() => treasuryAddress(84532)).toThrow(/Treasury not deployed/);
+    expect(() => distributorAddress(84532)).toThrow(/Distributor not deployed/);
+  });
+
+  it("throw for a completely unknown chain", () => {
+    expect(() => governanceAddress(99999)).toThrow(/Governance not deployed/);
+    expect(() => treasuryAddress(99999)).toThrow(/Treasury not deployed/);
+    expect(() => distributorAddress(99999)).toThrow(/Distributor not deployed/);
+  });
+
+  it("availability probes return false when unregistered (never throw)", () => {
+    expect(governanceAvailable(84532)).toBe(false);
+    expect(treasuryAvailable(84532)).toBe(false);
+    expect(distributorAvailable(99999)).toBe(false);
+  });
+
+  it("contractEntry(99999) is {}", () => {
+    expect(contractEntry(99999)).toEqual({});
   });
 });
