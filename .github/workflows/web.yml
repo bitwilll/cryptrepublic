@@ -1,0 +1,25 @@
+name: web
+on: [push, pull_request]
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "file:./dev.db"
+      NEXT_PUBLIC_CHAIN_ENV: testnet
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm guard:secrets
+      - run: pnpm format:check
+      - run: pnpm db:generate
+      - run: pnpm exec prisma migrate deploy
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build

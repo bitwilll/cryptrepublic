@@ -14,7 +14,9 @@ export default defineConfig({
       "components/**/*.test.tsx",
     ],
     globals: true,
-    env: { DATABASE_URL: "file:./dev.db" },
+    // Honor CI's DATABASE_URL (which CI also migrates) so the db test hits the
+    // migrated database; fall back to the local dev db otherwise.
+    env: { DATABASE_URL: process.env.DATABASE_URL ?? "file:./dev.db" },
   },
   resolve: {
     alias: {
