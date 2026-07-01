@@ -1,0 +1,16 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Stub model to validate migrations in Wave 1. Real domain models land in Wave 2.
+/// INVARIANT: no model may ever store a private key, seed phrase, or plaintext password.
+model Health {
+  id        String   @id @default(cuid())
+  note      String
+  createdAt DateTime @default(now())
+}

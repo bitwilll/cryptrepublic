@@ -22,6 +22,7 @@
     "guard:secrets": "bash scripts/guard-no-secret-columns.sh"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.3",
     "next": "15.1.0",
     "react": "19.0.0",
     "react-dom": "19.0.0"
@@ -39,7 +40,17 @@
     "eslint-config-next": "15.1.0",
     "jsdom": "25.0.1",
     "prettier": "3.3.3",
+    "prisma": "^6.19.3",
     "typescript": "5.6.3",
     "vitest": "2.1.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "esbuild",
+      "sharp"
+    ]
   }
 }

@@ -14,6 +14,14 @@ export default defineConfig({
       "components/**/*.test.tsx",
     ],
     globals: true,
+    env: { DATABASE_URL: "file:./dev.db" },
   },
-  resolve: { alias: { "@": fileURLToPath(new URL("./", import.meta.url)) } },
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./", import.meta.url)),
+      // Next.js server-only/client-only markers are no-ops in unit tests.
+      "server-only": fileURLToPath(new URL("./test/empty-module.ts", import.meta.url)),
+      "client-only": fileURLToPath(new URL("./test/empty-module.ts", import.meta.url)),
+    },
+  },
 });
