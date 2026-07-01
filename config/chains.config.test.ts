@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { CHAINS, activeChain, evmEntry } from "./chains.config";
 
 describe("chains registry", () => {
@@ -35,5 +35,42 @@ describe("chains registry", () => {
       // CSP-safe: fallback must be a relative /api/* path, never a direct public-RPC origin.
       expect(e.publicFallbackRpc).toBe(`/api/rpc/${e.chainId}`);
     }
+  });
+
+  it("local profile: 31337 anvil entry resolves through /api/rpc and is primary", () => {
+    const p = CHAINS.local;
+    expect(p.primaryChainId).toBe(31337);
+    const anvil = p.evm.find((e) => e.chainId === 31337);
+    expect(anvil).toBeDefined();
+    expect(anvil?.isPrimary).toBe(true);
+    expect(anvil?.publicFallbackRpc).toBe("/api/rpc/31337");
+    expect(anvil?.serverRpcEnv).toBe("RPC_ANVIL");
+    expect(p.solanaCluster).toBe("devnet");
+    expect(p.bitcoinNetwork).toBe("testnet");
+  });
+});
+
+describe("local CHAIN_ENV profile (module-reload)", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it("under CHAIN_ENV=local, evmEntry(31337) resolves and activeChain is 31337", async () => {
+    vi.stubEnv("NEXT_PUBLIC_CHAIN_ENV", "local");
+    vi.resetModules();
+    const mod = await import("./chains.config");
+    const entry = mod.evmEntry(31337);
+    expect(entry.chainId).toBe(31337);
+    expect(entry.publicFallbackRpc).toBe("/api/rpc/31337");
+    expect(mod.activeChain().primaryChainId).toBe(31337);
+  });
+
+  it("under CHAIN_ENV=local, serverRpcUrl(31337) defaults to the anvil localhost RPC when RPC_ANVIL is unset", async () => {
+    vi.stubEnv("NEXT_PUBLIC_CHAIN_ENV", "local");
+    delete process.env.RPC_ANVIL;
+    vi.resetModules();
+    const { serverRpcUrl } = await import("@/lib/rpc/allowlist");
+    expect(serverRpcUrl(31337)).toBe("http://127.0.0.1:8545");
   });
 });

@@ -64,6 +64,12 @@ export function serverRpcUrl(chainId: number): string {
   const entry = evmEntry(chainId); // throws for unknown/inactive chain
   const url = process.env[entry.serverRpcEnv];
   if (!url) {
+    // LOCAL ANVIL ONLY: the local/anvil profile (chainId 31337) has a sane
+    // default so the proxy forwards to a local anvil without extra env. Real
+    // chains still throw when their keyed RPC env var is unset.
+    if (chainId === 31337) {
+      return "http://127.0.0.1:8545";
+    }
     throw new Error(`Missing keyed RPC env var ${entry.serverRpcEnv} for chain ${chainId}`);
   }
   return url;

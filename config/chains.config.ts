@@ -10,6 +10,7 @@ import {
   optimismSepolia,
   polygon,
   polygonAmoy,
+  foundry,
 } from "viem/chains";
 import { CHAIN_ENV, type ChainEnv } from "@/lib/config/chain";
 
@@ -86,6 +87,17 @@ export const CHAINS: Record<ChainEnv, ChainProfile> = {
     primaryChainId: base.id,
     solanaCluster: "mainnet-beta",
     bitcoinNetwork: "mainnet",
+  },
+  // LOCAL ANVIL ONLY (Wave 5). `CHAIN_ENV=local` (NEXT_PUBLIC_CHAIN_ENV=local)
+  // activates a 31337 profile so the app's REAL read/broadcast path
+  // (publicClientFor(31337) → /api/rpc/31337, serverRpcUrl(31337)) resolves
+  // against a local anvil during the integration test — NOT a test-only side
+  // client. `RPC_ANVIL` defaults to http://127.0.0.1:8545 (see allowlist.ts).
+  local: {
+    evm: [evm(foundry, "RPC_ANVIL", true)],
+    primaryChainId: foundry.id, // 31337
+    solanaCluster: "devnet",
+    bitcoinNetwork: "testnet",
   },
 };
 
