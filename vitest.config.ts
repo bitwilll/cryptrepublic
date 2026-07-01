@@ -14,6 +14,7 @@ export default defineConfig({
       "components/**/*.test.tsx",
       "config/**/*.test.ts",
       "app/**/*.test.ts",
+      "app/**/*.test.tsx",
     ],
     // The LOCAL-ANVIL integration test spawns anvil + runs Foundry scripts and
     // mutates config/contracts.ts; it is a SEPARATE run (see package.json

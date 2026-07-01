@@ -1,0 +1,369 @@
+/* Mint flow styles — ported from dash-mint.jsx mockup, tokenized (no inline
+   mockup styles). References the app-wide design tokens (styles/tokens.css). */
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 32px;
+  padding: 32px 0;
+}
+@media (max-width: 880px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 28px 32px;
+}
+
+/* Stepper */
+.stepper {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 12px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  background: transparent;
+}
+.badgeActive {
+  background: var(--gold);
+  color: #fff;
+  border-color: transparent;
+}
+.badgeDone {
+  background: var(--success);
+  color: #fff;
+  border-color: transparent;
+}
+.stepLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.stepLabelActive {
+  color: var(--ink);
+}
+.connector {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.connectorDone {
+  background: var(--success);
+}
+
+.content {
+  margin-top: 28px;
+}
+.tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.tagSuccess {
+  color: var(--success);
+  border-color: var(--success);
+}
+.heading {
+  margin: 12px 0 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(30px, 4vw, 42px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.lede {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-top: 12px;
+  max-width: 560px;
+}
+.grid2 {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  max-width: 640px;
+}
+@media (max-width: 560px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fieldLabel {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+.input {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  outline: none;
+  width: 100%;
+}
+.input:focus {
+  border-color: var(--gold);
+}
+
+.oathBox {
+  margin-top: 18px;
+  padding: 22px 24px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--ink);
+  line-height: 1.7;
+  max-width: 720px;
+}
+.checkRow {
+  margin-top: 22px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  cursor: pointer;
+  max-width: 640px;
+}
+.checkRow input {
+  margin-top: 2px;
+  accent-color: var(--gold);
+  width: 16px;
+  height: 16px;
+}
+.checkText {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.55;
+}
+
+/* Witness grid */
+.witnessGrid {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+@media (max-width: 640px) {
+  .witnessGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.tile {
+  padding: 12px 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  text-align: center;
+  transition: all 0.4s;
+}
+.tileSigned {
+  border-color: var(--success);
+  background: color-mix(in srgb, var(--success) 8%, transparent);
+}
+.tileAvatar {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: var(--line);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+}
+.tileAvatarSigned {
+  background: var(--success);
+}
+.tileNum {
+  font-size: 10px;
+  color: var(--ink);
+  font-family: var(--mono);
+  margin-top: 6px;
+  font-weight: 700;
+}
+.tileState {
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 2px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.tileStateSigned {
+  color: var(--success);
+}
+
+/* Nav */
+.nav {
+  margin-top: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.navCount {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+}
+
+/* Sealing / receipt */
+.sealing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  padding: 40px 0;
+}
+.sealingCaption {
+  font-size: 13px;
+  color: var(--muted);
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+}
+.receipt {
+  text-align: center;
+  padding: 20px 0;
+}
+.receiptHeading {
+  margin: 14px auto 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  max-width: 640px;
+}
+.receiptActions {
+  margin-top: 28px;
+  display: inline-flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.errorBox {
+  margin-top: 20px;
+  padding: 14px 18px;
+  border: 1px solid var(--gold-d);
+  background: color-mix(in srgb, var(--gold) 10%, transparent);
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 640px;
+}
+
+/* Right rail preview */
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 24px;
+  align-self: start;
+}
+.asideLabel {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+.asideNote {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.55;
+  padding: 0 4px;
+}
+
+/* Passport preview card */
+.passport {
+  padding: 20px;
+  background: var(--ink);
+  color: #fff;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+.passportHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.6);
+}
+.passportName {
+  margin-top: 18px;
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.passportRow {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--mono);
+}
+.passportNo {
+  margin-top: 18px;
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+}
