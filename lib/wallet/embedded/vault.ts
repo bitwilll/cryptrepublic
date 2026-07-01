@@ -98,7 +98,9 @@ export async function decryptEntropy(blob: VaultBlob, passphrase: string): Promi
   const salt = fromBase64(blob.salt);
   const iv = fromBase64(blob.iv);
   const ct = fromBase64(blob.ct);
-  const { keyBytes } = await deriveKeyBytes(passphrase, salt);
+  // Derive with the vault's RECORDED kdf (not "try argon2 first") so a PBKDF2
+  // vault unlocks even where Argon2id is now available.
+  const { keyBytes } = await deriveKeyBytes(passphrase, salt, blob.kdf);
   const key = await importAesKey(keyBytes);
   keyBytes.fill(0);
 

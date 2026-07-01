@@ -46,4 +46,16 @@ describe("kdf", () => {
     expect(res.keyBytes).toHaveLength(32);
     vi.doUnmock("hash-wasm");
   });
+
+  it("forceKdf='pbkdf2' uses PBKDF2 even when argon2id is available (decrypt path)", async () => {
+    const salt = new Uint8Array(16).fill(9);
+    const forced = await deriveKeyBytes("pw", salt, "pbkdf2");
+    const auto = await deriveKeyBytes("pw", salt); // argon2id available in Node
+    expect(forced.kdf).toBe("pbkdf2");
+    expect(auto.kdf).toBe("argon2id");
+    // argon2 and pbkdf2 produce DIFFERENT keys, so decrypt MUST derive by the
+    // vault's stored kdf or it fails the GCM tag as a false wrong-passphrase.
+    expect(Array.from(forced.keyBytes)).not.toEqual(Array.from(auto.keyBytes));
+    expect(forced.keyBytes).toHaveLength(32);
+  });
 });

@@ -54,10 +54,22 @@ async function pbkdf2Fallback(passphrase: string, salt: Uint8Array): Promise<Uin
   return new Uint8Array(bits);
 }
 
+/**
+ * Derive the 32-byte vault key.
+ * - ENCRYPT (no `forceKdf`): try Argon2id, degrade to PBKDF2 on a WASM/CSP failure.
+ * - DECRYPT (`forceKdf` = the blob's stored `kdf`): derive with EXACTLY that KDF.
+ *   Critical: a PBKDF2 vault (created when WASM was blocked) must still unlock even
+ *   if Argon2id later becomes available — otherwise the mismatched key fails the
+ *   GCM tag and reports a false "wrong passphrase", locking the user out of funds.
+ */
 export async function deriveKeyBytes(
   passphrase: string,
   salt: Uint8Array,
+  forceKdf?: KdfKind,
 ): Promise<DerivedKeyResult> {
+  if (forceKdf === "pbkdf2") {
+    return { keyBytes: await pbkdf2Fallback(passphrase, salt), kdf: "pbkdf2" };
+  }
   try {
     const keyBytes = await argon2id({
       password: passphrase,
@@ -69,10 +81,11 @@ export async function deriveKeyBytes(
       outputType: "binary",
     });
     return { keyBytes, kdf: "argon2id" };
-  } catch {
-    // Argon2id compiles WASM; a strict CSP (no 'wasm-unsafe-eval') throws a
-    // WebAssembly CompileError. Any WASM/eval-blocked failure degrades to
-    // PBKDF2 rather than propagating.
+  } catch (err) {
+    // A vault that REQUIRES argon2id cannot be unlocked without the WASM — surface it.
+    if (forceKdf === "argon2id") throw err;
+    // Encrypt path: a strict CSP (no 'wasm-unsafe-eval') throws a WebAssembly
+    // CompileError; degrade to PBKDF2 rather than propagating.
     const keyBytes = await pbkdf2Fallback(passphrase, salt);
     return { keyBytes, kdf: "pbkdf2" };
   }
