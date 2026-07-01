@@ -15,6 +15,10 @@ export default defineConfig({
       "config/**/*.test.ts",
       "app/**/*.test.ts",
     ],
+    // The LOCAL-ANVIL integration test spawns anvil + runs Foundry scripts and
+    // mutates config/contracts.ts; it is a SEPARATE run (see package.json
+    // `test:integration`), never part of the default unit suite.
+    exclude: ["node_modules/**", "test/integration/**"],
     globals: true,
     // Honor CI's DATABASE_URL (which CI also migrates) so the db test hits the
     // migrated database; fall back to the local dev db otherwise.
