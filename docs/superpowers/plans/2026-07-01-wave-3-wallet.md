@@ -760,3 +760,39 @@ Steps:
 ## Acceptance Summary (mirrors spec §9 Wave 3)
 
 Wave 3 is DONE when: the embedded wallet creates/locks/unlocks/reveals with a passphrase (wrong passphrase never decrypts); all key material is provably client-only (ESLint boundary + static test + CSP); the chain-config + token registries are the single source of truth with a one-env-var mainnet flip; keyed RPC/history/BTC proxies are allow-listed and server-only; multi-chain balances (EVM native+ERC-20, Solana, BTC) and send/receive (EVM EIP-1559 + ERC-20, Solana; BTC receive-only; swap testnet-mock) work through the proxies; external connect (wagmi v2) + SIWE handshake works; and the full Vitest + Playwright + CI chain is green with Wave 1/2 suites intact.
+
+---
+
+## Wave 3 — COMPLETED (close-out, Task 9)
+
+Full local CI chain green: `guard:secrets` · `format:check` · `db:generate` · `typecheck` · `lint` · `test` (39 files / 128 tests) · `build` (exit 0) · `e2e` (4 specs: home, auth, wallet, wallet-csp).
+
+### Spec §9 Wave 3 acceptance checklist
+
+- [x] Vitest wallet round-trip + HD vectors + chain helpers pass (Tasks 2, 3, 5).
+- [x] Wrong passphrase NEVER decrypts (Task 3 vault test + Task 4 lifecycle + wallet e2e); the PBKDF2 fallback branch also round-trips (Task 3).
+- [x] Seed never leaves the client — ESLint boundary rule (server routes/layouts/pages/actions + `server-only` trees + `config/**`), static footgun grep, extended `guard:secrets` app-code scan, AND the AUTHORITATIVE runtime fetch-spy over the FULL create→unlock→**sendEvm**→reveal flow with a fixed all-zero vector vault (mnemonic/entropy/private-key never in any request body; signed raw tx allowed). CSP `connect-src` verified on `/wallet` with a mounted wagmi tree + mock wallet (zero violations).
+- [x] Chain-config registry (EVM ETH/Base/Arb/OP/Polygon + Solana + Bitcoin) resolves per env; nothing hardcodes RPC/chainId/token outside `config/` (Task 1).
+- [x] Balance reads implemented — EVM native+ERC-20, Solana SOL+SPL, BTC (Task 5). Live-testnet balance/send e2e needs a funded key → DOCUMENTED follow-up (below), not a v1 blocker.
+- [x] Base↔other-EVM works — the same read/send path resolves any active EVM chain via the registry (Tasks 1/5/6).
+- [x] External connect + client SIWE handshake (chainId forced to `activeChain().primaryChainId`) works; Auth SIWE e2e stays green (Task 7).
+- [x] Keyed RPC/history/BTC proxies live and allow-listed, server-only (Task 1).
+- [x] CSP/security headers host the wallet: strict `script-src 'self' 'nonce-…' 'wasm-unsafe-eval'` (no general `unsafe-eval`, no script `unsafe-inline`), `frame-ancestors 'none'`, pinned `connect-src`. Argon2id WASM verified working under the live prod CSP; zero CSP violations on Home/Auth/Wallet (Task 8).
+- [x] Honest-limitation copy present in the wallet UI (`components/wallet/WalletApp.tsx`) and this plan's Global Constraints (JS zeroization limits; XSS-while-unlocked; device/OS compromise not defended; no server recovery of the vault; vault passphrase is separate from the recoverable web-login passphrase).
+
+### Documented follow-ups (per spec)
+
+- **BTC send** (PSBT signing) — flagged fast-follow; UI shows send disabled in v1 (`BTC_SEND_ENABLED = false`).
+- **Real swap/bridge execution** (LI.FI primary / 0x fallback) — Wave 6; this wave ships a testnet MOCK stub only (`lib/wallet/services/swap.ts`).
+- **User-added tokens** and **multi-account HD** (index > 0) — future.
+- **Live-testnet funded-key send/balance e2e** — needs a funded key + real keyed RPC env vars; unit/integration coverage stands in for now.
+- **$CRYPT / passport token addresses** — arrive with the Wave 4 contracts registry; the `config/tokens.ts` `CRYPT` placeholders (address `undefined`, skipped by the balance layer) get filled then.
+- **SPL token send** — `sendSolana` covers native SOL transfer; SPL transfer is a follow-up.
+
+### Deviations from the plan (fixed for the installed versions)
+
+- **wagmi pinned to v2 (2.19.5).** The unpinned install first resolved to wagmi 3.x, whose `@wagmi/core` "tempo" module fails the Next/webpack build (`Can't resolve 'accounts'`). v2 is the plan's stated target and builds cleanly; viem stays 2.54.1.
+- **Coinbase Wallet connector omitted.** Coinbase Wallet SDK v4 injects an inline analytics `<script>` at init and beacons a deviceId to `cca-lite.coinbase.com`, violating the strict `script-src` (no `unsafe-inline`), the pinned `connect-src`, and the privacy posture. `injected()` still surfaces the Coinbase browser extension; mobile Coinbase Wallet is reachable via WalletConnect.
+- **CSP delivered via `middleware.ts` (not `next.config.ts headers()`).** A strict nonce-based `script-src` needs a per-request nonce, which `headers()` cannot mint. `app/layout.tsx` sets `export const dynamic = "force-dynamic"` so Next applies the request-time nonce to its inline bootstrap/RSC scripts (statically prerendered HTML bakes those scripts without a nonce and would be blocked). Tradeoff: loses full static prerender — the accepted cost of a strict CSP that safely hosts the wallet.
+- **EVM ERC-20 balances via per-token `readContract` (not `multicall`).** Token symbol/decimals live in `config/tokens.ts` (the registry is authoritative), so only on-chain `balanceOf` is needed — one `eth_call` per token, fewer round-trips than a 3-call multicall and trivially stubbable in tests.
+- **Optional-dep build warnings silenced** via `next.config.ts` webpack aliases (`@react-native-async-storage/async-storage`, `pino-pretty` → false). A residual "Critical dependency" warning originates in viem's `ox` dependency (pre-existing, non-fatal, exit 0).
