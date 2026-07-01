@@ -1,0 +1,448 @@
+/* Ported verbatim from Auth.html <style> (scoped classes only).
+   The :root design tokens and the global .gov-strip live in styles/tokens.css and are
+   available app-wide via app/globals.css, so they are NOT duplicated here — this module
+   references var(--navy) etc. directly. Hyphenated Auth.html class names are camelCased
+   for CSS-module member access (.form-card → .formCard, .fc-head → .fcHead, etc.). */
+
+.auth {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: calc(100vh - 34px);
+}
+
+/* ── LEFT: state pane ── */
+.pane {
+  background: repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.035) 0 1px,
+      transparent 1px 64px
+    ),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 64px),
+    radial-gradient(900px 500px at 80% -10%, rgba(25, 87, 211, 0.35), transparent 60%), var(--navy);
+  color: #fff;
+  padding: 56px 56px 40px;
+  display: flex;
+  flex-direction: column;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+.pane h1 {
+  font-size: clamp(34px, 4vw, 54px);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.98;
+  margin: auto 0 0;
+}
+.pane h1 b {
+  color: var(--gold);
+}
+.pane .sub {
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 15.5px;
+  max-width: 440px;
+  margin: 18px 0 0;
+}
+.paneStats {
+  display: flex;
+  gap: clamp(20px, 3vw, 44px);
+  margin-top: 36px;
+  flex-wrap: wrap;
+}
+.paneStats b {
+  display: block;
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.paneStats span {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+}
+.doctrine {
+  margin-top: auto;
+  padding-top: 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+.doctrine p {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.6;
+  color: #e8e0cc;
+  margin: 0;
+  max-width: 460px;
+}
+.doctrine cite {
+  display: block;
+  margin-top: 10px;
+  font-style: normal;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+}
+
+/* ── RIGHT: form panel ── */
+.panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+.formCard {
+  width: 100%;
+  max-width: 460px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  position: relative;
+  box-shadow: 0 30px 70px -30px rgba(10, 37, 64, 0.25);
+}
+.formCard::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 18px;
+  height: 18px;
+  border-top: 2px solid var(--blue);
+  border-right: 2px solid var(--blue);
+  opacity: 0.6;
+  pointer-events: none;
+}
+.fcHead {
+  padding: 24px 28px 0;
+}
+.fcKicker {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  color: var(--blue);
+  text-transform: uppercase;
+}
+.fcKicker::before {
+  content: "▮ ";
+}
+.fcHead h2 {
+  font-size: 26px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin: 10px 0 0;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 22px 28px 0;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.tabs button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 12px 10px;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+.tabs button.on {
+  background: var(--navy);
+  color: #fff;
+}
+
+.fcBody {
+  padding: 24px 28px 28px;
+}
+.secLabel {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+.secLabel::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.wallets {
+  display: grid;
+  gap: 9px;
+}
+.wallet {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+.wallet:hover {
+  border-color: var(--blue);
+  transform: translateY(-1px);
+}
+.wallet .glyph {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+.wallet b {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+.wallet span {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  margin-top: 1px;
+}
+.wallet .go {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.field {
+  margin-bottom: 14px;
+}
+.field label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.field input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-family: var(--sans);
+  font-size: 15px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field input:focus {
+  border-color: var(--blue);
+  background: #fff;
+}
+.field .err {
+  display: none;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: #a23a3a;
+  margin-top: 5px;
+  letter-spacing: 0.06em;
+}
+.field.bad input {
+  border-color: #a23a3a;
+}
+.field.bad .err {
+  display: block;
+}
+
+.submit {
+  width: 100%;
+  padding: 16px 20px;
+  border: 0;
+  background: var(--blue);
+  color: #fff;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: 13.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  clip-path: polygon(
+    12px 0,
+    100% 0,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    0 100%,
+    0 12px
+  );
+  transition:
+    background 0.18s,
+    transform 0.15s;
+}
+.submit:hover {
+  background: var(--blue-d);
+  transform: translateY(-1px);
+}
+.submit:active {
+  transform: translateY(1px);
+}
+.submit.gold {
+  background: var(--gold);
+  color: var(--navy);
+}
+.submit.gold:hover {
+  background: var(--gold-d);
+  color: #fff;
+}
+
+.console {
+  margin-top: 18px;
+  background: var(--navy);
+  color: #7cffa6;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 12px 14px;
+  min-height: 62px;
+  line-height: 1.7;
+}
+.console .dim {
+  color: #9fb3d0;
+}
+.console .gold {
+  color: var(--gold);
+}
+
+.fcFoot {
+  padding: 0 28px 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.fcFoot a {
+  color: var(--blue);
+  font-weight: 700;
+  text-decoration: none;
+}
+.swap {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--blue);
+  font-weight: 700;
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 980px) {
+  .auth {
+    grid-template-columns: 1fr;
+  }
+  .pane {
+    padding: 36px 24px 30px;
+    min-height: 0;
+  }
+  .pane h1 {
+    margin-top: 26px;
+    font-size: clamp(28px, 7vw, 40px);
+  }
+  .doctrine {
+    display: none;
+  }
+  .paneStats {
+    margin-top: 24px;
+  }
+  .panel {
+    padding: 28px 16px 48px;
+  }
+}
+@media (max-width: 480px) {
+  .fcHead,
+  .fcBody {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .tabs {
+    margin-left: 18px;
+    margin-right: 18px;
+  }
+  .fcFoot {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wallet,
+  .submit {
+    transition: none !important;
+    animation: none !important;
+  }
+}
