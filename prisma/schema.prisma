@@ -7,10 +7,79 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// Stub model to validate migrations in Wave 1. Real domain models land in Wave 2.
 /// INVARIANT: no model may ever store a private key, seed phrase, or plaintext password.
-model Health {
+/// Enums are String columns with app-level union types (lib/auth/types.ts) for SQLite/Postgres portability.
+
+model User {
+  id               String    @id @default(cuid())
+  email            String?   @unique // lowercased before write; null for SIWE-only users
+  passwordHash     String? // Argon2id encoded string; null for SIWE-only. NEVER plaintext.
+  name             String? // DIVERGENCE: spec §4.2 calls this `displayName`; we use `name` this wave.
+  kycStatus        String    @default("NONE") // KycStatus union
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  sessions      Session[]
+  linkedWallets LinkedWallet[]
+  application   CitizenshipApplication?
+}
+
+model Session {
   id        String   @id @default(cuid())
-  note      String
+  tokenHash String   @unique // sha256(raw cookie token)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent String?
+  ipHash    String?
   createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model SiweNonce {
+  id        String    @id @default(cuid())
+  nonce     String    @unique
+  address   String?
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
+model LinkedWallet {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // DIVERGENCE: spec §4.2 uses a composite @@unique([chainFamily, address]); v1 is EVM-only so we
+  // use a plain address @unique. Wave 3 (multi-chain) must migrate to the composite key.
+  address    String    @unique // checksummed EVM address
+  chain      String    @default("EVM") // ChainFamily union (spec calls this `chainFamily`)
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model CitizenshipApplication {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status String @default("DRAFT") // ApplicationStatus union
+  // DIVERGENCE: spec §4.2 names these declaredName / declaredCity / declaredCountry;
+  // this wave uses name / domicileCity / hostCountry (+ motto). Later waves must reconcile.
+  name           String?
+  domicileCity   String?
+  hostCountry    String?
+  motto          String?
+  oathAcceptedAt DateTime?
+  kycStatus      String    @default("NONE") // KycStatus union
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status])
 }

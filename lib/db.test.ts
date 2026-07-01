@@ -1,15 +1,18 @@
 // @vitest-environment node
-// lib/db.ts imports "server-only", which throws under the default jsdom (browser-like)
-// env; this per-file pragma runs the DB test in Node, where server-only resolves fine.
 import { describe, it, expect, afterAll } from "vitest";
 import { prisma } from "./db";
 
-describe("prisma health model", () => {
-  it("creates and reads a Health row", async () => {
-    const row = await prisma.health.create({ data: { note: "wave1" } });
-    const found = await prisma.health.findUnique({ where: { id: row.id } });
-    expect(found?.note).toBe("wave1");
-    await prisma.health.delete({ where: { id: row.id } });
+describe("prisma user model", () => {
+  it("creates and reads a User row with passwordHash", async () => {
+    const email = `t${Date.now()}@example.org`;
+    const u = await prisma.user.create({
+      data: { email, passwordHash: "$argon2id$stub", name: "Test" },
+    });
+    const found = await prisma.user.findUnique({ where: { id: u.id } });
+    expect(found?.email).toBe(email);
+    expect(found?.failedLoginCount).toBe(0);
+    expect(found?.kycStatus).toBe("NONE");
+    await prisma.user.delete({ where: { id: u.id } });
   });
 
   afterAll(async () => {
