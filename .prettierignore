@@ -1,0 +1,12 @@
+node_modules
+.next
+out
+coverage
+pnpm-lock.yaml
+contracts
+prisma/migrations
+docs
+# legacy Claude Design exports (reference only, not our code)
+*.html
+*.jsx
+image-slot.js

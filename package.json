@@ -1,0 +1,44 @@
+{
+  "name": "cryptrepublic",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "next lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio",
+    "guard:secrets": "bash scripts/guard-no-secret-columns.sh"
+  },
+  "dependencies": {
+    "next": "15.1.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
+  "devDependencies": {
+    "typescript": "5.6.3",
+    "@types/node": "20.16.0",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "eslint": "9.15.0",
+    "eslint-config-next": "15.1.0",
+    "@eslint/eslintrc": "3.1.0",
+    "prettier": "3.3.3",
+    "vitest": "2.1.5",
+    "@vitejs/plugin-react": "4.3.3",
+    "@testing-library/react": "16.0.1",
+    "@testing-library/jest-dom": "6.6.3",
+    "jsdom": "25.0.1"
+  }
+}
