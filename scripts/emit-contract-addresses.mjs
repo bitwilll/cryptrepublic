@@ -54,6 +54,7 @@ function findAddress(contractName) {
 
 const passport = findAddress("CryptRepublicPassport");
 const token = findAddress("CryptToken");
+const staking = findAddress("CryptStaking");
 
 if (!passport) {
   console.error("No CryptRepublicPassport CREATE tx found in broadcast.");
@@ -66,6 +67,7 @@ let src = readFileSync(contractsPath, "utf8");
 
 const entryFields = [`passport: "${passport}"`];
 if (token) entryFields.push(`token: "${token}"`);
+if (staking) entryFields.push(`staking: "${staking}"`);
 const entryLiteral = `{ ${entryFields.join(", ")} }`;
 
 // Match `  31337: {...},` (single-line) — the seeded placeholder or a prior emit.
@@ -81,3 +83,4 @@ writeFileSync(contractsPath, src, "utf8");
 console.log(`Emitted CONTRACTS[${chainId}] = ${entryLiteral}`);
 console.log(`  passport: ${passport}`);
 if (token) console.log(`  token:    ${token}`);
+if (staking) console.log(`  staking:  ${staking}`);

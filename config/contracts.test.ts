@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
-import { CONTRACTS, contractEntry, passportAddress } from "./contracts";
+import { CONTRACTS, contractEntry, passportAddress, stakingAddress } from "./contracts";
 
 describe("contract registry", () => {
   it("contractEntry returns an object for a known chain (may be empty pre-emit)", () => {
@@ -41,5 +41,26 @@ describe("contract registry", () => {
     expect(CONTRACTS[31337]).toBeDefined();
     expect(CONTRACTS[84532]).toBeDefined();
     expect(CONTRACTS[8453]).toBeDefined();
+  });
+});
+
+describe("stakingAddress", () => {
+  it("throws when staking is unregistered on a chain", () => {
+    // 84532 (Base Sepolia) is a typed placeholder until the USER deploys.
+    expect(() => stakingAddress(84532)).toThrow(/Staking not deployed/);
+  });
+
+  it("throws for a completely unknown chain", () => {
+    expect(() => stakingAddress(999999)).toThrow(/Staking not deployed/);
+  });
+
+  it("returns the exact 0x address when set", () => {
+    const populated = Object.entries(CONTRACTS).find(([, e]) => e.staking !== undefined);
+    if (populated) {
+      const [chainIdStr, entry] = populated;
+      expect(stakingAddress(Number(chainIdStr))).toBe(entry.staking);
+    } else {
+      expect(true).toBe(true);
+    }
   });
 });

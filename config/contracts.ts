@@ -16,6 +16,7 @@ export interface ContractEntry {
   /** undefined = not deployed / not registered on this chain yet. */
   passport?: `0x${string}`;
   token?: `0x${string}`;
+  staking?: `0x${string}`;
 }
 
 /** Keyed by chainId. 31337 = local anvil (filled by scripts/emit-contract-addresses.mjs). */
@@ -41,6 +42,19 @@ export function passportAddress(chainId: number): `0x${string}` {
   const addr = contractEntry(chainId).passport;
   if (!addr) {
     throw new Error(`Passport not deployed on chain ${chainId}`);
+  }
+  return addr;
+}
+
+/**
+ * The CryptStaking address for a chain. Throws a clear error if staking is not
+ * registered on that chain (undefined placeholder or unknown chain). Mirrors
+ * `passportAddress`.
+ */
+export function stakingAddress(chainId: number): `0x${string}` {
+  const addr = contractEntry(chainId).staking;
+  if (!addr) {
+    throw new Error(`Staking not deployed on chain ${chainId}`);
   }
   return addr;
 }
