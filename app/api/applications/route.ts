@@ -21,6 +21,9 @@ export async function GET(req: Request): Promise<Response> {
       domicileCity: true,
       hostCountry: true,
       motto: true,
+      oathAcceptedAt: true,
+      citizenTokenId: true,
+      sealTxHash: true,
     },
   });
   return json({ application });
@@ -57,6 +60,9 @@ export async function POST(req: Request): Promise<Response> {
       domicileCity: true,
       hostCountry: true,
       motto: true,
+      oathAcceptedAt: true,
+      citizenTokenId: true,
+      sealTxHash: true,
     },
   });
   return json({ ok: true, application });
