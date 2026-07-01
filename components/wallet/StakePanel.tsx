@@ -61,10 +61,15 @@ export function StakePanel({
   if (!available) {
     return (
       <article className="pillar" style={{ padding: 22 }} data-testid="stake-panel">
-        <div style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.12em", fontWeight: 700 }}>
+        <div
+          style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.12em", fontWeight: 700 }}
+        >
           VALIDATOR STAKE
         </div>
-        <p data-testid="stake-unavailable" style={{ marginTop: 12, color: "var(--muted)", fontSize: 13 }}>
+        <p
+          data-testid="stake-unavailable"
+          style={{ marginTop: 12, color: "var(--muted)", fontSize: 13 }}
+        >
           Staking is unavailable on this network.
         </p>
       </article>
@@ -166,7 +171,9 @@ export function StakePanel({
 
   return (
     <article className="pillar" style={{ padding: 22 }} data-testid="stake-panel">
-      <div style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.12em", fontWeight: 700 }}>
+      <div
+        style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.12em", fontWeight: 700 }}
+      >
         VALIDATOR STAKE
       </div>
 
@@ -220,7 +227,15 @@ export function StakePanel({
 
           {flow === "stake" && (
             <>
-              <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 12, marginTop: 8 }}>
+              <label
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  alignItems: "center",
+                  fontSize: 12,
+                  marginTop: 8,
+                }}
+              >
                 <input
                   data-testid="max-approve-toggle"
                   type="checkbox"

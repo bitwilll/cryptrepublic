@@ -11,7 +11,11 @@ import {
 import { hasVault } from "@/lib/wallet/embedded/storage";
 import { loadPortfolio, type Portfolio } from "@/lib/wallet/services/portfolio";
 import { readChainStats, type ChainStats } from "@/lib/wallet/services/chainStats";
-import { stakingAvailable, readStakePosition, type StakePosition } from "@/lib/wallet/services/staking";
+import {
+  stakingAvailable,
+  readStakePosition,
+  type StakePosition,
+} from "@/lib/wallet/services/staking";
 import { readPassportStatus, type PassportStatus } from "@/lib/passport/client";
 import { evmHistory, type TxRow } from "@/lib/wallet/services/history";
 import { UnlockWalletModal } from "./UnlockWalletModal";

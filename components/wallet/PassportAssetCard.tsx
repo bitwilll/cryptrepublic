@@ -20,19 +20,26 @@ export function PassportAssetCard({
 }) {
   return (
     <article className="pillar" style={{ padding: "18px 22px" }} data-testid="passport-card">
-      <div style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.12em", fontWeight: 700 }}>
+      <div
+        style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.12em", fontWeight: 700 }}
+      >
         CITIZEN PASSPORT · SOULBOUND
       </div>
 
       {unavailable ? (
-        <p data-testid="passport-unavailable" style={{ marginTop: 12, color: "var(--muted)", fontSize: 13 }}>
+        <p
+          data-testid="passport-unavailable"
+          style={{ marginTop: 12, color: "var(--muted)", fontSize: 13 }}
+        >
           Passport unavailable on this network.
         </p>
       ) : passport?.isCitizen ? (
         <div style={{ marginTop: 12 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
             <span style={{ fontSize: 22, fontWeight: 800 }} data-testid="passport-token">
-              {passport.tokenId !== undefined ? `Citizen #${passport.tokenId.toString()}` : "Citizen"}
+              {passport.tokenId !== undefined
+                ? `Citizen #${passport.tokenId.toString()}`
+                : "Citizen"}
             </span>
             <span
               data-testid="soulbound-badge"

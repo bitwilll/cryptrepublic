@@ -30,9 +30,7 @@ vi.mock("@/config/chains.config", () => ({
 vi.mock("@/lib/wallet/services/sendView", () => ({
   sendableTokens: () => {
     const base = [{ symbol: "USDC", decimals: 6, address: USDC }];
-    return h.cryptRegistered
-      ? [...base, { symbol: "CRYPT", decimals: 18, address: CRYPT }]
-      : base;
+    return h.cryptRegistered ? [...base, { symbol: "CRYPT", decimals: 18, address: CRYPT }] : base;
   },
   toSendConfirmVM: (preview: {
     to: string;
@@ -81,9 +79,7 @@ beforeEach(() => {
 
 describe("SendModal", () => {
   it("disables Review until the recipient is a valid address", () => {
-    render(
-      <SendModal chainId={84532} from={FROM} requireUnlock={() => true} onClose={() => {}} />,
-    );
+    render(<SendModal chainId={84532} from={FROM} requireUnlock={() => true} onClose={() => {}} />);
     const review = screen.getByTestId("review-send");
     expect(review).toBeDisabled();
     fireEvent.change(screen.getByTestId("recipient-input"), { target: { value: "0xbad" } });
@@ -93,9 +89,7 @@ describe("SendModal", () => {
   });
 
   it("shows a human-readable confirm (not raw wei) then sends once on Confirm & sign", async () => {
-    render(
-      <SendModal chainId={84532} from={FROM} requireUnlock={() => true} onClose={() => {}} />,
-    );
+    render(<SendModal chainId={84532} from={FROM} requireUnlock={() => true} onClose={() => {}} />);
     fireEvent.change(screen.getByTestId("recipient-input"), { target: { value: VALID_TO } });
     fireEvent.change(screen.getByTestId("amount-input"), { target: { value: "1" } });
     fireEvent.click(screen.getByTestId("review-send"));
@@ -113,9 +107,7 @@ describe("SendModal", () => {
 
   it("includes $CRYPT in the picker when registered; its confirm shows CRYPT", async () => {
     h.cryptRegistered = true;
-    render(
-      <SendModal chainId={84532} from={FROM} requireUnlock={() => true} onClose={() => {}} />,
-    );
+    render(<SendModal chainId={84532} from={FROM} requireUnlock={() => true} onClose={() => {}} />);
     const picker = screen.getByTestId("token-picker") as HTMLSelectElement;
     const options = Array.from(picker.options).map((o) => o.textContent);
     expect(options.join(" ")).toMatch(/CRYPT/);
@@ -129,9 +121,7 @@ describe("SendModal", () => {
 
   it("omits $CRYPT (no throw) when not registered", () => {
     h.cryptRegistered = false;
-    render(
-      <SendModal chainId={84532} from={FROM} requireUnlock={() => true} onClose={() => {}} />,
-    );
+    render(<SendModal chainId={84532} from={FROM} requireUnlock={() => true} onClose={() => {}} />);
     const picker = screen.getByTestId("token-picker") as HTMLSelectElement;
     const options = Array.from(picker.options).map((o) => o.textContent);
     expect(options.join(" ")).not.toMatch(/CRYPT/);

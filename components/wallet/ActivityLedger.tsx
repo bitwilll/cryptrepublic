@@ -16,13 +16,18 @@ export function ActivityLedger({
   return (
     <article className="pillar" style={{ padding: 0 }} data-testid="activity-ledger">
       <div style={{ padding: "18px 22px", borderBottom: "1px solid var(--line)" }}>
-        <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: "0.01em" }}>ON-CHAIN ACTIVITY</div>
+        <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: "0.01em" }}>
+          ON-CHAIN ACTIVITY
+        </div>
         <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
           Recent transactions for this address
         </div>
       </div>
       {rows.length === 0 ? (
-        <div data-testid="activity-empty" style={{ padding: "18px 22px", color: "var(--muted)", fontSize: 13 }}>
+        <div
+          data-testid="activity-empty"
+          style={{ padding: "18px 22px", color: "var(--muted)", fontSize: 13 }}
+        >
           No on-chain activity yet.
         </div>
       ) : (
@@ -51,10 +56,20 @@ export function ActivityLedger({
             >
               {r.direction === "in" ? "RECEIVE" : "SEND"}
             </span>
-            <span style={{ fontFamily: "var(--mono, monospace)", fontSize: 11, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <span
+              style={{
+                fontFamily: "var(--mono, monospace)",
+                fontSize: 11,
+                color: "var(--muted)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
               {r.direction === "in" ? r.from : r.to}
             </span>
-            <span style={{ textAlign: "right", fontFamily: "var(--mono, monospace)", fontWeight: 700 }}>
+            <span
+              style={{ textAlign: "right", fontFamily: "var(--mono, monospace)", fontWeight: 700 }}
+            >
               {explorerBase ? (
                 <a
                   href={`${explorerBase}/tx/${r.hash}`}

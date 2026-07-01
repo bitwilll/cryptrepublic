@@ -64,9 +64,7 @@ describe("SwapBridgeModal", () => {
     render(<SwapBridgeModal mode="bridge" onClose={() => {}} />);
     fireEvent.change(screen.getByTestId("swap-amount"), { target: { value: "1" } });
     fireEvent.click(screen.getByRole("button", { name: /get mock quote/i }));
-    await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(/later wave/i),
-    );
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent(/later wave/i));
     // Still no execution path was offered.
     expect(screen.queryByRole("button", { name: /execute|sign/i })).not.toBeInTheDocument();
   });
