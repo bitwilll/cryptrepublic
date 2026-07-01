@@ -6,6 +6,8 @@ export const CHAIN_ENV: ChainEnv =
 
 export const isMainnet = CHAIN_ENV === "mainnet";
 
-// Later waves populate a typed registry keyed by CHAIN_ENV:
+// The typed registry keyed by CHAIN_ENV lives in config/chains.config.ts:
 //   rpcUrls (server-only), chainIds, contract addresses, explorer bases.
-// No RPC URL, chainId, or contract address may be hardcoded outside this module.
+// No RPC URL, chainId, or contract address may be hardcoded outside those files.
+export { activeChain, evmEntry, CHAINS } from "@/config/chains.config";
+export type { ChainProfile, EvmChainEntry } from "@/config/chains.config";

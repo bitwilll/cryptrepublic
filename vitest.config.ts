@@ -12,6 +12,8 @@ export default defineConfig({
       "test/**/*.test.tsx",
       "lib/**/*.test.ts",
       "components/**/*.test.tsx",
+      "config/**/*.test.ts",
+      "app/**/*.test.ts",
     ],
     globals: true,
     // Honor CI's DATABASE_URL (which CI also migrates) so the db test hits the
