@@ -1,25 +1,17 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import { CitizenHomeApp } from "@/components/home/CitizenHomeApp";
 
 export const metadata: Metadata = {
   title: "Citizen Dashboard — CryptRepublic",
+  description:
+    "Your standing in the Republic: obligations, the ledger of the Republic, and the live census — read honestly from chain.",
 };
 
-export default function DashboardPage() {
-  return (
-    <section className="block">
-      <div className="wrap">
-        <div className="kicker">CITIZEN CONSOLE</div>
-        <h1 style={{ marginTop: 12 }}>Citizen Dashboard</h1>
-        <p style={{ color: "var(--muted)", marginTop: 16, maxWidth: 560 }}>
-          You are authenticated. The full citizen dashboard arrives in Wave 7.
-        </p>
-        <p style={{ marginTop: 24 }}>
-          <Link className="btn btn-primary" href="/dashboard/mint">
-            Proceed to mint →
-          </Link>
-        </p>
-      </div>
-    </section>
-  );
+/**
+ * Citizen home (§7.5). Server Component that mounts the client island. The
+ * dashboard layout already wraps every page in DashboardShell (session/citizen
+ * context + shell chrome) — this page does NOT re-mount it.
+ */
+export default function DashboardHomePage() {
+  return <CitizenHomeApp />;
 }
