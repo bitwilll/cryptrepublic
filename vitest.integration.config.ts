@@ -16,6 +16,11 @@ export default defineConfig({
     globals: true,
     testTimeout: 120_000,
     hookTimeout: 120_000,
+    // Each integration file spawns its OWN anvil on the fixed port 8545 and
+    // rewrites the shared broadcast dir + config/contracts.ts, so the files MUST
+    // run one at a time — parallel workers would collide on the port and clobber
+    // each other's broadcast. Serialize across files.
+    fileParallelism: false,
     env: { DATABASE_URL: process.env.DATABASE_URL ?? "file:./dev.db" },
   },
   resolve: {

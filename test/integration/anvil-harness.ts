@@ -16,7 +16,7 @@ import { execFileSync } from "node:child_process";
 import { rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createPublicClient, http, type Address, type Hex } from "viem";
+import { createPublicClient, http, keccak256, toBytes, type Address, type Hex } from "viem";
 import { foundry } from "viem/chains";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -33,7 +33,21 @@ export interface AnvilDeployment {
   chainId: 31337;
   passport: Address;
   token: Address;
+  staking: Address;
+  treasury: Address;
   admin: { address: Address; privateKey: Hex };
+  /**
+   * LOCAL-ONLY. Fund a test wallet with $CRYPT and top up the staking reward pool
+   * from the treasury GENESIS supply (moves existing supply — never mints), so no
+   * self-granted MINTER_ROLE and no supply expansion (finding #9). The two draws
+   * are independently sized so neither starves the other (finding #3):
+   *   1. grant GOVERNANCE_ROLE to admin (admin holds DEFAULT_ADMIN_ROLE on treasury),
+   *   2. disburse `recipientAmount + rewardAmount` treasury -> admin,
+   *   3. transfer `recipientAmount` admin -> recipient,
+   *   4. approve `rewardAmount` to staking then fundRewards(`rewardAmount`).
+   * `recipientAmount` is the wallet's full $CRYPT (enough to STAKE and still SEND).
+   */
+  fundCryptAndRewards(recipient: Address, recipientAmount: bigint, rewardAmount: bigint): void;
   stop(): Promise<void>;
 }
 
@@ -122,12 +136,17 @@ export async function startAnvilWithContracts(seedCitizens: Address[]): Promise<
       };
     };
     const txs = broadcast.default.transactions;
-    const passport = txs.find(
-      (t) => t.transactionType === "CREATE" && t.contractName === "CryptRepublicPassport",
-    )?.contractAddress as Address;
-    const token = txs.find((t) => t.transactionType === "CREATE" && t.contractName === "CryptToken")
-      ?.contractAddress as Address;
+    const created = (name: string): Address | undefined =>
+      txs.find((t) => t.transactionType === "CREATE" && t.contractName === name)
+        ?.contractAddress as Address | undefined;
+    const passport = created("CryptRepublicPassport");
+    const token = created("CryptToken");
+    const staking = created("CryptStaking");
+    const treasury = created("CryptTreasury");
     if (!passport) throw new Error("passport address not found in broadcast");
+    if (!token) throw new Error("token address not found in broadcast");
+    if (!staking) throw new Error("staking address not found in broadcast");
+    if (!treasury) throw new Error("treasury address not found in broadcast");
 
     // Assert the passport actually has code before proceeding.
     const code = await client.getBytecode({ address: passport });
@@ -160,12 +179,46 @@ export async function startAnvilWithContracts(seedCitizens: Address[]): Promise<
       );
     }
 
+    // LOCAL-ONLY throwaway admin cast helper (anvil key #0).
+    const castSend = (to: Address, sig: string, args: string[]): void => {
+      execFileSync(
+        "cast",
+        ["send", to, sig, ...args, "--rpc-url", RPC_URL, "--private-key", ADMIN_PK],
+        { cwd: contractsDir, stdio: "ignore" },
+      );
+    };
+
+    const fundCryptAndRewards = (
+      recipient: Address,
+      recipientAmount: bigint,
+      rewardAmount: bigint,
+    ): void => {
+      const total = recipientAmount + rewardAmount;
+      const GOVERNANCE_ROLE = keccak256(toBytes("GOVERNANCE_ROLE"));
+      // 1. Admin (DEFAULT_ADMIN_ROLE on treasury) self-grants GOVERNANCE_ROLE so it can disburse.
+      castSend(treasury, "grantRole(bytes32,address)", [GOVERNANCE_ROLE, ADMIN_ADDR]);
+      // 2. Move existing GENESIS $CRYPT treasury -> admin (no mint; less-privileged path, finding #9).
+      castSend(treasury, "disburse(address,address,uint256)", [
+        token,
+        ADMIN_ADDR,
+        total.toString(),
+      ]);
+      // 3. Fund the test wallet (enough to STAKE and still SEND).
+      castSend(token, "transfer(address,uint256)", [recipient, recipientAmount.toString()]);
+      // 4. Fund the staking reward pool from a SEPARATE draw (exact allowance -> fundRewards).
+      castSend(token, "approve(address,uint256)", [staking, rewardAmount.toString()]);
+      castSend(staking, "fundRewards(uint256)", [rewardAmount.toString()]);
+    };
+
     return {
       rpcUrl: RPC_URL,
       chainId: 31337,
       passport,
-      token: token ?? ("0x0000000000000000000000000000000000000000" as Address),
+      token,
+      staking,
+      treasury,
       admin: { address: ADMIN_ADDR, privateKey: ADMIN_PK },
+      fundCryptAndRewards,
       stop,
     };
   } catch (e) {
