@@ -11,46 +11,43 @@ import {
 import { hasVault } from "@/lib/wallet/embedded/storage";
 import { loadPortfolio, type Portfolio } from "@/lib/wallet/services/portfolio";
 import { readChainStats, type ChainStats } from "@/lib/wallet/services/chainStats";
-import {
-  stakingAvailable,
-  readStakePosition,
-  type StakePosition,
-} from "@/lib/wallet/services/staking";
+import { stakingAvailable, readStakePosition, type StakePosition } from "@/lib/wallet/services/staking";
 import { readPassportStatus, type PassportStatus } from "@/lib/passport/client";
 import { evmHistory, type TxRow } from "@/lib/wallet/services/history";
 import { UnlockWalletModal } from "./UnlockWalletModal";
 import { PortfolioHeader, type WalletAction } from "./PortfolioHeader";
 import { TokenList } from "./TokenList";
 import { ChainStatsPanel } from "./ChainStatsPanel";
+import { StakePanel } from "./StakePanel";
+import { PassportAssetCard } from "./PassportAssetCard";
+import { ActivityLedger } from "./ActivityLedger";
+import { ReceiveModal } from "./ReceiveModal";
+import { SendModal } from "./SendModal";
+import { SwapBridgeModal } from "./SwapBridgeModal";
 
 type View = "loading" | "create" | "locked" | "unlocked";
 
 /**
  * Wallet & Chain screen orchestrator (client island). Resolves the active chain,
  * loads the portfolio + chain stats + staking position + passport + history, and
- * renders the hero + token list + chain stats. All read failures degrade
- * gracefully (empty/unavailable states, never a thrown render — finding #14).
- * Writes are unlock-gated: a locked wallet opens the UnlockWalletModal.
- *
- * Modals (Send/Receive/Swap/Bridge) and the stake panel / passport card /
- * activity ledger are wired in later Wave 6 tasks; the action buttons already
- * open the unlock flow when locked.
+ * renders the hero + token list + passport card + activity ledger (left) and the
+ * chain-stats + stake panels (right rail). All read failures degrade gracefully
+ * (empty/unavailable states, never a thrown render — finding #14). Writes are
+ * unlock-gated: a locked wallet opens the UnlockWalletModal.
  */
 export function WalletChainApp() {
   const chainId = activeChain().primaryChainId;
   const [view, setView] = useState<View>("loading");
   const [accounts, setAccounts] = useState<WalletAccounts | null>(null);
   const [showUnlock, setShowUnlock] = useState(false);
-  const [pendingAction, setPendingAction] = useState<WalletAction | null>(null);
+  const [modal, setModal] = useState<null | "send" | "receive" | "swap" | "bridge">(null);
 
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [stats, setStats] = useState<ChainStats | null>(null);
   const [stake, setStake] = useState<StakePosition | null>(null);
-  // `passport` + `history` are read now (proving graceful degradation) and consumed
-  // by the PassportAssetCard / ActivityLedger wired in Task 10 — only the setters
-  // are bound here to avoid unused-var churn before those cards land.
-  const [, setPassport] = useState<PassportStatus | null>(null);
-  const [, setHistory] = useState<TxRow[]>([]);
+  const [passport, setPassport] = useState<PassportStatus | null>(null);
+  const [passportError, setPassportError] = useState(false);
+  const [history, setHistory] = useState<TxRow[]>([]);
 
   const stakeEnabled = safeStakingAvailable(chainId);
 
@@ -74,47 +71,84 @@ export function WalletChainApp() {
     };
   }, []);
 
-  // Load on-chain data once we know the address. Each read degrades gracefully.
   const evmAddress = accounts?.evm ?? null;
+
+  // Load all on-chain data. Each read degrades gracefully (never a thrown render).
+  const loadAll = useCallback(
+    (addr: `0x${string}`, alive: () => boolean) => {
+      readChainStats(chainId)
+        .then((s) => alive() && setStats(s))
+        .catch(() => alive() && setStats(null));
+
+      loadPortfolio(chainId, addr)
+        .then((p) => alive() && setPortfolio(p))
+        .catch(() => alive() && setPortfolio({ assets: [], totalUsd: 0 }));
+
+      readPassportStatus(chainId, addr)
+        .then((s) => {
+          if (!alive()) return;
+          setPassport(s);
+          setPassportError(false);
+        })
+        .catch(() => {
+          if (!alive()) return;
+          setPassport(null);
+          setPassportError(true);
+        });
+
+      evmHistory(chainId, addr)
+        .then((rows) => alive() && setHistory(rows))
+        .catch(() => alive() && setHistory([]));
+
+      if (stakeEnabled) {
+        readStakePosition(chainId, addr)
+          .then((p) => alive() && setStake(p))
+          .catch(() => alive() && setStake(null));
+      }
+    },
+    [chainId, stakeEnabled],
+  );
+
   useEffect(() => {
     if (!evmAddress) return;
-    let mounted = true;
-    const addr = evmAddress as `0x${string}`;
-
-    readChainStats(chainId)
-      .then((s) => mounted && setStats(s))
-      .catch(() => mounted && setStats(null));
-
-    loadPortfolio(chainId, addr)
-      .then((p) => mounted && setPortfolio(p))
-      .catch(() => mounted && setPortfolio({ assets: [], totalUsd: 0 }));
-
-    readPassportStatus(chainId, addr)
-      .then((s) => mounted && setPassport(s))
-      .catch(() => mounted && setPassport(null));
-
-    evmHistory(chainId, addr)
-      .then((rows) => mounted && setHistory(rows))
-      .catch(() => mounted && setHistory([]));
-
-    if (stakeEnabled) {
-      readStakePosition(chainId, addr)
-        .then((p) => mounted && setStake(p))
-        .catch(() => mounted && setStake(null));
-    }
+    let alive = true;
+    loadAll(evmAddress as `0x${string}`, () => alive);
     return () => {
-      mounted = false;
+      alive = false;
     };
-  }, [evmAddress, chainId, stakeEnabled]);
+  }, [evmAddress, loadAll]);
+
+  /** Re-run all reads (e.g. after a write). */
+  const refresh = useCallback(() => {
+    if (evmAddress) loadAll(evmAddress as `0x${string}`, () => true);
+  }, [evmAddress, loadAll]);
+
+  /** Unlock gate for writes: true when unlocked; opens the unlock modal otherwise. */
+  const requireUnlock = useCallback((): boolean => {
+    if (isUnlocked()) return true;
+    setShowUnlock(true);
+    return false;
+  }, []);
 
   const onAction = useCallback((action: WalletAction) => {
-    if (!isUnlocked()) {
-      setPendingAction(action);
-      setShowUnlock(true);
-      return;
+    switch (action) {
+      case "RECEIVE":
+        setModal("receive"); // public address — no unlock needed to view
+        return;
+      case "SEND":
+        setModal("send");
+        return;
+      case "SWAP":
+        setModal("swap");
+        return;
+      case "BRIDGE":
+        setModal("bridge");
+        return;
+      case "STAKE": {
+        document.getElementById("stake-panel-anchor")?.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
     }
-    // Modal wiring for each action lands in later Wave 6 tasks.
-    setPendingAction(action);
   }, []);
 
   const onUnlock = useCallback(async (pass: string) => {
@@ -201,45 +235,45 @@ export function WalletChainApp() {
             onAction={onAction}
           />
           <TokenList assets={assets} />
-          {/* PassportAssetCard + ActivityLedger land in Task 10. */}
+          <PassportAssetCard passport={passport} unavailable={passportError} />
+          <ActivityLedger rows={history} explorerBase={stats?.explorerBase ?? null} />
         </div>
 
         <aside style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <ChainStatsPanel stats={stats} />
-          {/* StakePanel lands in Task 9 (uses `stake` + `stakeEnabled`). */}
-          {stakeEnabled && stake && (
-            <article className="pillar" style={{ padding: 22 }} data-testid="stake-summary">
-              <div
-                style={{
-                  fontSize: 10,
-                  color: "var(--muted)",
-                  letterSpacing: "0.12em",
-                  fontWeight: 700,
-                }}
-              >
-                YOUR STAKE
-              </div>
-              <div style={{ marginTop: 8, fontSize: 12, fontFamily: "var(--mono)" }}>
-                {(stake.aprBps / 100).toFixed(2)}% APR
-              </div>
-            </article>
-          )}
+          <div id="stake-panel-anchor">
+            <StakePanel
+              chainId={chainId}
+              available={stakeEnabled}
+              position={stake}
+              requireUnlock={requireUnlock}
+              onChanged={refresh}
+            />
+          </div>
         </aside>
       </div>
 
-      {showUnlock && (
-        <UnlockWalletModal
-          onUnlock={onUnlock}
-          onCancel={() => {
-            setShowUnlock(false);
-            setPendingAction(null);
+      {modal === "receive" && evmAddress && (
+        <ReceiveModal address={evmAddress} onClose={() => setModal(null)} />
+      )}
+      {modal === "send" && evmAddress && (
+        <SendModal
+          chainId={chainId}
+          from={evmAddress as `0x${string}`}
+          requireUnlock={requireUnlock}
+          onClose={() => {
+            setModal(null);
+            refresh();
           }}
         />
       )}
-      {/* pendingAction is consumed by the modals wired in later tasks. */}
-      <span hidden data-testid="pending-action">
-        {pendingAction ?? ""}
-      </span>
+      {(modal === "swap" || modal === "bridge") && (
+        <SwapBridgeModal mode={modal} onClose={() => setModal(null)} />
+      )}
+
+      {showUnlock && (
+        <UnlockWalletModal onUnlock={onUnlock} onCancel={() => setShowUnlock(false)} />
+      )}
     </div>
   );
 }
