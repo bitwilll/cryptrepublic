@@ -45,6 +45,44 @@ export function readHasPassportServer(chainId: number, who: Address): Promise<bo
   });
 }
 
+/**
+ * totalCitizens() — the TRUSTLESS live census count (addendum #1: NEVER
+ * totalSupply(); the passport is not enumerable). Server-side for public stats
+ * routes.
+ */
+export function readTotalCitizensServer(chainId: number): Promise<bigint> {
+  return serverClient(chainId).readContract({
+    address: passportAddress(chainId),
+    abi: passportAbi,
+    functionName: "totalCitizens",
+  });
+}
+
+/** The current head block number (server-side) — for the census 24h delta window. */
+export function readHeadBlockServer(chainId: number): Promise<bigint> {
+  return serverClient(chainId).getBlockNumber();
+}
+
+/** CitizenMinted logs (all, or a window) — for census delta / recent inductions. */
+export async function readCitizenMintedLogsServer(
+  chainId: number,
+  fromBlock: bigint = 0n,
+): Promise<{ tokenId: bigint; citizen: Address; mintBlock: bigint; blockNumber: bigint }[]> {
+  const event = getAbiItem({ abi: passportAbi, name: "CitizenMinted" });
+  const logs = await serverClient(chainId).getLogs({
+    address: passportAddress(chainId),
+    event,
+    fromBlock,
+    toBlock: "latest",
+  });
+  return logs.map((l) => ({
+    tokenId: l.args.tokenId as bigint,
+    citizen: l.args.citizen as Address,
+    mintBlock: l.args.mintBlock as bigint,
+    blockNumber: l.blockNumber ?? 0n,
+  }));
+}
+
 export async function readRequiredWitnessesServer(chainId: number): Promise<number> {
   const n = await serverClient(chainId).readContract({
     address: passportAddress(chainId),
