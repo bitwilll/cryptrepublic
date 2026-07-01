@@ -1,0 +1,88 @@
+/* ── Dashboard shell layout + responsive drawer ──
+   Ported from Dashboard.html (lines 19–48). The sidebar becomes a slide-in
+   drawer at ≤1024px (burger toggle in the Topbar); .hideSm hides topbar meta at
+   ≤860px; two-column grids collapse at ≤760px. */
+
+.app {
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+}
+
+.sidebar {
+  background: var(--navy);
+  color: #fff;
+  padding: 22px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 100vh;
+  border-right: 1px solid var(--line);
+  scrollbar-width: thin;
+}
+
+.main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 25, 41, 0.55);
+  z-index: 999;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.burger {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .app {
+    display: block;
+  }
+  .burger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 282px;
+    min-height: 100vh;
+    transform: translateX(-105%);
+    transition: transform 0.28s cubic-bezier(0.3, 0.7, 0.3, 1);
+    z-index: 1000;
+    overflow-y: auto;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 24px 0 80px rgba(0, 0, 0, 0.35);
+  }
+}
+
+@media (max-width: 860px) {
+  .hideSm {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .main :global([style*="grid-template-columns"]) {
+    grid-template-columns: 1fr !important;
+  }
+  .main aside {
+    position: static !important;
+  }
+  .topbar {
+    padding: 12px 16px !important;
+  }
+}
