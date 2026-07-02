@@ -17,6 +17,7 @@ import {
   type WalletMode,
 } from "@/lib/wallet/mode";
 import { WalletModeSelect } from "./WalletModeSelect";
+import { ExternalWalletPanel } from "./ExternalWalletPanel";
 import { loadPortfolio, type Portfolio } from "@/lib/wallet/services/portfolio";
 import { readChainStats, type ChainStats } from "@/lib/wallet/services/chainStats";
 import {
@@ -224,9 +225,9 @@ export function WalletChainApp() {
       <div className="wrap" style={{ padding: "32px 0", maxWidth: 720 }}>
         <div className="kicker">SOVEREIGN WALLET</div>
         <h1 style={{ marginTop: 12 }}>Hardware / external wallet</h1>
-        <p style={{ color: "var(--muted)", marginTop: 12 }} data-testid="hardware-panel">
-          Connect a wallet you already have — the connect panel is being assembled in this wave.
-        </p>
+        <div data-testid="hardware-panel">
+          <ExternalWalletPanel />
+        </div>
         <button className="btn" type="button" onClick={onChangeMode} style={{ marginTop: 16 }}>
           Change wallet mode
         </button>
