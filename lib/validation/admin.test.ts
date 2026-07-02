@@ -5,6 +5,7 @@ import {
   kycSetSchema,
   sessionsRevokeSchema,
   applicationReviewSchema,
+  approveMintSchema,
   assetSchema,
   embassySchema,
   censusSchema,
@@ -83,6 +84,25 @@ describe("admin validation schemas (B1 — users/applications)", () => {
       expect(applicationReviewSchema.safeParse({ reviewNote: "x".repeat(2001) }).success).toBe(
         false,
       );
+    });
+  });
+
+  describe("approveMintSchema (Wave 10 — EMPTY body; the server owns every column)", () => {
+    it("accepts an empty body ({})", () => {
+      expect(approveMintSchema.safeParse({}).success).toBe(true);
+    });
+    it("rejects chain-cache AND approval fields by strictness (constraint #3 — nothing client-settable)", () => {
+      for (const bad of [
+        { status: "SEALED" },
+        { citizenTokenId: "1" },
+        { sealTxHash: "0xabc" },
+        { sealedAt: "2026-07-03" },
+        { adminApprovedAt: "2026-07-03" },
+        { adminApprovedBy: "x" },
+        { role: "ADMIN" },
+      ]) {
+        expect(approveMintSchema.safeParse(bad).success, JSON.stringify(bad)).toBe(false);
+      }
     });
   });
 });

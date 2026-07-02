@@ -30,6 +30,12 @@ export const applicationReviewSchema = z
     message: "Provide kycStatus and/or reviewNote.",
   });
 
+/** Wave 10 — approve-mint accepts NO fields at all: the body is EMPTY ({}).
+ *  The server owns the approval columns (adminApprovedAt/adminApprovedBy) and
+ *  the chain owns citizen state — a body naming status/citizenTokenId/
+ *  sealTxHash/sealedAt/adminApprovedAt/adminApprovedBy is 400 by strictness. */
+export const approveMintSchema = z.object({}).strict();
+
 // ─────────────────────────────────────────────────────────────────────────
 // B2 — content + flag schemas (constraint #7 honesty rules live HERE where
 // they are schema-expressible; table-wide rules — allocation sum, hash-bound
