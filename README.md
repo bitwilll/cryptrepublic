@@ -51,14 +51,14 @@ vars, deploy commands, seeding/admin bootstrap, cryptrepublic.com DNS:
 
 ## Test matrix
 
-Counts as of the Vercel-hosting close-out (2026-07-02, this branch):
+Counts as of the Wave-10 close-out (2026-07-03):
 
-| Suite                     | Command                      | Count | What it proves                                                                                                                                                                         |
-| ------------------------- | ---------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit (Vitest)             | `pnpm test`                  | 678   | lib/API/component logic against jsdom + disposable SQLite (incl. the admin guard stack, audit allowlist, the no-signing guard, and the dual-schema drift + vercel-build wiring guards) |
-| Integration (local anvil) | `pnpm test:integration`      | 15    | REAL on-chain proofs: passport seal/mint, funded send + staking, castVote + dividend claim/no-double-claim, admin PREPARED calldata                                                    |
-| E2E (Playwright)          | `pnpm e2e`                   | 29    | browser flows on a prod build with deterministic stubbed reads (9 registrations/run — budget < 10; the admin spec registers nobody)                                                    |
-| Contracts (Foundry)       | `cd contracts && forge test` | 165   | unit + fuzz + invariant (soulbound, one-vote, no-double-claim, solvency)                                                                                                               |
+| Suite                     | Command                      | Count | What it proves                                                                                                                                                                                   |
+| ------------------------- | ---------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Unit (Vitest)             | `pnpm test`                  | 799   | lib/API/component logic against jsdom + disposable SQLite (incl. the admin guard stack, audit allowlist, the no-signing guard, the dual-schema drift guard, the Wave-10 CSV/stats/charts suites) |
+| Integration (local anvil) | `pnpm test:integration`      | 16    | REAL on-chain proofs: passport seal/mint, funded send + staking, castVote + dividend claim/no-double-claim, admin PREPARED calldata, ZERO-witness adminMint                                      |
+| E2E (Playwright)          | `pnpm e2e`                   | 32    | browser flows on a prod build with deterministic stubbed reads (9 registrations/run — budget < 10; the admin spec registers nobody)                                                              |
+| Contracts (Foundry)       | `cd contracts && forge test` | 165   | unit + fuzz + invariant (soulbound, one-vote, no-double-claim, solvency)                                                                                                                         |
 
 Gates: `forge snapshot --check` (pinned fuzz seed + pinned CI toolchain) and
 `bash contracts/scripts/coverage-gate.sh` (≥95% lines with two documented
@@ -105,21 +105,22 @@ step** (deploy + fork tests + burn-in per
   markers mapped to spec-§10.1 risks
 - [contracts/docs/DEPLOY_RUNBOOK.md](contracts/docs/DEPLOY_RUNBOOK.md) — contract
   deploy/configure/seed runbook (USER steps)
-- [CHANGELOG.md](CHANGELOG.md) — release history (Waves 1–9)
+- [CHANGELOG.md](CHANGELOG.md) — release history (Waves 1–10)
 
 ## Wave status
 
-| Wave | Deliverable                                  | Status                                 |
-| ---- | -------------------------------------------- | -------------------------------------- |
-| 1    | Scaffold + design system + marketing home    | Delivered                              |
-| 2    | Auth (Argon2id + sessions + SIWE) + DB       | Delivered                              |
-| 3    | Embedded/external wallets + multichain reads | Delivered                              |
-| 4    | Contracts + tests (+ local anvil dry-run)    | Delivered (testnet deploy = USER step) |
-| 5    | Citizenship + 4-step passport mint           | Delivered                              |
-| 6    | Wallet & Chain screen                        | Delivered                              |
-| 7    | Remaining dashboard screens wired            | Delivered                              |
-| 8    | Polish + tests + docs + mainnet runbook      | Delivered (assistant scope)            |
-| 9    | Admin panel (capstone)                       | Delivered (2026-07-02)                 |
+| Wave | Deliverable                                                                                              | Status                                 |
+| ---- | -------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| 1    | Scaffold + design system + marketing home                                                                | Delivered                              |
+| 2    | Auth (Argon2id + sessions + SIWE) + DB                                                                   | Delivered                              |
+| 3    | Embedded/external wallets + multichain reads                                                             | Delivered                              |
+| 4    | Contracts + tests (+ local anvil dry-run)                                                                | Delivered (testnet deploy = USER step) |
+| 5    | Citizenship + 4-step passport mint                                                                       | Delivered                              |
+| 6    | Wallet & Chain screen                                                                                    | Delivered                              |
+| 7    | Remaining dashboard screens wired                                                                        | Delivered                              |
+| 8    | Polish + tests + docs + mainnet runbook                                                                  | Delivered (assistant scope)            |
+| 9    | Admin panel (capstone)                                                                                   | Delivered (2026-07-02)                 |
+| 10   | Admin enhancements: admin-mint override + CSV report exports + responsive/clickable tiles + infographics | Delivered (2026-07-03)                 |
 
 ## Admin panel (Wave 9)
 
@@ -144,13 +145,28 @@ actions (disburse / fundDividends) are prepared as **governance-proposal
 payloads** — the role is held by the Governance contract, so no direct Safe
 transaction can honestly execute them.
 
-## Release (v0.9.0)
+Wave 10 extends the panel: an **admin-mint override** issues a passport
+WITHOUT the seven external witnesses (`adminMint`, `PASSPORT_ADMIN_ROLE`) —
+PREPARED only, signed in the admin's own wallet/Safe, never by the panel; the
+mint destination is always the applicant's server-resolved verified wallet,
+never client-supplied, and approval is recorded as off-chain intent
+(`adminApprovedAt`/`By`) while citizen state stays chain-derived.
+**Field-allowlisted CSV report exports** (users / applications / audit) are
+injection-safe, audited as `admin.export.<kind>`, and can never contain
+`passwordHash`/`tokenHash`. The Overview's stat tiles are keyboard-focusable
+links into their sections, the panel is responsive at 390px, and a
+"Republic at a glance" section renders self-contained inline-SVG infographics
+(honest data from `/api/admin/stats`; the citizens count comes from the chain
+or is shown as unavailable — never fabricated; census geography is labeled
+SEEDED/demonstrative).
 
-Current version: `0.9.0` ([CHANGELOG.md](CHANGELOG.md)). **Tagging is a USER
-step, post-merge** — after merging this branch to `main`:
+## Release (v0.10.0)
+
+Current version: `0.10.0` ([CHANGELOG.md](CHANGELOG.md)). **Tagging is a USER
+step** — on `main`:
 
 ```bash
-git checkout main && git pull && git tag -a v0.9.0 -m "CryptRepublic v0.9.0 — Wave 9 admin panel" && git push origin v0.9.0
+git checkout main && git pull && git tag -a v0.10.0 -m "CryptRepublic v0.10.0 — Wave 10 admin enhancements" && git push origin v0.10.0
 ```
 
 The assistant does not create or push tags. Three Wave-8 spec-row items remain

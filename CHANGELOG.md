@@ -5,15 +5,104 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 numbers on the same branch line and are recorded below as dated development
 history (dates are the real commit dates from the git trail).
 
-## [Unreleased] — Vercel hosting preparation (`feat/vercel-hosting`)
+## [0.10.0] — 2026-07-03 (Wave 10 — Admin enhancements; live at cryptrepublic.com)
 
-Repo + docs preparation for hosting the **testnet build** on Vercel with a
-Postgres production database; deployment itself is a USER-driven step
-([docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md)). Local dev and the entire
-local gate stay on SQLite — zero test regressions. Full gate at close-out:
-**678 unit (665 + 13 new guards) / 15 integration (local anvil) / 29 e2e /
-165 forge**, plus `forge snapshot --check`, the coverage gate,
-`guard:secrets`, and a green production build.
+Two threads since 0.9.0: the site went **live in production** at
+[https://cryptrepublic.com](https://cryptrepublic.com) (Vercel + Neon
+Postgres, testnet profile), and Wave 10 shipped the admin enhancements —
+witness-free admin-mint override (PREPARED-only), field-allowlisted CSV
+report exports, clickable/responsive dashboard tiles, and honest inline-SVG
+infographics. Full gate at this release: **799 unit / 16 integration (local
+anvil) / 32 e2e (9 registrations, budget < 10) / 165 forge**, plus
+`forge snapshot --check`, the coverage gate, `guard:secrets`, and a green
+production build.
+
+### Wave 10 Group A — admin-mint override (witness-free, PREPARED-only)
+
+- **Schema (A1):** additive-nullable `adminApprovedAt`/`adminApprovedBy` on
+  `CitizenshipApplication` in BOTH schemas (sqlite + postgres migrations are
+  `ADD COLUMN` only; drift guard green); `AUDIT_FIELD_ALLOWLIST.APPLICATION`
+  extended.
+- **Pure encoder (A2):** `prepareAdminMint` encodes
+  `adminMint(to, nameHash, motto, domicile)` (`PASSPORT_ADMIN_ROLE`, ZERO
+  witnesses) into the standard `PreparedBatch` — the panel NEVER signs
+  (static guard `test/no-admin-signing.test.ts` still green).
+- **Approve route (A3):** `POST /api/admin/applications/[id]/approve-mint`
+  records OFF-CHAIN INTENT only + returns server-resolved mint params; the
+  `to` is the applicant's live verified `LinkedWallet`
+  (`buildAdminMintParams`), never client-supplied and never the stale
+  `applicantAddress` snapshot; no verified wallet → 400; `.strict()`
+  empty-body schema rejects chain-cache fields; audited as
+  `application.approve_mint` in the same `$transaction`; re-approval is a
+  fresh audited event; motto/domicile encode byte-identically to the
+  witnessed seal path (`.trim().slice(0,31)`).
+- **Admin UI (A4):** ApplicationDetail "Approve & mint (override witnesses)"
+  gated on the live resolved destination; generic Chain-Actions "Admin mint"
+  composer with checksum validation (`getAddress`), a verify-off-chain
+  warning, and a self-mint "use MY verified address" fill that also serves
+  application-less admins.
+- **Applicant reflection (A5):** obligations + mint flow + home rail show "an
+  administrator has approved your application; your passport is being issued
+  by the Republic" — chain-truth gated (suppressed the moment
+  `readHasPassport` says citizen; approval is never presented as
+  citizenship).
+- **Anvil proof (A6):** `test/integration/admin-mint-e2e.test.ts` mints a
+  ZERO-witness passport from the prepared calldata on local anvil (the TEST
+  signs with a throwaway anvil PASSPORT_ADMIN key; panel code never signs);
+  e2e station 8 proves the approve→prepared-card flow over the wire.
+
+### Wave 10 Group B — CSV report exports
+
+- **Exporter (B1):** `lib/admin/csv.ts` `toCsv` — explicit per-report column
+  allowlists (users / applications / audit), RFC-4180 quoting, formula-
+  injection neutralization (leading `= + - @`, TAB, CR); `passwordHash`/
+  `tokenHash` are in NO column set.
+- **Routes (B2):** `GET /api/admin/export/{users,applications,audit}` —
+  `guardAdminGet` + per-admin 10/5min rate limit, `text/csv` with dated
+  `Content-Disposition`, audited as `admin.export.<kind>` (targetType
+  `EXPORT`, allowlist kind/rowCount/requestedAt).
+- **UI (B3):** keyboard-focusable download buttons on Users / Applications /
+  Audit screens.
+
+### Wave 10 Group C — dashboard UX + infographics
+
+- **Clickable tiles (C1):** the four Overview stat pillars are real
+  keyboard-focusable `next/link` anchors (aria-labelled) →
+  `/admin/{users,applications,content,flags}`; admin screens proven
+  overflow-free at 390px by e2e (long mono values wrap; the shared `Ledger`
+  scroll wrapper is now a focusable labeled region — fixes a serious axe
+  `scrollable-region-focusable` at mobile width app-wide); axe zero
+  critical/serious on `/admin` at desktop AND 390x844.
+- **Infographics (C2):** `GET /api/admin/stats` (honest series:
+  applications-by-status in order, DB users/embassies counts, chain-derived
+  citizens via graceful try/catch → `citizens:null` + `chainAvailable:false`
+  when unreadable — never fabricated, never a 500; 14-day audit-activity
+  buckets with empty days as 0; census from `CityCensus.seededCount` with
+  `censusSource:"seeded"`). Self-contained inline-SVG charts (BarChart /
+  CountTile+Spark / ActivitySeries) — no chart lib, no CDN, no scripts, no
+  inline handlers, CSP- and reduced-motion-safe — each with `role="img"` +
+  `<title>`/`<desc>` + a visually-hidden data `<table>`; the census chart is
+  labeled "SEEDED — demonstrative, not live census" visibly AND in the
+  accessible alternative.
+
+### Production hosting (post-0.9.0 line — live at cryptrepublic.com)
+
+- **Deployed:** Vercel project + Neon Postgres integration; apex and www on
+  Vercel nameservers; `vercel.json` pins `framework: "nextjs"`; Next.js
+  15.1.0 → **15.5.20** (Vercel blocks known-CVE versions).
+- **CSRF fix:** `isAllowedOrigin` accepts the `www.` twin of
+  `NEXT_PUBLIC_APP_URL` + a permanent `www → apex` redirect — fixes all
+  mutations 403ing from `www.cryptrepublic.com` ("Could not save your
+  attestation").
+- **Mint resume:** the mint flow resumes an in-flight application at its
+  status-implied step (prefilled, back-locked, never rotates a live witness
+  nonce); the dashboard shows witness-pending/waiting states; re-mint is
+  blocked while an application is in flight.
+- **Ops:** `.env.local` shadowing trap documented (Neon provisioning wrote
+  prod `DATABASE_URL` into `.env.local`, breaking local e2e); jay@bitwill.com
+  granted ADMIN in production via the audited `pnpm admin:grant` CLI.
+
+### Vercel hosting preparation (`feat/vercel-hosting`, merged pre-deploy)
 
 - **Dual Prisma schemas:** mirrored `prisma/postgres/schema.prisma`
   (`postgresql` provider + `directUrl` for pooled Neon) with its own

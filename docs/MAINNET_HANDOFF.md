@@ -163,6 +163,52 @@ On real networks, set the registry entry's `deployBlock`
 (`config/contracts.ts`) so the role-topology `eth_getLogs` scans start at the
 deploy block — providers commonly limit from-genesis ranges on Base.
 
+### Admin-mint override — witness-free issuance (Wave 10)
+
+The panel can PREPARE `adminMint(to, nameHash, motto, domicile)` — a passport
+issued with **zero external witnesses**, gated on-chain by
+`PASSPORT_ADMIN_ROLE`. The same non-custodial rule applies absolutely: the
+panel prepares the calldata; **the operator signs in their own wallet/Safe**.
+Operating cautions:
+
+- **A wrong `to` mints a soulbound passport that cannot be transferred or
+  revoked.** Prefer the per-application approve path — there the destination
+  is the applicant's server-resolved **verified** `LinkedWallet`, never a
+  typed address. For the generic composer (incl. self-mint), verify the
+  address off-chain with its owner before signing.
+- "Approve & prepare admin mint" records **off-chain intent only**
+  (`adminApprovedAt`/`By`, audited as `application.approve_mint`). It does not
+  change chain state and the applicant is *not* a citizen until the signed
+  `adminMint` lands — the app keeps citizen state chain-derived throughout.
+- Witness-free issuance bypasses the republic's social attestation ceremony —
+  use it for founding/bootstrap and exceptional cases, and let the audit trail
+  show who approved what and when.
+
+### Report exports carry PII (Wave 10)
+
+`/api/admin/export/{users,applications,audit}` produce CSVs containing
+**personal data** (emails, names, domiciles, wallet addresses, audit
+metadata). Handle per your data policy: store them encrypted or not at all,
+share them minimally, and delete them when done. Secrets are never exported —
+the field allowlist excludes `passwordHash`/`tokenHash` by construction, and
+every export writes an `admin.export.<kind>` audit row, so export access is
+itself reviewable.
+
+### Wave-10 production migration run-order (adminApprovedAt/By)
+
+The Wave-10 columns are **additive nullable** (`ALTER TABLE ... ADD COLUMN`
+only, no backfill). Two safe postures:
+
+1. **Default (ships with the deploy):** `vercel-build` runs
+   `prisma migrate deploy` against `prisma/postgres/schema.prisma` before
+   `next build`, so the migration applies before the new serverless code
+   serves traffic. The currently-live code never reads the new columns, so it
+   is unaffected while the migration runs.
+2. **Manual / zero-downtime posture:** run `prisma migrate deploy` (with the
+   Neon `DATABASE_URL`/`DATABASE_URL_UNPOOLED` in a throwaway env file — see
+   [DEPLOY_VERCEL.md](DEPLOY_VERCEL.md) for the `.env.local` shadowing trap)
+   **first**, verify, then deploy the code that reads the columns.
+
 ### Admin-role bootstrap runbook (grant-admin)
 
 There is **no promotion API** — no request, admin-authenticated or otherwise,

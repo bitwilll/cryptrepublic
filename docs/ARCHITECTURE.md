@@ -310,3 +310,59 @@ The unregistered default chain returns `{available: false}` — never a 500.
 `deployBlock` as `fromBlock` (default 0 — correct on anvil). On real networks
 set `deployBlock` to the contract deploy block: providers commonly limit
 from-genesis `eth_getLogs` ranges on Base/Base Sepolia.
+
+**Wave 10 — admin-mint override (witness-free, PREPARED-only).** The passport
+contract's `adminMint(to, nameHash, motto, domicile)` (`PASSPORT_ADMIN_ROLE`,
+ZERO witnesses) gets a full panel path: `prepareAdminMint`
+(`lib/admin/prepare.ts`, pure encoder — mirrors only the pure `ZeroAddress`
+require) → `PreparedActionCard` ("PREPARED FOR YOUR SAFE — THIS PANEL NEVER
+SIGNS"). The mint `to` is **never client-supplied** on the per-application
+path: `buildAdminMintParams` (`lib/admin/mintParams.ts`) resolves the
+applicant's live verified `LinkedWallet` via `resolveApplicantAddress` (no
+verified wallet → approve disabled in the UI AND 400 from the route; the
+stale `applicantAddress` snapshot column is never trusted), and encodes
+motto/domicile byte-identically to the witnessed seal path
+(`toBytes32String(x.trim().slice(0,31))`). `POST
+/api/admin/applications/[id]/approve-mint` records **off-chain intent only**
+(`adminApprovedAt`/`adminApprovedBy` — additive nullable columns in BOTH
+schemas, drift-guarded): the `.strict()` empty-body schema rejects any
+chain-cache field, citizen state stays `readHasPassport`-derived, and
+re-approval is an audited EVENT (fresh `application.approve_mint` row in the
+same `$transaction`), not a toggle. The applicant sees "an administrator has
+approved your application; your passport is being issued" (obligations +
+mint flow + home rail) — suppressed the moment the chain says citizen. The
+generic composer variant (self-mint incl. admins without an application row)
+resolves the admin's own verified wallet server-side, validates checksums via
+`getAddress`, and warns to verify any manual address off-chain. Proven on
+local anvil: `test/integration/admin-mint-e2e.test.ts` mints a ZERO-witness
+passport from the prepared calldata (the TEST signs with an anvil throwaway
+PASSPORT_ADMIN key; panel code never signs —
+`test/no-admin-signing.test.ts`).
+
+**Wave 10 — CSV report exports (allowlisted).** `lib/admin/csv.ts` `toCsv`
+serializes ONLY explicit per-report column sets (users / applications /
+audit — `passwordHash`/`tokenHash` are not in any set and `guard:secrets`
+plus route tests enforce it), quotes/escapes RFC-4180 style, and neutralizes
+formula injection (leading `= + - @`, TAB, CR). The three `GET
+/api/admin/export/{users,applications,audit}` routes run `guardAdminGet` +
+per-admin rate limit (10/5min), stream `text/csv` with a dated
+`Content-Disposition` filename, and write an `admin.export.<kind>` audit row
+(targetType `EXPORT`, tiny allowlist: kind/rowCount/requestedAt).
+
+**Wave 10 — dashboard UX + infographics.** The four Overview stat tiles are
+real keyboard-focusable `next/link` anchors (aria-labelled) into
+`/admin/{users,applications,content,flags}`; admin screens are proven
+overflow-free at 390px by e2e (long mono values wrap via
+`overflowWrap:anywhere`; the shared `Ledger` scroll wrapper is a focusable
+labeled region — axe `scrollable-region-focusable`). `GET /api/admin/stats`
+serves honest series: applications-by-status in `APP_STATUS_ORDER`, DB
+users/embassies counts, chain-derived citizens via graceful try/catch
+(`chainAvailable:false` + `citizens:null` when unreadable — never fabricated,
+never a 500), 14-day audit-activity buckets (empty days present as 0), and
+`censusByCity` from `CityCensus.seededCount` with `censusSource:"seeded"`.
+Charts (`components/admin/charts/`) are self-contained inline SVG — no chart
+lib, no CDN, no scripts, no inline handlers, no animation (CSP-safe and
+reduced-motion-safe by construction) — each with `role="img"` +
+`<title>`/`<desc>` and a visually-hidden `<table>` as the accessible data
+alternative; the seeded census chart is labeled "SEEDED — demonstrative, not
+live census" in both its visible caption and its accessible alternative.
