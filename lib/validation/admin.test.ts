@@ -5,6 +5,13 @@ import {
   kycSetSchema,
   sessionsRevokeSchema,
   applicationReviewSchema,
+  assetSchema,
+  embassySchema,
+  censusSchema,
+  allocationSchema,
+  constitutionSchema,
+  proposalContentSchema,
+  flagSchema,
 } from "@/lib/validation/admin";
 
 describe("admin validation schemas (B1 — users/applications)", () => {
@@ -76,6 +83,155 @@ describe("admin validation schemas (B1 — users/applications)", () => {
       expect(applicationReviewSchema.safeParse({ reviewNote: "x".repeat(2001) }).success).toBe(
         false,
       );
+    });
+  });
+});
+
+const VALID_ASSET = {
+  ref: "T9-001",
+  kind: "re",
+  name: "Test Warehouse",
+  location: "Lisbon, PT",
+  valueUsd: "28400000",
+  yieldBps: 480,
+  annualYieldUsd: "1363200",
+  status: "OWNED",
+  acquiredAt: "2026.01.01",
+};
+
+describe("admin validation schemas (B2 — content/flags)", () => {
+  describe("assetSchema (provenance honesty — constraint #7)", () => {
+    it("accepts an honest asset (BigInt columns as decimal strings)", () => {
+      expect(assetSchema.safeParse(VALID_ASSET).success).toBe(true);
+    });
+    it("rejects fabricated on-chain provenance in name/location/status (seed-scrub mirror)", () => {
+      expect(
+        assetSchema.safeParse({ ...VALID_ASSET, status: "OWNED · TITLED ON CHAIN" }).success,
+      ).toBe(false);
+      expect(assetSchema.safeParse({ ...VALID_ASSET, location: "Chain · CR-L2" }).success).toBe(
+        false,
+      );
+      expect(assetSchema.safeParse({ ...VALID_ASSET, name: "CryptRepublic L2 Node" }).success).toBe(
+        false,
+      );
+      expect(
+        assetSchema.safeParse({ ...VALID_ASSET, status: "titled on chain" }).success, // case-insensitive
+      ).toBe(false);
+    });
+    it("rejects non-numeric BigInt strings and unknown keys", () => {
+      expect(assetSchema.safeParse({ ...VALID_ASSET, valueUsd: "28.4M" }).success).toBe(false);
+      expect(assetSchema.safeParse({ ...VALID_ASSET, extra: true }).success).toBe(false);
+    });
+  });
+
+  describe("embassySchema / censusSchema", () => {
+    it("accepts bounded rows", () => {
+      expect(
+        embassySchema.safeParse({
+          code: "ZZT",
+          name: "Test Embassy",
+          neighborhood: "Alfama",
+          hours: "09–17",
+          foundedAt: "2026",
+          brandColor: "#c8a96a",
+          city: "Lisbon",
+          country: "Portugal",
+        }).success,
+      ).toBe(true);
+      expect(
+        censusSchema.safeParse({
+          code: "ZZC",
+          name: "Testville",
+          lat: 38.7,
+          long: -9.1,
+          hasEmbassy: false,
+          seededCount: 12,
+        }).success,
+      ).toBe(true);
+    });
+    it("rejects out-of-range coords and unknown keys", () => {
+      expect(
+        censusSchema.safeParse({
+          code: "ZZC",
+          name: "T",
+          lat: 91,
+          long: 0,
+          hasEmbassy: false,
+          seededCount: 0,
+        }).success,
+      ).toBe(false);
+      expect(
+        embassySchema.safeParse({
+          code: "ZZT",
+          name: "T",
+          neighborhood: "A",
+          hours: "9",
+          foundedAt: "2026",
+          brandColor: "#fff",
+          city: "L",
+          country: "P",
+          extra: 1,
+        }).success,
+      ).toBe(false);
+    });
+  });
+
+  describe("allocationSchema (bucket pins the on-chain bytes32 encodability — A3 mapping)", () => {
+    const valid = { bucket: "test_bucket", label: "Test", targetBps: 100, color: "#fff" };
+    it("accepts a seeded-style bucket; 32-char [a-z0-9_] boundary passes", () => {
+      expect(allocationSchema.safeParse(valid).success).toBe(true);
+      expect(allocationSchema.safeParse({ ...valid, bucket: "a".repeat(32) }).success).toBe(true);
+    });
+    it("rejects 33 chars, uppercase, spaces, and multi-byte UTF-8 buckets", () => {
+      expect(allocationSchema.safeParse({ ...valid, bucket: "a".repeat(33) }).success).toBe(false);
+      expect(allocationSchema.safeParse({ ...valid, bucket: "Embassy_Ops" }).success).toBe(false);
+      expect(allocationSchema.safeParse({ ...valid, bucket: "embassy ops" }).success).toBe(false);
+      expect(allocationSchema.safeParse({ ...valid, bucket: "büdget" }).success).toBe(false);
+    });
+    it("bounds targetBps to 0..10000", () => {
+      expect(allocationSchema.safeParse({ ...valid, targetBps: 10_000 }).success).toBe(true);
+      expect(allocationSchema.safeParse({ ...valid, targetBps: 10_001 }).success).toBe(false);
+      expect(allocationSchema.safeParse({ ...valid, targetBps: -1 }).success).toBe(false);
+    });
+  });
+
+  describe("constitutionSchema / proposalContentSchema / flagSchema", () => {
+    it("constitution rows validate", () => {
+      expect(
+        constitutionSchema.safeParse({
+          key: "test_key",
+          title: "Test",
+          body: "Body text.",
+          citation: null,
+        }).success,
+      ).toBe(true);
+      expect(constitutionSchema.safeParse({ key: "test_key", title: "T", body: "" }).success).toBe(
+        false,
+      );
+    });
+    it("proposal content: title/tag (+ optional body); unknown tag rejected", () => {
+      expect(proposalContentSchema.safeParse({ title: "T", tag: "CIVIC" }).success).toBe(true);
+      expect(proposalContentSchema.safeParse({ title: "T", tag: "CIVIC", body: "b" }).success).toBe(
+        true,
+      );
+      expect(proposalContentSchema.safeParse({ title: "T", tag: "OTHER" }).success).toBe(false);
+      expect(
+        proposalContentSchema.safeParse({ title: "T", tag: "CIVIC", descriptionHash: "0x0" })
+          .success,
+      ).toBe(false); // hash not editable
+    });
+    it("flag keys pin /^[a-z0-9_]{3,64}$/", () => {
+      expect(flagSchema.safeParse({ key: "population_world_map", enabled: true }).success).toBe(
+        true,
+      );
+      expect(flagSchema.safeParse({ key: "ab", enabled: true }).success).toBe(false);
+      expect(flagSchema.safeParse({ key: "Bad-Key", enabled: true }).success).toBe(false);
+      expect(flagSchema.safeParse({ key: "ok_key", enabled: true, description: "d" }).success).toBe(
+        true,
+      );
+      expect(
+        flagSchema.safeParse({ key: "ok_key", enabled: "yes" }).success, // wrong type
+      ).toBe(false);
     });
   });
 });

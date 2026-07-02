@@ -105,3 +105,51 @@ export function expectNoSecretKeys(serialized: string): void {
     throw new Error(`secret key leaked into serialized payload: ${serialized.slice(0, 400)}`);
   }
 }
+
+export type MutationCall = (o: {
+  token?: string;
+  origin?: string | null;
+  body?: unknown;
+}) => Promise<Response>;
+
+/**
+ * Fires the five standard guard cases against a mutation and returns the
+ * statuses — the caller asserts toEqual({401,401,403,403,400}). Keeps every
+ * content-route suite on the identical guard contract without 5x duplication.
+ */
+export async function standardGuardStatuses(
+  call: MutationCall,
+  f: AdminFixtures,
+  validBody: unknown,
+): Promise<Record<string, number>> {
+  return {
+    noCookie: (await call({ body: validBody })).status,
+    suspendedAdmin: (await call({ token: f.suspendedAdminToken, body: validBody })).status,
+    roleUser: (await call({ token: f.userToken, body: validBody })).status,
+    foreignOrigin: (
+      await call({ token: f.adminToken, origin: "https://evil.example", body: validBody })
+    ).status,
+    unknownKey: (
+      await call({ token: f.adminToken, body: { ...(validBody as object), zz_unknown: 1 } })
+    ).status,
+  };
+}
+
+export const STANDARD_GUARD_EXPECTED = {
+  noCookie: 401,
+  suspendedAdmin: 401,
+  roleUser: 403,
+  foreignOrigin: 403,
+  unknownKey: 400,
+};
+
+/** Consumes the per-admin limiter with `limit` (invalid-body) calls, then returns the next status. */
+export async function statusAfterLimit(
+  call: (body: unknown) => Promise<Response>,
+  limit: number,
+): Promise<number> {
+  for (let i = 0; i < limit; i++) {
+    await call({ zz_rate_limit_filler: i });
+  }
+  return (await call({ zz_rate_limit_filler: "final" })).status;
+}

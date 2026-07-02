@@ -29,3 +29,97 @@ export const applicationReviewSchema = z
   .refine((d) => d.kycStatus !== undefined || d.reviewNote !== undefined, {
     message: "Provide kycStatus and/or reviewNote.",
   });
+
+// ─────────────────────────────────────────────────────────────────────────
+// B2 — content + flag schemas (constraint #7 honesty rules live HERE where
+// they are schema-expressible; table-wide rules — allocation sum, hash-bound
+// proposal bodies — are route-level, inside the transaction).
+// ─────────────────────────────────────────────────────────────────────────
+
+/** Seed-scrub mirror (Wave-7 A2): fabricated on-chain provenance is rejected. */
+const FABRICATED_PROVENANCE = /CR-L2|CryptRepublic L2|TITLED ON CHAIN/i;
+function noFabricatedProvenance(d: { name: string; location: string; status: string }): boolean {
+  return !FABRICATED_PROVENANCE.test([d.name, d.location, d.status].join(" "));
+}
+
+export const assetSchema = z
+  .object({
+    ref: z.string().min(2).max(16),
+    kind: z.enum(["re", "ip", "eq", "tr"]),
+    name: z.string().min(1).max(200),
+    location: z.string().min(1).max(200),
+    valueUsd: z.string().regex(/^\d+$/), // BigInt as decimal string over the wire
+    yieldBps: z.number().int().min(0).max(100_000),
+    annualYieldUsd: z.string().regex(/^\d+$/),
+    status: z.string().min(1).max(120),
+    acquiredAt: z.string().min(1).max(40),
+  })
+  .strict()
+  .refine(noFabricatedProvenance, {
+    message: "Fabricated on-chain provenance is not allowed.",
+  });
+
+export const embassySchema = z
+  .object({
+    code: z.string().min(2).max(8),
+    name: z.string().min(1).max(200),
+    neighborhood: z.string().min(1).max(200),
+    hours: z.string().min(1).max(120),
+    foundedAt: z.string().min(1).max(40),
+    brandColor: z.string().min(1).max(32),
+    city: z.string().min(1).max(120),
+    country: z.string().min(1).max(120),
+  })
+  .strict();
+
+export const censusSchema = z
+  .object({
+    code: z.string().min(2).max(8),
+    name: z.string().min(1).max(200),
+    lat: z.number().min(-90).max(90),
+    long: z.number().min(-180).max(180),
+    hasEmbassy: z.boolean(),
+    seededCount: z.number().int().min(0),
+  })
+  .strict();
+
+/** bucket is ASCII [a-z0-9_] ≤ 32 chars = ≤ 32 BYTES — guarantees the A3
+ *  canonical bytes32 mapping `stringToHex(bucket, {size:32})` can NEVER throw
+ *  SizeExceedsPaddingSizeError. A looser bound (multi-byte UTF-8, > 32 chars)
+ *  would let a schema-valid DB row crash prepareSetAllocation AND
+ *  readAdminParamsServer. Matches the seeded key style ("embassy_ops"). */
+export const allocationSchema = z
+  .object({
+    bucket: z.string().regex(/^[a-z0-9_]{1,32}$/),
+    label: z.string().min(1).max(120),
+    targetBps: z.number().int().min(0).max(10_000),
+    color: z.string().max(32),
+  })
+  .strict();
+
+export const constitutionSchema = z
+  .object({
+    key: z.string().min(1).max(64),
+    title: z.string().min(1).max(200),
+    body: z.string().min(1).max(20_000),
+    citation: z.string().max(200).nullable().optional(),
+  })
+  .strict();
+
+/** body is applied ONLY when the row's descriptionHash is null (route-level
+ *  rule — editing a hash-bound body would falsify the on-chain binding). */
+export const proposalContentSchema = z
+  .object({
+    title: z.string().min(1).max(200),
+    tag: z.enum(["PROCEDURAL", "CULTURAL", "FISCAL", "CIVIC", "TECHNICAL"]),
+    body: z.string().max(20_000).optional(),
+  })
+  .strict();
+
+export const flagSchema = z
+  .object({
+    key: z.string().regex(/^[a-z0-9_]{3,64}$/),
+    enabled: z.boolean(),
+    description: z.string().max(300).nullable().optional(),
+  })
+  .strict();
