@@ -3,6 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Ledger } from "@/components/ui/Ledger";
 import { Skeleton, CardError, type Load } from "./bits";
+import { BarChart } from "./charts/BarChart";
+import { CountTile } from "./charts/CountTile";
+import { ActivitySeries } from "./charts/ActivitySeries";
 
 /** A stat pillar that NAVIGATES to its admin section (C1). A real keyboard-
  *  focusable <Link> (native <a>), aria-labelled — never an onClick div. */
@@ -60,6 +63,16 @@ interface Overview {
   recentAudit: AuditRow[];
 }
 
+/** /api/admin/stats payload (Wave 10 C2) — see the route's honesty contract. */
+interface Stats {
+  applicationsByStatus: { status: string; count: number }[];
+  counts: { users: number; citizens: number | null; embassies: number };
+  chainAvailable: boolean;
+  auditActivity: { day: string; count: number }[];
+  censusByCity: { code: string; name: string; count: number }[];
+  censusSource: "live" | "seeded";
+}
+
 const CONTENT_LABELS: Record<string, string> = {
   assets: "Assets",
   embassies: "Embassies",
@@ -72,6 +85,7 @@ const CONTENT_LABELS: Record<string, string> = {
 
 export function AdminOverviewApp() {
   const [state, setState] = useState<Load<Overview>>({ status: "loading" });
+  const [stats, setStats] = useState<Load<Stats>>({ status: "loading" });
 
   const load = useCallback(() => {
     setState({ status: "loading" });
@@ -81,9 +95,18 @@ export function AdminOverviewApp() {
       .catch(() => setState({ status: "error" }));
   }, []);
 
+  const loadStats = useCallback(() => {
+    setStats({ status: "loading" });
+    fetch("/api/admin/stats")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("failed"))))
+      .then((d: Stats) => setStats({ status: "ok", data: d }))
+      .catch(() => setStats({ status: "error" }));
+  }, []);
+
   useEffect(() => {
     load();
-  }, [load]);
+    loadStats();
+  }, [load, loadStats]);
 
   return (
     <div
@@ -150,6 +173,75 @@ export function AdminOverviewApp() {
               </div>
             </TileLink>
           </div>
+
+          <article
+            className="pillar"
+            style={{ padding: "24px 28px" }}
+            data-testid="overview-glance-card"
+          >
+            <h3 style={{ margin: 0, fontSize: 20 }}>Republic at a glance</h3>
+            <p style={{ color: "var(--muted)", marginTop: 4, fontSize: 12 }}>
+              Database counts are live; the citizens count is chain-derived (shown as — when the
+              chain is unavailable); census geography is a seeded demonstration, not live data.
+            </p>
+            {stats.status === "loading" && <Skeleton lines={4} />}
+            {stats.status === "error" && <CardError onRetry={loadStats} testid="stats-error" />}
+            {stats.status === "ok" && (
+              <div data-testid="overview-glance">
+                <div style={{ marginTop: 14, display: "flex", gap: 28, flexWrap: "wrap" }}>
+                  <CountTile label="Users" value={stats.data.counts.users} testid="glance-users" />
+                  <CountTile
+                    label="Citizens (chain)"
+                    value={stats.data.counts.citizens}
+                    testid="glance-citizens"
+                  />
+                  <CountTile
+                    label="Embassies"
+                    value={stats.data.counts.embassies}
+                    testid="glance-embassies"
+                  />
+                </div>
+                <div
+                  style={{
+                    marginTop: 20,
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 28,
+                    alignItems: "start",
+                  }}
+                >
+                  <BarChart
+                    data={stats.data.applicationsByStatus.map((r) => ({
+                      label: r.status,
+                      value: r.count,
+                    }))}
+                    title="Applications by status"
+                    testid="apps-chart"
+                  />
+                  <ActivitySeries
+                    data={stats.data.auditActivity.map((b) => ({
+                      label: b.day,
+                      value: b.count,
+                    }))}
+                    title="Admin audit activity (last 14 days)"
+                    testid="audit-chart"
+                  />
+                  <ActivitySeries
+                    data={stats.data.censusByCity.map((c) => ({
+                      label: c.code,
+                      value: c.count,
+                    }))}
+                    title={
+                      stats.data.censusSource === "seeded"
+                        ? "Census by city (SEEDED — demonstrative, not live census)"
+                        : "Census by city (live)"
+                    }
+                    testid="census-chart"
+                  />
+                </div>
+              </div>
+            )}
+          </article>
 
           <article className="pillar" style={{ padding: "24px 28px" }}>
             <h3 style={{ margin: 0, fontSize: 20 }}>Recent administrative actions</h3>

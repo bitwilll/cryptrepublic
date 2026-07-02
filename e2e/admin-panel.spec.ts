@@ -706,4 +706,39 @@ test.describe.serial("admin panel (Wave 9 D2 — zero registrations)", () => {
 
     await mobile.close();
   });
+
+  test("station 10 — Wave-10 C2: charts render accessible data tables at desktop AND mobile; axe stays clean", async () => {
+    test.setTimeout(120_000);
+    // Desktop: the "Republic at a glance" charts expose their visually-hidden
+    // data-table alternative (sr-only → attached, deliberately NOT visible),
+    // and the seeded census chart carries the SEEDED honesty label visibly.
+    await adminPage.goto("/admin");
+    await expect(adminPage.getByTestId("overview-glance")).toBeVisible();
+    for (const id of ["apps-chart-table", "audit-chart-table", "census-chart-table"]) {
+      await expect(adminPage.getByTestId(id)).toBeAttached();
+    }
+    await expect(adminPage.getByTestId("census-chart-title")).toContainText(/SEEDED/);
+    await adminPage.waitForLoadState("networkidle");
+    const desktop = await new AxeBuilder({ page: adminPage }).analyze();
+    await expectNoCriticalOrSerious("/admin charts desktop", desktop);
+
+    // Mobile: same alternatives, charts never widen the page, axe stays clean.
+    const mobile = await adminContext.newPage();
+    await mobile.setViewportSize({ width: 390, height: 844 });
+    await mobile.goto("/admin");
+    await expect(mobile.getByTestId("overview-glance")).toBeVisible();
+    await expect(mobile.getByTestId("apps-chart-table")).toBeAttached();
+    const overflow = await mobile.evaluate(() => ({
+      scrollWidth: document.scrollingElement!.scrollWidth,
+      innerWidth: window.innerWidth,
+    }));
+    expect(
+      overflow.scrollWidth,
+      `charts must not widen /admin at 390px (scrollWidth ${overflow.scrollWidth} vs innerWidth ${overflow.innerWidth})`,
+    ).toBeLessThanOrEqual(overflow.innerWidth + 1);
+    await mobile.waitForLoadState("networkidle");
+    const mobileResults = await new AxeBuilder({ page: mobile }).analyze();
+    await expectNoCriticalOrSerious("/admin charts @390x844", mobileResults);
+    await mobile.close();
+  });
 });

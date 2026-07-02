@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent, within } from "@testing-library/react";
 
 /**
  * AdminOverviewApp tests (Wave 9 C1). /api/admin/overview is mocked. Asserts
@@ -10,6 +10,9 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 
 const h = vi.hoisted(() => ({
   fail: false,
+  statsFail: false,
+  citizens: 12 as number | null,
+  chainAvailable: true,
   recentAudit: [] as Array<Record<string, unknown>>,
 }));
 
@@ -40,11 +43,39 @@ const OVERVIEW = () => ({
   recentAudit: h.recentAudit,
 });
 
+const STATS = () => ({
+  applicationsByStatus: [
+    { status: "DRAFT", count: 5 },
+    { status: "ATTESTED", count: 1 },
+    { status: "OATH_ACCEPTED", count: 0 },
+    { status: "WITNESSED", count: 2 },
+    { status: "SEALED", count: 7 },
+  ],
+  counts: { users: 42, citizens: h.citizens, embassies: 4 },
+  chainAvailable: h.chainAvailable,
+  auditActivity: [
+    { day: "2026-07-01", count: 3 },
+    { day: "2026-07-02", count: 1 },
+  ],
+  censusByCity: [
+    { code: "LIS", name: "Lisbon", count: 1204 },
+    { code: "SIN", name: "Singapore", count: 986 },
+  ],
+  censusSource: "seeded" as const,
+});
+
 beforeEach(() => {
   h.fail = false;
+  h.statsFail = false;
+  h.citizens = 12;
+  h.chainAvailable = true;
   h.recentAudit = [];
   globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
+    if (url.includes("/api/admin/stats")) {
+      if (h.statsFail) return jsonResponse({ error: "boom" }, 500);
+      return jsonResponse(STATS());
+    }
     if (url.includes("/api/admin/overview")) {
       if (h.fail) return jsonResponse({ error: "boom" }, 500);
       return jsonResponse(OVERVIEW());
@@ -106,6 +137,53 @@ describe("AdminOverviewApp", () => {
     render(<AdminOverviewApp />);
     await waitFor(() => expect(screen.getByTestId("overview-users")).toBeInTheDocument());
     expect(screen.getByTestId("ledger-empty")).toBeInTheDocument();
+  });
+
+  it("C2: 'Republic at a glance' renders CountTiles + the three charts with accessible tables", async () => {
+    render(<AdminOverviewApp />);
+    await waitFor(() => expect(screen.getByTestId("overview-glance")).toBeInTheDocument());
+    // CountTiles carry the real numbers.
+    expect(screen.getByTestId("glance-users")).toHaveTextContent("42");
+    expect(screen.getByTestId("glance-citizens")).toHaveTextContent("12");
+    expect(screen.getByTestId("glance-embassies")).toHaveTextContent("4");
+    // The charts' visually-hidden data tables list the real values.
+    const appsTable = screen.getByTestId("apps-chart-table");
+    expect(appsTable).toHaveTextContent("SEALED");
+    expect(appsTable).toHaveTextContent("7");
+    expect(screen.getByTestId("audit-chart-table")).toHaveTextContent("2026-07-01");
+    expect(screen.getByTestId("census-chart-table")).toHaveTextContent("LIS");
+  });
+
+  it("C2 HONESTY: chain unavailable → citizens tile shows '—' + note, never a fake number", async () => {
+    h.citizens = null;
+    h.chainAvailable = false;
+    render(<AdminOverviewApp />);
+    await waitFor(() => expect(screen.getByTestId("glance-citizens")).toBeInTheDocument());
+    expect(screen.getByTestId("glance-citizens")).toHaveTextContent("—");
+    expect(screen.getByTestId("glance-citizens-unavailable")).toHaveTextContent(
+      /chain unavailable/i,
+    );
+  });
+
+  it("C2 HONESTY: seeded census chart carries the SEEDED/not-live wording (visible + accessible)", async () => {
+    render(<AdminOverviewApp />);
+    await waitFor(() => expect(screen.getByTestId("census-chart-title")).toBeInTheDocument());
+    expect(screen.getByTestId("census-chart-title")).toHaveTextContent(/SEEDED/);
+    expect(screen.getByTestId("census-chart-title")).toHaveTextContent(/not live/i);
+    expect(screen.getByTestId("census-chart-table")).toHaveTextContent(/SEEDED/);
+  });
+
+  it("C2: a stats fetch error renders its own retry card; the stat tiles stay up (independent cards)", async () => {
+    h.statsFail = true;
+    render(<AdminOverviewApp />);
+    await waitFor(() => expect(screen.getByTestId("stats-error")).toBeInTheDocument());
+    expect(screen.getByTestId("overview-users")).toBeInTheDocument();
+    h.statsFail = false;
+    const retry = within(screen.getByTestId("stats-error")).getByRole("button", {
+      name: /retry/i,
+    });
+    fireEvent.click(retry);
+    await waitFor(() => expect(screen.getByTestId("overview-glance")).toBeInTheDocument());
   });
 
   it("C1: the four stat tiles are real keyboard-focusable Links (not onClick divs) → their sections", async () => {
