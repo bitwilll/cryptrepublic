@@ -23,6 +23,13 @@ export function LiveNumber({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // prefers-reduced-motion: skip the observer + rAF count-up entirely and
+    // show the final value. Optional-chained: jsdom has no matchMedia and the
+    // guard must be null-safe (Wave 8 post-review addendum 4).
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+      setN(value);
+      return;
+    }
     let raf = 0;
     let done = false;
     const finish = () => {

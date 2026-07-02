@@ -15,7 +15,10 @@ export const metadata: Metadata = {
 export default function WalletPage() {
   return (
     <AppProviders>
-      <WalletApp />
+      {/* <main> landmark (Wave 8 A2) — this exerciser page had none. */}
+      <main>
+        <WalletApp />
+      </main>
     </AppProviders>
   );
 }

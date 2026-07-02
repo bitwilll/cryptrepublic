@@ -18,15 +18,18 @@ export default function HomePage() {
       <GovStrip />
       <SiteHeader />
       <Reveal />
-      <HeroPassport />
-      <LiveTicker />
-      <Pillars />
-      <Steps />
-      <HoldingsStrip />
-      <GovernanceStrip />
-      <EmbassiesStrip />
-      <Testimonials />
-      <FinalCTA />
+      {/* <main> landmark (Wave 8 A2) — header/footer chrome stays outside. */}
+      <main>
+        <HeroPassport />
+        <LiveTicker />
+        <Pillars />
+        <Steps />
+        <HoldingsStrip />
+        <GovernanceStrip />
+        <EmbassiesStrip />
+        <Testimonials />
+        <FinalCTA />
+      </main>
       <SiteFooter />
     </>
   );

@@ -128,6 +128,14 @@ h3 {
   box-shadow: 0 12px 32px rgba(200, 169, 106, 0.42);
 }
 
+/* Global keyboard focus ring (Wave 8 A2). Token-conformant: radius 0 (the
+   retheme squares everything), --blue ring. .passport-book keeps its own
+   focus-visible treatment (outline:none + transform, declared later). */
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
 /* reveal on scroll */
 .reveal {
   opacity: 0;

@@ -111,7 +111,10 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           letterSpacing: "0.06em",
         }}
       >
-        <span style={{ color: "var(--gold-d)", display: "flex", alignItems: "center", gap: 6 }}>
+        {/* var(--blue) (6.3:1 on #fff), not var(--gold-d) (3.7:1 — fails WCAG AA
+            4.5:1 at 12px): deliberate a11y contrast fix (Wave 8 A2 item 8);
+            token DEFINITIONS untouched. */}
+        <span style={{ color: "var(--blue)", display: "flex", alignItems: "center", gap: 6 }}>
           <span
             style={{
               width: 8,

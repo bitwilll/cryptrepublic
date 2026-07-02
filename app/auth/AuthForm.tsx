@@ -230,12 +230,16 @@ export function AuthForm() {
               type="button"
               onClick={() => connectWallet(w.name)}
             >
+              {/* Monogram color per background (Wave 8 A2): the module's white
+                  text fails WCAG AA on the orange/blue brand tiles (3.1:1 /
+                  2.9:1 at 12px); var(--ink) measures 5.4:1 / 5.7:1. Ledger's
+                  white-on-navy passes (>14:1) and keeps the default. */}
               <span
                 className={styles.glyph}
                 style={
                   w.name === "Ledger"
                     ? { background: w.glyphBg, border: "1px solid var(--line)" }
-                    : { background: w.glyphBg }
+                    : { background: w.glyphBg, color: "var(--ink)" }
                 }
               >
                 {w.glyph}

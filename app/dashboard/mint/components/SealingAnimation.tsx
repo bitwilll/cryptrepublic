@@ -14,6 +14,12 @@ export function SealingAnimation(): React.ReactElement {
         .cr-ring { transform-origin: 60px 60px; animation: cr-spin 4s linear infinite; }
         .cr-ring-r { animation: cr-spin 6s linear infinite reverse; transform-origin: 60px 60px; }
         .cr-pulse { animation: cr-pulse 1.4s ease-in-out infinite; }
+        /* Belt-and-braces (Wave 8 A2): the global tokens.css reduced-motion
+           kill-switch (* { animation: none !important }) already cascades into
+           inline SVG; this local guard keeps the component safe standalone. */
+        @media (prefers-reduced-motion: reduce) {
+          .cr-ring, .cr-ring-r, .cr-pulse { animation: none; }
+        }
       `}</style>
       <circle cx="60" cy="60" r="54" fill="none" stroke="var(--line)" strokeWidth="1" />
       <g className="cr-ring">
