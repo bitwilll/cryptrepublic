@@ -27,7 +27,8 @@ placeholder templates `.env.example` and `.env.mainnet.example` are committable
 
 | Variable | Purpose | Consumers | Required when | Default |
 | --- | --- | --- | --- | --- |
-| `DATABASE_URL` | Prisma database URL. SQLite file in dev/CI; the production engine choice (Postgres recommended) is the USER's | `prisma/schema.prisma:7`, `vitest.config.ts:27` | Always | none (dev template: `file:./dev.db`) |
+| `DATABASE_URL` | Prisma database URL. SQLite file in dev/CI; on Vercel it is the **pooled Postgres** URL consumed by the mirrored deploy schema (`prisma/postgres/schema.prisma` — see [DEPLOY_VERCEL.md](DEPLOY_VERCEL.md)) | `prisma/schema.prisma:7`, `prisma/postgres/schema.prisma`, `vitest.config.ts:27` | Always | none (dev template: `file:./dev.db`) |
+| `DATABASE_URL_UNPOOLED` | **Direct (non-pooled) Postgres URL** — the `directUrl` of `prisma/postgres/schema.prisma`, used ONLY by Prisma CLI commands (`migrate deploy` in `vercel-build`; `prisma validate` also resolves it). Never read by the app at runtime. The Neon/Vercel integration sets it automatically; plain-Postgres deployments may set it equal to `DATABASE_URL` | `prisma/postgres/schema.prisma` | Postgres deployments only (never local SQLite dev) | none |
 | `RPC_BASE_SEPOLIA` | Keyed RPC, Base Sepolia (84532) — **primary chain of the `testnet` profile** | resolved dynamically: `config/chains.config.ts` `serverRpcEnv` → `lib/rpc/allowlist.ts:65` | `testnet` profile reads | none (proxy 500s for that chain) |
 | `RPC_BASE` | Keyed RPC, Base mainnet (8453) — **primary chain of the `mainnet` profile** | same dynamic resolution | `mainnet` profile reads | none |
 | `RPC_ETHEREUM` | Keyed RPC — Sepolia under `testnet`, Ethereum mainnet under `mainnet` (same var name, profile decides the network) | same | reads on that chain | none |
@@ -51,6 +52,23 @@ The integration suites (`test/integration/*.test.ts`) set their own env
 in-process (`NEXT_PUBLIC_CHAIN_ENV=local`, `NEXT_PUBLIC_APP_URL`, `RPC_ANVIL`) —
 they are hardwired to a throwaway local anvil and cannot be pointed at a live
 network.
+
+## Vercel deployment (testnet build)
+
+Which of the above to set in Vercel (Production, and Preview where sensible),
+per the operator runbook [DEPLOY_VERCEL.md](DEPLOY_VERCEL.md):
+
+- **Public (build-time-inlined):** `NEXT_PUBLIC_CHAIN_ENV=testnet`,
+  `NEXT_PUBLIC_APP_URL=https://cryptrepublic.com`,
+  `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` (optional). Changing any of these
+  requires a redeploy.
+- **Server-only:** `DATABASE_URL` (pooled Postgres) + `DATABASE_URL_UNPOOLED`
+  (direct — both injected by the Neon integration), `RPC_BASE_SEPOLIA`
+  (required for chain reads), `ETHERSCAN_API_KEY` (optional), further `RPC_*`
+  (optional). `APP_URL` stays unset.
+- The build itself runs the `vercel-build` script (Postgres client generate →
+  `migrate deploy` → `next build`); local dev and the test suite keep SQLite —
+  the two schemas are held identical by `prisma/schema-drift.test.ts`.
 
 ## Chain-swap procedure (testnet ↔ mainnet)
 

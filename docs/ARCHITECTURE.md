@@ -36,7 +36,10 @@ Next.js App Router with **server pages → client islands**:
   in the app may hardcode a chainId, RPC URL, or contract address.**
 - `contracts/` — the Foundry workspace (six contracts + EIP-712 witness lib,
   tests, deploy/configure/seed scripts, audit triage).
-- `prisma/` — schema, migrations, seed (SQLite in dev).
+- `prisma/` — schema, migrations, seed (SQLite in dev), plus the mirrored
+  Postgres deployment target `prisma/postgres/` (schema + own migrations) used
+  by the Vercel build — held identical to the dev schema by
+  `prisma/schema-drift.test.ts` (§7, [DEPLOY_VERCEL.md](DEPLOY_VERCEL.md)).
 - `e2e/`, `test/integration/` — Playwright and local-anvil suites (§7).
 
 ## 2. The single chain switch: `NEXT_PUBLIC_CHAIN_ENV`
@@ -142,9 +145,16 @@ server only ever sees read requests and broadcast-ready payloads.
   catalog, embassies directory, census profiles, constitution text, proposal
   comments. Seeded/demonstrative data always renders behind visible
   `SEEDED`/`SIMULATED`/`TESTNET` tags.
-- **DB engines:** SQLite for dev/CI today. **Postgres-in-CI is a documented
-  DEFERRAL** — the Prisma schema is engine-portable, but CI currently exercises
-  the SQLite path only; stand up the Postgres CI lane before production.
+- **DB engines — dual Prisma schemas:** SQLite for dev/CI
+  (`prisma/schema.prisma`, authoritative); Postgres for the Vercel production
+  deploy via the mirrored `prisma/postgres/schema.prisma` + its own
+  postgres-dialect migrations. The generated client comes from whichever
+  schema `prisma generate` last ran (Vercel's `vercel-build` generates from
+  the Postgres one), so `prisma/schema-drift.test.ts` asserts the two
+  datamodels are IDENTICAL — a schema edit that touches only one file fails
+  the unit suite. **Postgres-in-CI remains a documented DEFERRAL** — no CI
+  lane runs queries against a real Postgres yet ([DEPLOY_VERCEL.md](DEPLOY_VERCEL.md)
+  caveat 4); stand up the Postgres CI lane before mainnet.
 
 ## 8. Testing strategy & the honest release gate
 

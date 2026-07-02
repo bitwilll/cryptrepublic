@@ -37,6 +37,18 @@ Contracts (Foundry lives in `contracts/`):
 cd contracts && forge test
 ```
 
+## Hosting (Vercel, testnet build)
+
+The app deploys to Vercel with a Postgres production database while local dev
+and the whole test suite stay on SQLite: a mirrored Prisma schema
+(`prisma/postgres/schema.prisma`, held identical to the dev schema by a drift
+test) plus a `vercel-build` script (Postgres client generate → `migrate
+deploy` → `next build`). The hosted site is the **testnet** profile; on-chain
+screens show their graceful "not deployed" states until the contracts land on
+Base Sepolia (USER step). Full operator runbook — account, Neon Postgres, env
+vars, deploy commands, seeding/admin bootstrap, cryptrepublic.com DNS:
+[docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md).
+
 ## Test matrix
 
 Counts as of the Wave 9 close-out (2026-07-02, this branch):
@@ -85,6 +97,8 @@ step** (deploy + fork tests + burn-in per
   non-custodial write path, testing strategy, perf budget, admin panel (§11)
 - [docs/ENV_REFERENCE.md](docs/ENV_REFERENCE.md) — every environment variable
   (public/server-only), chain-swap procedure
+- [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md) — Vercel hosting runbook
+  (Postgres via mirrored schema, env vars, domain, honest caveats)
 - [docs/MAINNET_HANDOFF.md](docs/MAINNET_HANDOFF.md) — the USER-executed mainnet
   runbook + Pre-Mainnet Gate (honest statuses)
 - [docs/LEGAL_FLAGS_REFERENCE.md](docs/LEGAL_FLAGS_REFERENCE.md) — all `// LEGAL:`

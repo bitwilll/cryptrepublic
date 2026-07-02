@@ -5,6 +5,33 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 numbers on the same branch line and are recorded below as dated development
 history (dates are the real commit dates from the git trail).
 
+## [Unreleased] — Vercel hosting preparation (`feat/vercel-hosting`)
+
+Repo + docs preparation for hosting the **testnet build** on Vercel with a
+Postgres production database; deployment itself is a USER-driven step
+([docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md)). Local dev and the entire
+local gate stay on SQLite — zero test regressions.
+
+- **Dual Prisma schemas:** mirrored `prisma/postgres/schema.prisma`
+  (`postgresql` provider + `directUrl` for pooled Neon) with its own
+  postgres-dialect init migration (generated via
+  `prisma migrate diff --from-empty`, no live DB needed). A RED-first drift
+  guard (`prisma/schema-drift.test.ts`) asserts the two datamodels stay
+  IDENTICAL. `guard:secrets` now sweeps both schema files.
+- **Build wiring:** `vercel-build` script (Postgres client generate →
+  idempotent `migrate deploy` → `next build`); ordering pinned by
+  `test/deploy-scripts.test.ts`. No `vercel.json` (framework autodetection
+  suffices). Serverless compatibility verified: no runtime fs usage,
+  Edge-safe middleware; per-instance rate-limiter caveat documented.
+- **Docs:** [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md) operator runbook
+  (Neon Postgres, env vars, deploy commands, one-time seed/admin bootstrap
+  against the remote DB, cryptrepublic.com DNS at Namecheap, honest caveats);
+  ENV_REFERENCE (`DATABASE_URL_UNPOOLED`, Vercel section), README Hosting
+  section, ARCHITECTURE §1/§7 dual-schema notes, `.env.mainnet.example`.
+- **Honesty unchanged:** hosted site is the testnet profile; on-chain screens
+  keep their graceful "not deployed" states until contracts land on Base
+  Sepolia (USER step); Postgres-in-CI remains a documented deferral.
+
 ## [0.9.0] — 2026-07-02 (Wave 9 — Admin panel, the capstone)
 
 Non-custodial admin back office. Full gate at this release: **665 unit / 15
