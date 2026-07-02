@@ -36,7 +36,7 @@ describe("GET /api/admin/overview", () => {
     f = await seedAdminFixtures("adm-overview");
     const applicant = await prisma.user.create({
       data: {
-        email: `adm-overview-${Date.now()}@ex.org`,
+        email: `adm-overview-${Date.now()}@w9adm.example`,
         application: { create: { status: "ATTESTED" } },
       },
     });

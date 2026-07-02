@@ -46,7 +46,7 @@ describe("GET /api/admin/applications/[id]", () => {
     f = await seedAdminFixtures("adm-app-detail");
     const applicant = await prisma.user.create({
       data: {
-        email: `adm-app-detail-${Date.now()}@ex.org`,
+        email: `adm-app-detail-${Date.now()}@w9adm.example`,
         application: {
           create: {
             status: "WITNESSED",

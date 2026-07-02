@@ -27,7 +27,7 @@ describe("GET /api/admin/users", () => {
   beforeAll(async () => {
     f = await seedAdminFixtures("adm-users-list");
     const needle = await prisma.user.create({
-      data: { email: `${NEEDLE}@ex.org`, name: "Needle Person" },
+      data: { email: `${NEEDLE}@w9adm.example`, name: "Needle Person" },
     });
     needleId = needle.id;
     await createSession(needleId); // so _count.sessions is observable
@@ -56,7 +56,7 @@ describe("GET /api/admin/users", () => {
     expect(body.total).toBe(1);
     const row = body.users[0];
     expect(row.id).toBe(needleId);
-    expect(row.email).toBe(`${NEEDLE}@ex.org`);
+    expect(row.email).toBe(`${NEEDLE}@w9adm.example`);
     expect(row.role).toBe("USER");
     expect(row.sessionCount).toBe(1);
     expect(Object.keys(row).sort()).toEqual(

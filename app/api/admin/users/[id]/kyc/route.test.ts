@@ -25,7 +25,7 @@ describe("POST /api/admin/users/[id]/kyc", () => {
   beforeAll(async () => {
     f = await seedAdminFixtures("adm-kyc");
     const target = await prisma.user.create({
-      data: { email: `adm-kyc-target-${Date.now()}@ex.org` },
+      data: { email: `adm-kyc-target-${Date.now()}@w9adm.example` },
     });
     targetId = target.id;
   });

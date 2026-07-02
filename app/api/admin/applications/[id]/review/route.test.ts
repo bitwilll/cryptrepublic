@@ -30,7 +30,7 @@ describe("POST /api/admin/applications/[id]/review", () => {
     f = await seedAdminFixtures("adm-review");
     const applicant = await prisma.user.create({
       data: {
-        email: `adm-review-${Date.now()}@ex.org`,
+        email: `adm-review-${Date.now()}@w9adm.example`,
         application: { create: { status: "OATH_ACCEPTED", citizenTokenId: null } },
       },
       include: { application: true },

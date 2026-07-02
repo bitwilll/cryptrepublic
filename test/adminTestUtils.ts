@@ -33,14 +33,14 @@ export interface AdminFixtures {
 export async function seedAdminFixtures(prefix: string): Promise<AdminFixtures> {
   const suffix = `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
   const passwordHash = await hashPassword(PASS);
-  const adminEmail = `${prefix}-admin-${suffix}@ex.org`;
-  const userEmail = `${prefix}-user-${suffix}@ex.org`;
+  const adminEmail = `${prefix}-admin-${suffix}@w9adm.example`;
+  const userEmail = `${prefix}-user-${suffix}@w9adm.example`;
   const admin = await prisma.user.create({
     data: { email: adminEmail, passwordHash, role: "ADMIN" },
   });
   const user = await prisma.user.create({ data: { email: userEmail, passwordHash } });
   const suspendedAdmin = await prisma.user.create({
-    data: { email: `${prefix}-susp-${suffix}@ex.org`, passwordHash, role: "ADMIN" },
+    data: { email: `${prefix}-susp-${suffix}@w9adm.example`, passwordHash, role: "ADMIN" },
   });
   const { token: adminToken } = await createSession(admin.id);
   const { token: userToken } = await createSession(user.id);

@@ -27,7 +27,7 @@ describe("POST /api/admin/users/[id]/suspend", () => {
   beforeAll(async () => {
     f = await seedAdminFixtures("adm-suspend");
     const target = await prisma.user.create({
-      data: { email: `adm-suspend-target-${Date.now()}@ex.org` },
+      data: { email: `adm-suspend-target-${Date.now()}@w9adm.example` },
     });
     targetId = target.id;
     ({ token: targetToken } = await createSession(targetId));

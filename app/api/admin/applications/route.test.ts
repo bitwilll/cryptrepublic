@@ -33,7 +33,7 @@ describe("GET /api/admin/applications", () => {
     const now = Date.now();
     const draftUser = await prisma.user.create({
       data: {
-        email: `adm-apps-draft-${now}@ex.org`,
+        email: `adm-apps-draft-${now}@w9adm.example`,
         name: "Draft Applicant",
         application: { create: { status: "DRAFT", name: "Draft Applicant" } },
       },
@@ -41,7 +41,7 @@ describe("GET /api/admin/applications", () => {
     draftUserId = draftUser.id;
     const witnessedUser = await prisma.user.create({
       data: {
-        email: `adm-apps-witnessed-${now}@ex.org`,
+        email: `adm-apps-witnessed-${now}@w9adm.example`,
         application: { create: { status: "WITNESSED" } },
       },
       include: { application: true },

@@ -40,7 +40,7 @@ describe("GET /api/admin/users/[id]", () => {
     f = await seedAdminFixtures("adm-user-detail");
     const target = await prisma.user.create({
       data: {
-        email: `adm-user-detail-target-${Date.now()}@ex.org`,
+        email: `adm-user-detail-target-${Date.now()}@w9adm.example`,
         name: "Target",
         linkedWallets: {
           create: {

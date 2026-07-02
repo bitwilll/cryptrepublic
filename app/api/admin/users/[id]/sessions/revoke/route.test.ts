@@ -32,10 +32,12 @@ describe("POST /api/admin/users/[id]/sessions/revoke", () => {
     f = await seedAdminFixtures("adm-sess-revoke");
     const now = Date.now();
     const target = await prisma.user.create({
-      data: { email: `adm-sess-target-${now}@ex.org` },
+      data: { email: `adm-sess-target-${now}@w9adm.example` },
     });
     targetId = target.id;
-    const other = await prisma.user.create({ data: { email: `adm-sess-other-${now}@ex.org` } });
+    const other = await prisma.user.create({
+      data: { email: `adm-sess-other-${now}@w9adm.example` },
+    });
     otherId = other.id;
     const { session } = await createSession(otherId);
     otherSessionId = session.id;
