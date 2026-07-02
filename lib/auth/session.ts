@@ -37,6 +37,11 @@ export async function validateSessionToken(
     await prisma.session.delete({ where: { id: session.id } }).catch(() => {});
     return null;
   }
+  // SUSPEND CHOKE POINT (Wave 9): a suspended user has no valid session, ever.
+  // Suspension already revoked all sessions transactionally; this covers any
+  // session created in a race and gates getSession / getSessionFromRequest /
+  // requireSession / requireAdmin at once. Do NOT delete the row here.
+  if (session.user.suspendedAt) return null;
   const { user, ...rest } = session;
   return { session: rest as Session, user };
 }

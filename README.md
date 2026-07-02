@@ -27,6 +27,10 @@ pnpm db:migrate && pnpm db:seed
 pnpm dev                    # http://localhost:3000
 ```
 
+Admin bootstrap (Wave 9): `pnpm admin:grant <email>` (`--revoke` to demote) —
+operator-run with DB access only; no API can set roles and the panel cannot
+promote. Audited as `cli`.
+
 Contracts (Foundry lives in `contracts/`):
 
 ```bash

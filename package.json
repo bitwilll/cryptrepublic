@@ -23,6 +23,7 @@
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
+    "admin:grant": "tsx scripts/grant-admin.ts",
     "guard:secrets": "bash scripts/guard-no-secret-columns.sh"
   },
   "prisma": {

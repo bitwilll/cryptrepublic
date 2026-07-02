@@ -37,6 +37,10 @@ export async function POST(req: Request): Promise<Response> {
 
   if (!user || !user.passwordHash) return genericAuthError();
 
+  // Suspended (Wave 9): reject with the SAME generic body — no suspension oracle
+  // on login (enumeration resistance). Distinct from the lockout time window below.
+  if (user.suspendedAt) return genericAuthError();
+
   // Lockout is a time window. If still active, reject. If it EXPIRED, reset the
   // failed count so the user starts fresh (see documented semantics in lib/auth/lockout.ts).
   if (isLocked(user)) return genericAuthError();

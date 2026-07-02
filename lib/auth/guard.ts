@@ -2,7 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import type { Session, User } from "@prisma/client";
 import { SESSION_COOKIE, validateSessionToken } from "./session";
-import { unauthorized } from "@/lib/http/responses";
+import { forbidden, unauthorized } from "@/lib/http/responses";
 
 // Server Components ONLY (next/headers throws outside a request scope, e.g. the Vitest node env).
 export async function getSession(): Promise<{ session: Session; user: User } | null> {
@@ -34,5 +34,13 @@ export async function getSessionFromRequest(
 export async function requireSession(req: Request): Promise<{ session: Session; user: User }> {
   const s = await getSessionFromRequest(req);
   if (!s) throw unauthorized();
+  return s;
+}
+
+/** requireSession + role gate. Throws unauthorized() (no/invalid session — incl.
+ *  suspended users, nulled by validateSessionToken) or forbidden() (role !== "ADMIN"). */
+export async function requireAdmin(req: Request): Promise<{ session: Session; user: User }> {
+  const s = await requireSession(req); // throws unauthorized()
+  if (s.user.role !== "ADMIN") throw forbidden();
   return s;
 }

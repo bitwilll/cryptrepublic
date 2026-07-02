@@ -16,6 +16,8 @@ model User {
   passwordHash     String? // Argon2id encoded string; null for SIWE-only. NEVER plaintext.
   name             String? // DIVERGENCE: spec §4.2 calls this `displayName`; we use `name` this wave.
   kycStatus        String    @default("NONE") // KycStatus union
+  role             String    @default("USER") // UserRole union (USER|ADMIN) — lib/auth/types.ts
+  suspendedAt      DateTime? // admin suspension (Wave 9) — DISTINCT from the login-lockout lockedUntil
   failedLoginCount Int       @default(0)
   lockedUntil      DateTime?
   createdAt        DateTime  @default(now())
@@ -92,6 +94,7 @@ model CitizenshipApplication {
   sealTxHash     String?
   citizenTokenId String?
   sealedAt       DateTime?
+  reviewNote     String? // admin review note (Wave 9) — off-chain only, never chain state
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -213,4 +216,41 @@ model ConstitutionText {
   title    String
   body     String
   citation String? // "CONSTITUTION ART. IV §1 · RATIFIED MMXXVI"
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Wave 9 — ADMIN back office. ALL PUBLIC data — no secret columns.
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Admin audit trail (Wave 9). EVERY admin mutation writes a row IN THE SAME
+/// prisma.$transaction as the mutation (lib/admin/audit.ts writeAudit). before/
+/// afterJson pass a per-targetType serializer ALLOWLIST — passwordHash/tokenHash
+/// can never appear. actorUserId is a plain column (no FK) so audit rows survive
+/// user deletion; null actorUserId = the CLI bootstrap (actorLabel "cli").
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  actorLabel  String // "admin:<email>" | "cli"
+  action      String // dot-namespaced: "user.suspend", "content.asset.update", "flag.upsert", …
+  targetType  String // AuditTargetType union (lib/admin/audit.ts)
+  targetId    String
+  beforeJson  String? // allowlist-serialized JSON snapshot (nullable for creates)
+  afterJson   String? // allowlist-serialized JSON snapshot (nullable for deletes)
+  ipHash      String? // reserved; null in v1 (no existing app ipHash convention — divergence noted)
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([actorUserId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+/// Feature flags (Wave 9). Missing row => the per-flag DECLARED default
+/// (lib/flags/defaults.ts), undeclared key => false. Public read via /api/flags.
+model FeatureFlag {
+  key         String   @id
+  enabled     Boolean  @default(false)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

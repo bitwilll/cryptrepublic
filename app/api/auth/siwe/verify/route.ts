@@ -34,6 +34,11 @@ export async function POST(req: Request): Promise<Response> {
     throw e;
   }
 
+  // Suspended (Wave 9): the SECOND session-creating path must also reject BEFORE
+  // createSession — otherwise a suspended wallet-linked user keeps minting Session
+  // rows that go live on unsuspend. Same generic body (no suspension oracle).
+  if (result.user.suspendedAt) return genericAuthError();
+
   const { token } = await createSession(result.user.id, {
     userAgent: req.headers.get("user-agent") ?? undefined,
   });
