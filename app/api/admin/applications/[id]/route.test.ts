@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
+import { getAddress } from "viem";
 import { prisma } from "@/lib/db";
 import { __resetRateLimit } from "@/lib/auth/ratelimit";
 import {
@@ -11,9 +12,23 @@ import {
 } from "@/test/adminTestUtils";
 import { GET } from "./route";
 
+/** Unique checksummed address per run (LinkedWallet.address is @unique). */
+function randomAddress(): `0x${string}` {
+  const hex = Array.from(
+    { length: 40 },
+    () => "0123456789abcdef"[Math.floor(Math.random() * 16)],
+  ).join("");
+  return getAddress(`0x${hex}`);
+}
+
 let f: AdminFixtures;
 let applicantId: string;
 let appId: string;
+const verifiedWalletAddress = randomAddress();
+let verifiedNoSnapshotUserId: string;
+let verifiedNoSnapshotAppId: string;
+let staleSnapshotUserId: string;
+let staleSnapshotAppId: string;
 
 function params(id: string) {
   return { params: Promise.resolve({ id }) };
@@ -70,6 +85,40 @@ describe("GET /api/admin/applications/[id]", () => {
     });
     applicantId = applicant.id;
     appId = applicant.application!.id;
+
+    // Wave 10 A4 — the witness-FREE case: a VERIFIED wallet, but the stored
+    // applicantAddress snapshot is null (the user never ran the witness flow).
+    const verifiedNoSnapshot = await prisma.user.create({
+      data: {
+        email: `adm-app-detail-vns-${Date.now()}@w10adm.example`,
+        linkedWallets: {
+          create: { address: verifiedWalletAddress, chain: "EVM", verifiedAt: new Date() },
+        },
+        application: {
+          create: { status: "OATH_ACCEPTED", name: "Verified NoSnapshot", applicantAddress: null },
+        },
+      },
+      include: { application: true },
+    });
+    verifiedNoSnapshotUserId = verifiedNoSnapshot.id;
+    verifiedNoSnapshotAppId = verifiedNoSnapshot.application!.id;
+
+    // A STALE applicantAddress snapshot but NO verified wallet — must NOT be mintable.
+    const staleSnapshot = await prisma.user.create({
+      data: {
+        email: `adm-app-detail-stale-${Date.now()}@w10adm.example`,
+        application: {
+          create: {
+            status: "OATH_ACCEPTED",
+            name: "Stale Snapshot",
+            applicantAddress: randomAddress(),
+          },
+        },
+      },
+      include: { application: true },
+    });
+    staleSnapshotUserId = staleSnapshot.id;
+    staleSnapshotAppId = staleSnapshot.application!.id;
   });
 
   beforeEach(() => __resetRateLimit());
@@ -115,8 +164,35 @@ describe("GET /api/admin/applications/[id]", () => {
     expect(body.application.chainCache.citizenTokenId).toBe("12");
   });
 
+  it("resolvedMintTo: a verified-wallet user with applicantAddress==null STILL yields the live-resolved address (Wave 10)", async () => {
+    const res = await GET(
+      adminGet(`/api/admin/applications/${verifiedNoSnapshotAppId}`, f.adminToken),
+      params(verifiedNoSnapshotAppId),
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      application: { applicantAddress: string | null; resolvedMintTo: string | null };
+    };
+    // The mint gate source is the LIVE resolution, not the stale column.
+    expect(body.application.applicantAddress).toBeNull();
+    expect(body.application.resolvedMintTo).toBe(verifiedWalletAddress);
+  });
+
+  it("resolvedMintTo is null when there is NO verified wallet — even with a stale applicantAddress present (Wave 10)", async () => {
+    const res = await GET(
+      adminGet(`/api/admin/applications/${staleSnapshotAppId}`, f.adminToken),
+      params(staleSnapshotAppId),
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      application: { applicantAddress: string | null; resolvedMintTo: string | null };
+    };
+    expect(body.application.applicantAddress).not.toBeNull(); // the stale snapshot exists…
+    expect(body.application.resolvedMintTo).toBeNull(); // …but it is NOT a mint destination.
+  });
+
   afterAll(async () => {
-    await cleanupAdminFixtures(f, [applicantId]);
+    await cleanupAdminFixtures(f, [applicantId, verifiedNoSnapshotUserId, staleSnapshotUserId]);
     await prisma.$disconnect();
   });
 });

@@ -85,11 +85,24 @@ const ROLES = {
       address: A.distributor,
       roles: [{ role: "FUNDER_ROLE", roleId: `0x${"2".repeat(64)}`, holders: [ADMIN_HOLDER] }],
     },
+    {
+      contract: "passport",
+      address: A.passport,
+      roles: [
+        { role: "PASSPORT_ADMIN_ROLE", roleId: `0x${"3".repeat(64)}`, holders: [ADMIN_HOLDER] },
+      ],
+    },
   ],
 };
 
+// Wave 10 A4 — the acting admin's SERVER-resolved verified wallet (addendum #1).
+const MY_VERIFIED = vi.hoisted(() => ({
+  address: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8" as string | null,
+}));
+
 beforeEach(() => {
   h.available = true;
+  MY_VERIFIED.address = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
   globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
     if (url.includes("/api/admin/chain/params")) {
@@ -101,6 +114,9 @@ beforeEach(() => {
       return jsonResponse(
         h.available ? ROLES : { chainId: 84532, available: false, contracts: [] },
       );
+    }
+    if (url.includes("/api/admin/me")) {
+      return jsonResponse({ userId: "admin1", verifiedAddress: MY_VERIFIED.address });
     }
     return jsonResponse({});
   }) as unknown as typeof fetch;
@@ -178,5 +194,107 @@ describe("ChainActionsApp", () => {
     expect(txs[1]).toHaveTextContent(/openEpoch\(1000\)/);
     // FUNDER_ROLE is the required role for openEpoch
     expect(screen.getByTestId("required-role")).toHaveTextContent(/FUNDER_ROLE/);
+  });
+});
+
+describe("ChainActionsApp — generic Admin mint (Wave 10 A4)", () => {
+  const CHECKSUMMED = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
+  const BAD_CHECKSUM = "0x70997970C51812dc3A010C7d01b50e0d17dc79c8"; // last char case flipped
+  const LOWERCASE = CHECKSUMMED.toLowerCase();
+
+  async function selectAdminMint() {
+    render(<ChainActionsApp />);
+    await waitFor(() => expect(screen.getByLabelText(/^action$/i)).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText(/^action$/i), { target: { value: "admin_mint" } });
+  }
+
+  function fillIdentity() {
+    fireEvent.change(screen.getByLabelText(/declared name/i), { target: { value: "Ada Test" } });
+    fireEvent.change(screen.getByLabelText(/motto/i), { target: { value: "code is law" } });
+    fireEvent.change(screen.getByLabelText(/domicile city/i), { target: { value: "Neo Berlin" } });
+  }
+
+  it("lists the action and shows the PROMINENT verify-off-chain warning", async () => {
+    await selectAdminMint();
+    expect(screen.getByTestId("admin-mint-verify-warning")).toHaveTextContent(
+      /verify this address off-chain/i,
+    );
+    expect(screen.getByTestId("admin-mint-verify-warning")).toHaveTextContent(/cannot revoke/i);
+  });
+
+  it("rejects a malformed address inline (no card)", async () => {
+    await selectAdminMint();
+    fireEvent.change(screen.getByLabelText(/destination address/i), { target: { value: "0x12" } });
+    fillIdentity();
+    fireEvent.click(screen.getByRole("button", { name: /prepare/i }));
+    await waitFor(() => expect(screen.getByTestId("composer-error")).toBeInTheDocument());
+    expect(screen.queryByTestId("prepared-action-card")).not.toBeInTheDocument();
+  });
+
+  it("rejects a BAD-CHECKSUM mixed-case address (getAddress throws) — no card", async () => {
+    await selectAdminMint();
+    fireEvent.change(screen.getByLabelText(/destination address/i), {
+      target: { value: BAD_CHECKSUM },
+    });
+    fillIdentity();
+    fireEvent.click(screen.getByRole("button", { name: /prepare/i }));
+    await waitFor(() => expect(screen.getByTestId("composer-error")).toBeInTheDocument());
+    expect(screen.getByTestId("composer-error")).toHaveTextContent(/checksum/i);
+    expect(screen.queryByTestId("prepared-action-card")).not.toBeInTheDocument();
+  });
+
+  it("accepts a VALID all-lowercase address (addendum #4) and encodes the CHECKSUMMED form", async () => {
+    await selectAdminMint();
+    fireEvent.change(screen.getByLabelText(/destination address/i), {
+      target: { value: LOWERCASE },
+    });
+    fillIdentity();
+    fireEvent.click(screen.getByRole("button", { name: /prepare/i }));
+    await waitFor(() => expect(screen.getByTestId("prepared-action-card")).toBeInTheDocument());
+    const card = screen.getByTestId("prepared-action-card");
+    expect(card).toHaveTextContent(/adminMint/);
+    expect(card).toHaveTextContent(new RegExp(CHECKSUMMED)); // normalized, not the raw input
+  });
+
+  it("prepares adminMint with the PASSPORT_ADMIN required role", async () => {
+    await selectAdminMint();
+    fireEvent.change(screen.getByLabelText(/destination address/i), {
+      target: { value: CHECKSUMMED },
+    });
+    fillIdentity();
+    fireEvent.click(screen.getByRole("button", { name: /prepare/i }));
+    await waitFor(() => expect(screen.getByTestId("prepared-action-card")).toBeInTheDocument());
+    expect(screen.getByTestId("prepared-action-card")).toHaveTextContent(/adminMint/);
+    expect(screen.getByTestId("never-signs-label")).toBeInTheDocument();
+    expect(screen.getByTestId("required-role")).toHaveTextContent(/PASSPORT_ADMIN_ROLE/);
+  });
+
+  it("SELF-MINT (addendum #1): 'use MY verified address' fills the SERVER-resolved wallet and prepares adminMint to it", async () => {
+    await selectAdminMint();
+    fireEvent.click(screen.getByTestId("admin-mint-self-fill"));
+    await waitFor(() =>
+      expect(screen.getByLabelText(/destination address/i)).toHaveValue(CHECKSUMMED),
+    );
+    fillIdentity();
+    fireEvent.click(screen.getByRole("button", { name: /prepare/i }));
+    await waitFor(() => expect(screen.getByTestId("prepared-action-card")).toBeInTheDocument());
+    // The composer never re-checks WHOSE address it is — admin-to-self is the
+    // same code path; this is the concrete self-mint proof (plan step 1).
+    const card = screen.getByTestId("prepared-action-card");
+    expect(card).toHaveTextContent(/adminMint/);
+    expect(card).toHaveTextContent(new RegExp(CHECKSUMMED));
+  });
+
+  it("SELF-MINT with NO verified wallet: shows the reason instead of filling", async () => {
+    MY_VERIFIED.address = null;
+    await selectAdminMint();
+    fireEvent.click(screen.getByTestId("admin-mint-self-fill"));
+    await waitFor(() =>
+      expect(screen.getByTestId("admin-mint-self-fill-error")).toBeInTheDocument(),
+    );
+    expect(screen.getByTestId("admin-mint-self-fill-error")).toHaveTextContent(
+      /no verified wallet/i,
+    );
+    expect(screen.getByLabelText(/destination address/i)).toHaveValue("");
   });
 });

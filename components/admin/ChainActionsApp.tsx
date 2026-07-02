@@ -1,7 +1,9 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { keccak256, stringToHex } from "viem";
+import { getAddress, isAddress, keccak256, stringToHex } from "viem";
+import { nameHashOf, toBytes32String } from "@/lib/passport/attestation";
 import {
+  prepareAdminMint,
   prepareGrantRole,
   prepareRevokeRole,
   preparePause,
@@ -218,6 +220,49 @@ const ACTIONS: ActionDef[] = [
     },
     build: (v, ctx) =>
       prepareSetRequiredWitnesses(ctx.chainId, ctx.addresses.passport!, Number(v.n)),
+    role: () => ({ contract: "passport", role: "PASSPORT_ADMIN_ROLE" }),
+  },
+  {
+    id: "admin_mint",
+    label: "Passport: ADMIN MINT (override witnesses)",
+    requires: ["passport"],
+    fields: [
+      { key: "to", label: "Destination address", kind: "text", placeholder: "0x…" },
+      { key: "name", label: "Declared name", kind: "text" },
+      { key: "motto", label: "Motto (≤31 bytes)", kind: "text" },
+      { key: "city", label: "Domicile city (≤31 bytes)", kind: "text" },
+    ],
+    // Checksum semantics (addendum #4, corrected to viem's actual API — viem's
+    // getAddress re-checksums without throwing on any 40-hex string): validity
+    // = STRICT isAddress(input), which accepts all-lowercase (valid, viem
+    // checksums it) and REJECTS a wrong-checksum mixed-case address. `build`
+    // encodes the NORMALIZED checksummed form via getAddress.
+    mirror: (v) => {
+      const shape = badAddress(v, "to", "Destination");
+      if (shape) return shape;
+      if (!isAddress(String(v.to))) {
+        return "Address checksum is invalid — re-copy the exact checksummed address.";
+      }
+      if (!String(v.name ?? "").trim()) return "A declared name is required.";
+      return null;
+    },
+    build: (v, ctx) =>
+      prepareAdminMint(
+        ctx.chainId,
+        ctx.addresses.passport!,
+        getAddress(String(v.to)),
+        nameHashOf(String(v.name).trim()),
+        toBytes32String(
+          String(v.motto ?? "")
+            .trim()
+            .slice(0, 31),
+        ),
+        toBytes32String(
+          String(v.city ?? "")
+            .trim()
+            .slice(0, 31),
+        ),
+      ),
     role: () => ({ contract: "passport", role: "PASSPORT_ADMIN_ROLE" }),
   },
   {
@@ -737,6 +782,7 @@ function Composer({
   const [error, setError] = useState<string | null>(null);
   const [prepared, setPrepared] = useState<PreparedBatch | GovernanceProposalPayload | null>(null);
   const [requiredRole, setRequiredRole] = useState<RequiredRoleInfo | null>(null);
+  const [selfFillError, setSelfFillError] = useState<string | null>(null);
 
   const action = available.find((a) => a.id === actionId) ?? null;
 
@@ -747,6 +793,28 @@ function Composer({
     setError(null);
     setPrepared(null);
     setRequiredRole(null);
+    setSelfFillError(null);
+  }
+
+  // Self-mint fill (Wave 10, addendum #1): the admin's OWN destination comes
+  // from a SERVER resolution of their verified LinkedWallet (/api/admin/me) —
+  // never purely client-typed.
+  async function fillMyVerifiedAddress() {
+    setSelfFillError(null);
+    try {
+      const res = await fetch("/api/admin/me");
+      if (!res.ok) throw new Error("failed");
+      const d = (await res.json()) as { verifiedAddress: string | null };
+      if (!d.verifiedAddress) {
+        setSelfFillError(
+          "You have no verified wallet — link and verify a wallet in your own account first so the server can resolve your destination.",
+        );
+        return;
+      }
+      setValues((v) => ({ ...v, to: d.verifiedAddress! }));
+    } catch {
+      setSelfFillError("Your verified wallet could not be resolved — try again.");
+    }
   }
 
   function prepare() {
@@ -820,6 +888,45 @@ function Composer({
 
           {action?.info && (
             <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>{action.info}</p>
+          )}
+
+          {action?.id === "admin_mint" && (
+            <>
+              <p
+                data-testid="admin-mint-verify-warning"
+                style={{
+                  margin: 0,
+                  padding: "10px 14px",
+                  border: "2px solid #b04141",
+                  color: "#b04141",
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                VERIFY THIS ADDRESS OFF-CHAIN. A wrong address mints a soulbound passport to a
+                stranger you cannot revoke. Prefer the per-application approve-mint, which uses the
+                applicant&apos;s verified wallet.
+              </p>
+              <div>
+                <button
+                  className="btn btn-ghost"
+                  type="button"
+                  data-testid="admin-mint-self-fill"
+                  style={{ padding: "6px 14px", fontSize: 12 }}
+                  onClick={fillMyVerifiedAddress}
+                >
+                  Use MY verified address (self-mint)
+                </button>
+                {selfFillError && (
+                  <p
+                    data-testid="admin-mint-self-fill-error"
+                    style={{ color: "#b04141", fontSize: 12, margin: "6px 0 0" }}
+                  >
+                    {selfFillError}
+                  </p>
+                )}
+              </div>
+            </>
           )}
 
           {action?.fields.map((f) => {
