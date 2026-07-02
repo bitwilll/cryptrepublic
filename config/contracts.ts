@@ -20,6 +20,14 @@ export interface ContractEntry {
   governance?: `0x${string}`;
   treasury?: `0x${string}`;
   distributor?: `0x${string}`;
+  /**
+   * Block the contracts were deployed at (Wave 9, addendum #6). Threaded into
+   * the admin role-topology `eth_getLogs` calls as `fromBlock`. Default 0 —
+   * correct on 31337 anvil; on a REAL chain (Base / Base Sepolia) the USER
+   * should set this to the deploy block, since log scans from block 0 may hit
+   * provider limits.
+   */
+  deployBlock?: number;
 }
 
 /** Keyed by chainId. 31337 = local anvil (filled by scripts/emit-contract-addresses.mjs). */
@@ -45,6 +53,19 @@ export function passportAddress(chainId: number): `0x${string}` {
   const addr = contractEntry(chainId).passport;
   if (!addr) {
     throw new Error(`Passport not deployed on chain ${chainId}`);
+  }
+  return addr;
+}
+
+/**
+ * The $CRYPT token address for a chain. Throws a clear error if the token is
+ * not registered on that chain (undefined placeholder or unknown chain).
+ * Mirrors `passportAddress`.
+ */
+export function tokenAddress(chainId: number): `0x${string}` {
+  const addr = contractEntry(chainId).token;
+  if (!addr) {
+    throw new Error(`Token not deployed on chain ${chainId}`);
   }
   return addr;
 }
@@ -105,4 +126,8 @@ export function treasuryAvailable(chainId: number): boolean {
 
 export function distributorAvailable(chainId: number): boolean {
   return Boolean(contractEntry(chainId).distributor);
+}
+
+export function tokenAvailable(chainId: number): boolean {
+  return Boolean(contractEntry(chainId).token);
 }

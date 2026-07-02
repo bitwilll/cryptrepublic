@@ -4,6 +4,7 @@ import {
   CONTRACTS,
   contractEntry,
   passportAddress,
+  tokenAddress,
   stakingAddress,
   governanceAddress,
   treasuryAddress,
@@ -11,6 +12,7 @@ import {
   governanceAvailable,
   treasuryAvailable,
   distributorAvailable,
+  tokenAvailable,
 } from "./contracts";
 
 describe("contract registry", () => {
@@ -73,6 +75,31 @@ describe("stakingAddress", () => {
     } else {
       expect(true).toBe(true);
     }
+  });
+});
+
+describe("tokenAddress (Wave 9 — mirrors passportAddress)", () => {
+  it("throws when the token is unregistered on a placeholder chain", () => {
+    expect(() => tokenAddress(84532)).toThrow(/Token not deployed/);
+  });
+
+  it("throws for a completely unknown chain", () => {
+    expect(() => tokenAddress(999999)).toThrow(/Token not deployed/);
+  });
+
+  it("returns the exact 0x address when set", () => {
+    const populated = Object.entries(CONTRACTS).find(([, e]) => e.token !== undefined);
+    if (populated) {
+      const [chainIdStr, entry] = populated;
+      expect(tokenAddress(Number(chainIdStr))).toBe(entry.token);
+    } else {
+      expect(true).toBe(true);
+    }
+  });
+
+  it("tokenAvailable probe returns false when unregistered (never throws)", () => {
+    expect(tokenAvailable(84532)).toBe(false);
+    expect(tokenAvailable(999999)).toBe(false);
   });
 });
 
