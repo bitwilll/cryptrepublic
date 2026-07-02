@@ -18,6 +18,8 @@ import {
 } from "@/lib/wallet/mode";
 import { WalletModeSelect } from "./WalletModeSelect";
 import { ExternalWalletPanel } from "./ExternalWalletPanel";
+import { WatchOnlySetup } from "./WatchOnlySetup";
+import { WatchOnlyBadge } from "./WatchOnlyBadge";
 import { loadPortfolio, type Portfolio } from "@/lib/wallet/services/portfolio";
 import { readChainStats, type ChainStats } from "@/lib/wallet/services/chainStats";
 import {
@@ -54,6 +56,7 @@ export function WalletChainApp() {
   const chainId = activeChain().primaryChainId;
   const [view, setView] = useState<View>("loading");
   const [accounts, setAccounts] = useState<WalletAccounts | null>(null);
+  const [watchAddress, setWatchAddress] = useState<`0x${string}` | null>(null);
   const [showUnlock, setShowUnlock] = useState(false);
   const [modal, setModal] = useState<null | "send" | "receive" | "swap" | "bridge">(null);
 
@@ -76,6 +79,7 @@ export function WalletChainApp() {
     if (meta && meta.mode === "hardware") {
       setView("hardware");
     } else if (meta && meta.mode === "watchonly") {
+      setWatchAddress(meta.watchAddress ?? null);
       setView("watchonly");
     } else if (exists) {
       setAccounts(await loadPublicAccounts());
@@ -150,14 +154,18 @@ export function WalletChainApp() {
     [chainId, stakeEnabled],
   );
 
+  // Reads are keyed by the ACTIVE address: the embedded vault's EVM address,
+  // or (Wave 11 C1) the watched public address — the same read pipeline serves
+  // both, and the watched address never gains write affordances.
+  const readAddress = view === "watchonly" ? watchAddress : evmAddress;
   useEffect(() => {
-    if (!evmAddress) return;
+    if (!readAddress) return;
     let alive = true;
-    loadAll(evmAddress as `0x${string}`, () => alive);
+    loadAll(readAddress as `0x${string}`, () => alive);
     return () => {
       alive = false;
     };
-  }, [evmAddress, loadAll]);
+  }, [readAddress, loadAll]);
 
   /** Re-run all reads (e.g. after a write). */
   const refresh = useCallback(() => {
@@ -236,16 +244,72 @@ export function WalletChainApp() {
   }
 
   if (view === "watchonly") {
+    if (!watchAddress) {
+      return (
+        <div className="wrap" style={{ padding: "32px 0", maxWidth: 720 }}>
+          <div className="kicker">SOVEREIGN WALLET</div>
+          <h1 style={{ marginTop: 12 }}>Watch-only wallet</h1>
+          <div data-testid="watchonly-panel">
+            <WatchOnlySetup onConfigured={(a) => setWatchAddress(a)} />
+          </div>
+          <button className="btn" type="button" onClick={onChangeMode} style={{ marginTop: 20 }}>
+            Change wallet mode
+          </button>
+        </div>
+      );
+    }
     return (
-      <div className="wrap" style={{ padding: "32px 0", maxWidth: 720 }}>
-        <div className="kicker">SOVEREIGN WALLET</div>
-        <h1 style={{ marginTop: 12 }}>Watch-only wallet</h1>
-        <p style={{ color: "var(--muted)", marginTop: 12 }} data-testid="watchonly-panel">
-          Track a public address read-only — the setup panel is being assembled in this wave.
-        </p>
-        <button className="btn" type="button" onClick={onChangeMode} style={{ marginTop: 16 }}>
-          Change wallet mode
-        </button>
+      <div className="wrap" style={{ padding: "32px 0" }}>
+        <div className="kicker">WALLET &amp; CHAIN</div>
+        <div style={{ marginTop: 12 }} data-testid="watchonly-screen">
+          <WatchOnlyBadge />
+          <div
+            data-testid="watch-address"
+            style={{
+              fontFamily: "var(--mono, monospace)",
+              fontSize: 13,
+              marginTop: 10,
+              overflowWrap: "anywhere",
+            }}
+          >
+            {watchAddress}
+          </div>
+          <div style={{ marginTop: 12, display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <button
+              className="btn btn-primary"
+              type="button"
+              data-testid="airgapped-send-open"
+              disabled
+              title="Air-gapped QR signing lands later in this wave"
+            >
+              Air-gapped send (QR)
+            </button>
+            <button className="btn" type="button" onClick={() => setWatchAddress(null)}>
+              Change address
+            </button>
+            <button className="btn" type="button" onClick={onChangeMode}>
+              Change wallet mode
+            </button>
+          </div>
+        </div>
+
+        <div
+          style={{
+            marginTop: 20,
+            display: "grid",
+            gridTemplateColumns: "1fr 360px",
+            gap: 24,
+            alignItems: "start",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 20, minWidth: 0 }}>
+            <TokenList assets={portfolio?.assets ?? []} />
+            <ActivityLedger rows={history} explorerBase={stats?.explorerBase ?? null} />
+          </div>
+          <aside style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <ChainStatsPanel stats={stats} />
+          </aside>
+        </div>
       </div>
     );
   }
