@@ -1,0 +1,185 @@
+"use client";
+import { useCallback, useEffect, useState } from "react";
+import { Ledger } from "@/components/ui/Ledger";
+import { Skeleton, CardError, type Load } from "./bits";
+
+/**
+ * Admin overview island (Wave 9 C1): stat tiles from /api/admin/overview
+ * (users / suspended / admins / applications-by-status / content counts /
+ * flags) + a "Recent administrative actions" ledger of the last 10 audit rows.
+ * Read-only; the full filterable trail lives at /admin/audit.
+ */
+
+interface AuditRow extends Record<string, unknown> {
+  id: string;
+  actorLabel: string;
+  action: string;
+  targetType: string;
+  targetId: string;
+  createdAt: string;
+}
+
+interface Overview {
+  users: { total: number; suspended: number; admins: number };
+  applications: Record<string, number>;
+  content: Record<string, number>;
+  flags: number;
+  recentAudit: AuditRow[];
+}
+
+const CONTENT_LABELS: Record<string, string> = {
+  assets: "Assets",
+  embassies: "Embassies",
+  census: "Census cities",
+  allocations: "Allocations",
+  constitution: "Constitution",
+  proposalContent: "Proposal texts",
+  comments: "Comments",
+};
+
+export function AdminOverviewApp() {
+  const [state, setState] = useState<Load<Overview>>({ status: "loading" });
+
+  const load = useCallback(() => {
+    setState({ status: "loading" });
+    fetch("/api/admin/overview")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("failed"))))
+      .then((d: Overview) => setState({ status: "ok", data: d }))
+      .catch(() => setState({ status: "error" }));
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  return (
+    <div
+      className="wrap"
+      style={{ padding: "32px 0", display: "flex", flexDirection: "column", gap: 24 }}
+    >
+      <div className="kicker">ADMINISTRATION</div>
+
+      {state.status === "loading" && (
+        <article className="pillar" style={{ padding: "24px 28px" }}>
+          <Skeleton lines={4} />
+        </article>
+      )}
+      {state.status === "error" && (
+        <article className="pillar" style={{ padding: "24px 28px" }}>
+          <CardError onRetry={load} testid="overview-error" />
+        </article>
+      )}
+      {state.status === "ok" && (
+        <>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 20,
+              alignItems: "start",
+            }}
+          >
+            <article
+              className="pillar"
+              data-testid="overview-users"
+              style={{ padding: "24px 28px" }}
+            >
+              <h3 style={{ margin: 0, fontSize: 20 }}>Users</h3>
+              <div style={{ marginTop: 14, display: "flex", gap: 28, flexWrap: "wrap" }}>
+                <Tile value={state.data.users.total} label="Total" />
+                <Tile value={state.data.users.suspended} label="Suspended" />
+                <Tile value={state.data.users.admins} label="Admins" />
+              </div>
+            </article>
+            <article
+              className="pillar"
+              data-testid="overview-applications"
+              style={{ padding: "24px 28px" }}
+            >
+              <h3 style={{ margin: 0, fontSize: 20 }}>Applications</h3>
+              <div style={{ marginTop: 14, display: "flex", gap: 24, flexWrap: "wrap" }}>
+                {Object.entries(state.data.applications).map(([status, count]) => (
+                  <Tile key={status} value={count} label={status} />
+                ))}
+              </div>
+            </article>
+            <article
+              className="pillar"
+              data-testid="overview-content"
+              style={{ padding: "24px 28px" }}
+            >
+              <h3 style={{ margin: 0, fontSize: 20 }}>Content</h3>
+              <div style={{ marginTop: 14, display: "flex", gap: 24, flexWrap: "wrap" }}>
+                {Object.entries(state.data.content).map(([key, count]) => (
+                  <Tile key={key} value={count} label={CONTENT_LABELS[key] ?? key} />
+                ))}
+              </div>
+            </article>
+            <article
+              className="pillar"
+              data-testid="overview-flags"
+              style={{ padding: "24px 28px" }}
+            >
+              <h3 style={{ margin: 0, fontSize: 20 }}>Feature flags</h3>
+              <div style={{ marginTop: 14 }}>
+                <Tile
+                  value={state.data.flags}
+                  label="Flag rows (missing rows use declared defaults)"
+                />
+              </div>
+            </article>
+          </div>
+
+          <article className="pillar" style={{ padding: "24px 28px" }}>
+            <h3 style={{ margin: 0, fontSize: 20 }}>Recent administrative actions</h3>
+            <p style={{ color: "var(--muted)", marginTop: 4, fontSize: 12 }}>
+              The last 10 audit rows. Every admin mutation writes its row in the same database
+              transaction.
+            </p>
+            <div style={{ marginTop: 12 }}>
+              <Ledger
+                columns={[
+                  {
+                    key: "createdAt",
+                    label: "When",
+                    render: (r: AuditRow) => new Date(r.createdAt).toISOString(),
+                  },
+                  { key: "actorLabel", label: "Actor" },
+                  { key: "action", label: "Action" },
+                  {
+                    key: "target",
+                    label: "Target",
+                    render: (r: AuditRow) => `${r.targetType} ${r.targetId}`,
+                  },
+                ]}
+                rows={state.data.recentAudit}
+                getRowKey={(r: AuditRow) => r.id}
+                empty="No administrative actions recorded yet."
+              />
+            </div>
+          </article>
+        </>
+      )}
+    </div>
+  );
+}
+
+function Tile({ value, label }: { value: number; label: string }) {
+  return (
+    <div>
+      <div style={{ fontFamily: "var(--mono)", fontSize: 28, fontWeight: 800 }}>{value}</div>
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          color: "var(--muted)",
+          marginTop: 2,
+        }}
+      >
+        {label}
+      </div>
+    </div>
+  );
+}
