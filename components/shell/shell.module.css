@@ -1,7 +1,14 @@
 /* ── Dashboard shell layout + responsive drawer ──
    Ported from Dashboard.html (lines 19–48). The sidebar becomes a slide-in
    drawer at ≤1024px (burger toggle in the Topbar); .hideSm hides topbar meta at
-   ≤860px; two-column grids collapse at ≤760px. */
+   ≤860px; two-column grids collapse at ≤760px.
+
+   Responsive mechanism (Wave 8 A1, deliberate): the global ≤760 rule collapses
+   every inline screen-level grid under .main to one column, EXCEPT elements
+   tagged data-grid="row" (table-row layouts — treasury allocations, population
+   top-cities, wallet token/activity rows — which must KEEP their columns).
+   Elements tagged data-grid="cards" (embassy directory) step 3→2 columns at
+   ≤1024 before the global rule takes them to 1 at ≤760. */
 
 .app {
   background: var(--paper);
@@ -27,6 +34,19 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+}
+
+.topbar {
+  padding: 20px 32px;
+}
+
+/* Dashboard content wraps must never exceed the shell column: `.wrap` carries
+   `margin: 0 auto` (auto cross-axis margins disable flex-item stretch), so it
+   falls back to shrink-to-fit and can take a wide table's min-content width
+   (e.g. the holdings register), propping the page open horizontally. Clamp it;
+   wide tables then scroll inside their own overflow-x wrappers. */
+.main :global(.wrap) {
+  max-width: min(1180px, 100%);
 }
 
 .backdrop {
@@ -67,6 +87,12 @@
     transform: translateX(0);
     box-shadow: 24px 0 80px rgba(0, 0, 0, 0.35);
   }
+  /* Embassy directory cards step 3 → 2 columns before the ≤760 collapse takes
+     them to 1. `.main` prefix is REQUIRED (CSS-modules pure-selector rule);
+     `!important` is REQUIRED to beat the inline `style` grid. */
+  .main :global([data-grid="cards"]) {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
 
 @media (max-width: 860px) {
@@ -76,13 +102,14 @@
 }
 
 @media (max-width: 760px) {
-  .main :global([style*="grid-template-columns"]) {
+  /* Screen-level grids collapse; data-grid="row" table rows keep their columns. */
+  .main :global([style*="grid-template-columns"]:not([data-grid="row"])) {
     grid-template-columns: 1fr !important;
   }
   .main aside {
     position: static !important;
   }
   .topbar {
-    padding: 12px 16px !important;
+    padding: 12px 16px;
   }
 }

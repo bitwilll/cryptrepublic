@@ -35,6 +35,7 @@ export function ActivityLedger({
           <div
             key={r.hash}
             data-testid={`activity-row-${r.hash}`}
+            data-grid="row"
             style={{
               display: "grid",
               gridTemplateColumns: "80px 1fr 140px",

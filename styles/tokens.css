@@ -977,6 +977,19 @@ footer.site {
   .wrap {
     padding: 0 18px;
   }
+  /* Mobile.html:73 — hero (and final-CTA) buttons stack full-width. The base
+     .hero-ctas is flex (see :306), so the stack is a grid switch, not a
+     grid-template override. */
+  .hero-ctas {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  /* Mobile.html:192 — the AUM figure steps down (.aum b is not re-declared by
+     the retheme, so this block is cascade-safe for it). */
+  .aum b {
+    font-size: clamp(48px, 13vw, 64px);
+  }
 }
 
 /* ═══ RETHEME — sharp / squared / government-issue ═══ */
@@ -1174,7 +1187,7 @@ svg text {
 }
 .passport-book {
   position: relative;
-  width: min(330px, 78vw);
+  width: min(330px, 88vw); /* Mobile.html:81 — was 78vw; desktop unaffected (330px cap) */
   aspect-ratio: 7/10;
   perspective: 1700px;
   cursor: pointer;
@@ -1505,5 +1518,15 @@ svg text {
   .passport-book.open,
   .passport-book:focus-visible {
     transform: rotate(0deg) translateX(22%) scale(0.92);
+  }
+  /* Mobile.html:70/:167 type clamps. These MUST live in this ≤640 block (after
+     the RETHEME at ~:1015), not the first ≤640 block at ~:963 — the retheme
+     re-declares both selectors at equal specificity later in source order,
+     which would make earlier mobile clamps dead CSS. */
+  .hero h1 {
+    font-size: clamp(34px, 9.6vw, 44px);
+  }
+  .sec-head h2 {
+    font-size: clamp(24px, 6.6vw, 30px);
   }
 }

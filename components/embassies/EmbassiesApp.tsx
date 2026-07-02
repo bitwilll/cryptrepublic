@@ -116,7 +116,10 @@ export function EmbassiesApp() {
         <p style={{ color: "var(--muted)" }}>No embassies in the directory yet.</p>
       )}
       {embassies.status === "ok" && embassies.data.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+        <div
+          data-grid="cards"
+          style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}
+        >
           {embassies.data.map((e) => (
             <EmbassyCard key={e.code} embassy={e} />
           ))}

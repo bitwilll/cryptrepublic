@@ -223,6 +223,7 @@ function AllocationCard({ state, onRetry }: { state: Load<Allocation[]>; onRetry
             {state.data.map((a) => (
               <div
                 key={a.bucket}
+                data-grid="row"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "14px 1fr 70px 90px",

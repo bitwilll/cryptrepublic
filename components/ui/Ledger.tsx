@@ -35,48 +35,53 @@ export function Ledger<Row extends Record<string, unknown>>({
     );
   }
 
+  // Wave 8 A1 (wide-row decision): multi-column tables (e.g. the 7-column
+  // holdings register) have a min-content width beyond small viewports; they
+  // scroll horizontally inside this wrapper instead of propping the page open.
   return (
-    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-      <thead>
-        <tr>
-          {columns.map((c) => (
-            <th
-              key={c.key}
-              style={{
-                textAlign: c.align ?? "left",
-                padding: "8px 10px",
-                borderBottom: "1px solid var(--line)",
-                fontFamily: "var(--mono)",
-                fontSize: 10,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "var(--muted)",
-                fontWeight: 700,
-              }}
-            >
-              {c.label}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row, i) => (
-          <tr key={getRowKey ? getRowKey(row, i) : i}>
+    <div style={{ overflowX: "auto" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+        <thead>
+          <tr>
             {columns.map((c) => (
-              <td
+              <th
                 key={c.key}
                 style={{
                   textAlign: c.align ?? "left",
-                  padding: "10px",
+                  padding: "8px 10px",
                   borderBottom: "1px solid var(--line)",
+                  fontFamily: "var(--mono)",
+                  fontSize: 10,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "var(--muted)",
+                  fontWeight: 700,
                 }}
               >
-                {c.render ? c.render(row) : String(row[c.key] ?? "")}
-              </td>
+                {c.label}
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={getRowKey ? getRowKey(row, i) : i}>
+              {columns.map((c) => (
+                <td
+                  key={c.key}
+                  style={{
+                    textAlign: c.align ?? "left",
+                    padding: "10px",
+                    borderBottom: "1px solid var(--line)",
+                  }}
+                >
+                  {c.render ? c.render(row) : String(row[c.key] ?? "")}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

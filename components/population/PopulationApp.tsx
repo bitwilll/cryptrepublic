@@ -263,6 +263,7 @@ function TopCitiesCard({ cities }: { cities: City[] }) {
           {sorted.map((c) => (
             <div
               key={c.code}
+              data-grid="row"
               style={{
                 display: "grid",
                 gridTemplateColumns: "140px 1fr 150px",

@@ -284,6 +284,21 @@ async function stubReads(page: Page) {
   });
 }
 
+/** Spec-§8.1 mobile-smoke slice: the document must not scroll horizontally. */
+async function expectNoHorizontalOverflow(page: Page) {
+  const fits = await page.evaluate(
+    () => document.documentElement.scrollWidth <= window.innerWidth + 1,
+  );
+  expect(fits, "document must not overflow horizontally at this viewport").toBe(true);
+}
+
+/** Brief 390×844 no-overflow check on the current screen, then restore desktop. */
+async function checkMobileNoOverflow(page: Page) {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expectNoHorizontalOverflow(page);
+  await page.setViewportSize({ width: 1280, height: 800 });
+}
+
 async function register(page: Page) {
   const email = `dash-e2e-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.org`;
   await page.goto("/auth");
@@ -338,8 +353,9 @@ test("shell + home + governance + treasury render honestly under the real shell"
   await expect(page.getByTestId("salutation")).not.toContainText(/21 408 932/);
   await expect(page.getByTestId("obligations")).toContainText(/Mint your passport/i);
 
-  // ── Mobile: the burger opens the slide-in drawer. ──
+  // ── Mobile: no horizontal overflow + the burger opens the slide-in drawer. ──
   await page.setViewportSize({ width: 390, height: 844 });
+  await expectNoHorizontalOverflow(page);
   await page.getByRole("button", { name: /Open navigation/i }).click();
   await expect(page.getByTestId("citizen-card")).toBeVisible();
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -348,6 +364,7 @@ test("shell + home + governance + treasury render honestly under the real shell"
   await page.goto("/dashboard/governance");
   await expect(page.getByTestId("amendments-empty")).toBeVisible();
   await expect(page.getByTestId("amendments-empty")).toContainText(/No open amendments/i);
+  await checkMobileNoOverflow(page);
 
   // ── Treasury: honest unavailable reserves (never "$14.20M") + STAKE → wallet. ──
   await page.goto("/dashboard/treasury");
@@ -358,6 +375,7 @@ test("shell + home + governance + treasury render honestly under the real shell"
     "/dashboard/wallet",
   );
   await expect(page.getByTestId("disbursements")).toContainText(/No disbursements yet/i);
+  await checkMobileNoOverflow(page);
 });
 
 test("governance vote disabled (non-citizen) + holdings + population + embassies", async ({
@@ -414,6 +432,7 @@ test("governance vote disabled (non-citizen) + holdings + population + embassies
   await expect(page.getByRole("button", { name: /CLAIM DIVIDEND/i })).toBeDisabled();
   await expect(page.getByTestId("legal-note")).toContainText(/regulated security/i);
   await expect(page.getByTestId("dividend-panel")).toContainText(/TESTNET/);
+  await checkMobileNoOverflow(page);
 
   // ── Population: live census count (never 48 392) + SEEDED pins + empty inductions. ──
   await page.goto("/dashboard/population");
@@ -423,6 +442,21 @@ test("governance vote disabled (non-citizen) + holdings + population + embassies
   await expect(page.getByTestId("map-pin").first()).toBeVisible();
   await expect(page.getByTestId("top-cities")).toContainText(/SEEDED SNAPSHOT/i);
   await expect(page.getByTestId("inductions-empty")).toBeVisible();
+
+  // ── Mobile (390×844): the top-cities ROW grids keep their columns (the
+  //    data-grid="row" exemption from the global ≤760 collapse) and the screen
+  //    does not overflow. Vacuity guard FIRST: the rows must actually exist. ──
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expectNoHorizontalOverflow(page);
+  const rows = page.locator('[data-grid="row"]');
+  expect(await rows.count(), 'population must render [data-grid="row"] rows').toBeGreaterThan(0);
+  for (const row of await rows.all()) {
+    const cols = await row.evaluate(
+      (el) => getComputedStyle(el).gridTemplateColumns.split(" ").length,
+    );
+    expect(cols, "row grids must keep >1 column at the mobile viewport").toBeGreaterThan(1);
+  }
+  await page.setViewportSize({ width: 1280, height: 800 });
 
   // ── Embassies: grid from the seeded directory + PROPOSE disabled for non-citizen. ──
   await page.goto("/dashboard/embassies");
@@ -434,6 +468,7 @@ test("governance vote disabled (non-citizen) + holdings + population + embassies
     "href",
     /\/dashboard\/embassies\/(LIS|BER)/,
   );
+  await checkMobileNoOverflow(page);
 
   // ── Embassy detail: a known code renders; an unknown code → not-found. ──
   await page.goto("/dashboard/embassies/LIS");

@@ -40,7 +40,6 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
     <header
       className={styles.topbar}
       style={{
-        padding: "20px 32px",
         borderBottom: "1px solid var(--line)",
         background: "#fff",
         display: "flex",
