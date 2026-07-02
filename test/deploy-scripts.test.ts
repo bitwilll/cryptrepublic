@@ -57,3 +57,32 @@ describe("postgres deployment scripts (package.json)", () => {
     }
   });
 });
+
+describe("vercel-build (Vercel runs this instead of `build` when present)", () => {
+  it("generates the POSTGRES client, deploys migrations, then builds — in that order", () => {
+    const script = pkg.scripts["vercel-build"];
+    expect(script, "package.json must define a vercel-build script").toBeTruthy();
+
+    const generateIdx = script.indexOf(`prisma generate --schema ${PG_SCHEMA}`);
+    const migrateIdx = script.indexOf(`prisma migrate deploy --schema ${PG_SCHEMA}`);
+    const buildIdx = script.indexOf("next build");
+
+    expect(
+      generateIdx,
+      "vercel-build must generate the client from the postgres schema",
+    ).toBeGreaterThanOrEqual(0);
+    expect(
+      migrateIdx,
+      "vercel-build must run migrate deploy against the postgres schema",
+    ).toBeGreaterThan(generateIdx);
+    expect(buildIdx, "next build must run AFTER generate + migrate deploy").toBeGreaterThan(
+      migrateIdx,
+    );
+  });
+
+  it("never references the sqlite dev schema or sqlite-only commands", () => {
+    const script = pkg.scripts["vercel-build"];
+    expect(script).not.toContain("migrate dev");
+    expect(script).not.toContain("--schema prisma/schema.prisma");
+  });
+});
