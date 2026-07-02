@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# --- Schema guard (Wave 1) ---
-# Fails if the Prisma schema introduces a column that could hold a secret.
+# --- Schema guard (Wave 1; extended to the Postgres mirror schema) ---
+# Fails if a Prisma schema introduces a column that could hold a secret.
 # The server must never store private keys, seed phrases, or plaintext passwords.
-if grep -inE '(privateKey|seedPhrase|mnemonic|plaintextPassword|passwordPlain|secretKey)' prisma/schema.prisma; then
-  echo "ERROR: prisma schema must never store secrets (private keys / seeds / plaintext passwords)." >&2
+SCHEMAS=(prisma/schema.prisma)
+[ -f prisma/postgres/schema.prisma ] && SCHEMAS+=(prisma/postgres/schema.prisma)
+if grep -inE '(privateKey|seedPhrase|mnemonic|plaintextPassword|passwordPlain|secretKey)' "${SCHEMAS[@]}"; then
+  echo "ERROR: prisma schemas must never store secrets (private keys / seeds / plaintext passwords)." >&2
   exit 1
 fi
 

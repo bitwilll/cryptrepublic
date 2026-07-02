@@ -1,0 +1,277 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// POSTGRES DEPLOYMENT TARGET (Vercel production) — MIRROR of ../schema.prisma.
+//
+// prisma/schema.prisma (sqlite) stays AUTHORITATIVE for local dev + the local
+// test suite. This file must define an IDENTICAL datamodel — only the
+// datasource block differs (provider + directUrl). Enforced by
+// prisma/schema-drift.test.ts: edit BOTH files together or the unit suite
+// fails.
+//
+// - `url` is the runtime connection string (on Vercel: the POOLED Neon URL).
+// - `directUrl` is used ONLY by Prisma CLI commands (migrate deploy) that need
+//   a direct, non-pooled connection. The Neon/Vercel integration sets
+//   DATABASE_URL_UNPOOLED automatically; for a plain Postgres set it to the
+//   same value as DATABASE_URL. See docs/DEPLOY_VERCEL.md.
+//
+// Migrations live in ./migrations (postgres dialect), generated with
+// `prisma migrate diff --from-empty --to-schema-datamodel` — see
+// docs/DEPLOY_VERCEL.md for the regeneration procedure after schema changes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+/// INVARIANT: no model may ever store a private key, seed phrase, or plaintext password.
+/// Enums are String columns with app-level union types (lib/auth/types.ts) for SQLite/Postgres portability.
+
+model User {
+  id               String    @id @default(cuid())
+  email            String?   @unique // lowercased before write; null for SIWE-only users
+  passwordHash     String? // Argon2id encoded string; null for SIWE-only. NEVER plaintext.
+  name             String? // DIVERGENCE: spec §4.2 calls this `displayName`; we use `name` this wave.
+  kycStatus        String    @default("NONE") // KycStatus union
+  role             String    @default("USER") // UserRole union (USER|ADMIN) — lib/auth/types.ts
+  suspendedAt      DateTime? // admin suspension (Wave 9) — DISTINCT from the login-lockout lockedUntil
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  sessions      Session[]
+  linkedWallets LinkedWallet[]
+  application   CitizenshipApplication?
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique // sha256(raw cookie token)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent String?
+  ipHash    String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model SiweNonce {
+  id        String    @id @default(cuid())
+  nonce     String    @unique
+  address   String?
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
+model LinkedWallet {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // DIVERGENCE: spec §4.2 uses a composite @@unique([chainFamily, address]); v1 is EVM-only so we
+  // use a plain address @unique. Wave 3 (multi-chain) must migrate to the composite key.
+  address    String    @unique // checksummed EVM address
+  chain      String    @default("EVM") // ChainFamily union (spec calls this `chainFamily`)
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model CitizenshipApplication {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status String @default("DRAFT") // ApplicationStatus union
+  // DIVERGENCE: spec §4.2 names these declaredName / declaredCity / declaredCountry;
+  // this wave uses name / domicileCity / hostCountry (+ motto). Later waves must reconcile.
+  name           String?
+  domicileCity   String?
+  hostCountry    String?
+  motto          String?
+  oathAcceptedAt DateTime?
+  kycStatus      String    @default("NONE") // KycStatus union
+  // --- Wave 5 (mint) additions. ALL PUBLIC data — never a key/seed. ---
+  // The verified LinkedWallet/embedded EVM address bound at witness-request time
+  // (applicant-binding rule). PUBLIC address, not a secret.
+  applicantAddress String?
+  // The on-chain applicant nonce + deadline captured at witness-request time
+  // (stringified bigints), used to reject stale sigs and to reconstruct the exact
+  // attestations[] at seal time.
+  witnessNonce    String?
+  witnessDeadline String?
+  // Client-reported cache of the sealed mint (authoritative source is the chain,
+  // reconciled by PassportView via readPassportStatus).
+  sealTxHash     String?
+  citizenTokenId String?
+  sealedAt       DateTime?
+  reviewNote     String? // admin review note (Wave 9) — off-chain only, never chain state
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  witnessSignatures WitnessSignature[]
+
+  @@index([status])
+}
+
+/// One collected EIP-712 witness signature over an applicant's Attestation. ALL
+/// columns are PUBLIC data (a checksummed address + an EIP-712 signature + the
+/// nonce/deadline the sig is bound to) — never a key, seed, or password.
+model WitnessSignature {
+  id             String                 @id @default(cuid())
+  applicationId  String
+  application    CitizenshipApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  witnessAddress String // checksummed EVM address (recovered on submit)
+  signature      String // 0x EIP-712 signature (PUBLIC data, not a secret)
+  nonce          String // the applicant on-chain nonce this sig is bound to
+  deadline       String // unix seconds (stringified)
+  createdAt      DateTime               @default(now())
+
+  @@unique([applicationId, witnessAddress]) // no duplicate witness (mirrors on-chain DuplicateWitness)
+  @@index([applicationId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Wave 7 — off-chain DASHBOARD CONTENT. ALL PUBLIC content — no secret columns.
+// Anything trustless (tallies, proposal state, claimable, treasury balances,
+// citizen/census count, dividend/disbursement history) reads from chain, NEVER
+// from these models. These hold only off-chain-by-nature content.
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Off-chain rich content for an on-chain CryptGovernance proposal. Linked to the
+/// on-chain proposalId; tallies + state ALWAYS read from chain, never here.
+model GovernanceProposalContent {
+  id              String            @id @default(cuid())
+  chainId         Int
+  proposalId      String // on-chain proposalId (stringified uint256)
+  title           String
+  tag             String // PROCEDURAL|CULTURAL|FISCAL|CIVIC|TECHNICAL (union)
+  body            String // rich text / markdown
+  descriptionHash String? // 0x bytes32 — MUST match the on-chain proposal.descriptionHash
+  createdAt       DateTime          @default(now())
+  comments        ProposalComment[]
+
+  @@unique([chainId, proposalId])
+  @@index([chainId, tag])
+}
+
+/// A dissent/discussion comment on a proposal (the "Dissent on the floor" thread).
+model ProposalComment {
+  id                String                    @id @default(cuid())
+  proposalRef       GovernanceProposalContent @relation(fields: [proposalContentId], references: [id], onDelete: Cascade)
+  proposalContentId String
+  authorAddress     String // checksummed EVM address (citizen; verified on-chain at write time)
+  citizenTokenId    String? // resolved tokenId (display "Citizen №…")
+  body              String
+  upvotes           Int                       @default(0)
+  createdAt         DateTime                  @default(now())
+
+  @@index([proposalContentId])
+}
+
+/// Sovereign-holdings asset register (the mockup ASSETS array). Off-chain by nature.
+model AssetCatalogEntry {
+  id             String @id @default(cuid())
+  ref            String @unique // "RE-001" etc.
+  kind           String // re|ip|eq|tr
+  name           String
+  location       String
+  valueUsd       BigInt // whole USD
+  yieldBps       Int // 480 = 4.8%
+  annualYieldUsd BigInt
+  status         String
+  acquiredAt     String // freeform ("2024.11.04" / "ongoing")
+
+  @@index([kind])
+}
+
+/// Embassy directory (the mockup EMB array). Off-chain by nature.
+model EmbassyDirectory {
+  code         String @id // "LIS"
+  name         String
+  neighborhood String
+  hours        String
+  foundedAt    String
+  brandColor   String
+  city         String
+  country      String
+}
+
+/// Per-city census node — coords for the map + top-cities. Per-city population
+/// is aggregated LIVE from CitizenshipApplication.domicileCity (minted citizens
+/// only); seededCount is a labeled SEEDED SNAPSHOT for demonstrative geography,
+/// never merged into the trustless totalCitizens() headline.
+model CityCensus {
+  code        String  @id // "LIS"
+  name        String
+  lat         Float
+  long        Float
+  hasEmbassy  Boolean @default(false)
+  seededCount Int     @default(0)
+}
+
+/// Treasury allocation TARGETS (the mockup ALLOC array) — governance-ratified
+/// intent, NOT live balances. Live balances read from CryptTreasury.balanceOf.
+model TreasuryAllocation {
+  id        String @id @default(cuid())
+  bucket    String @unique // "embassy_ops" — matches an on-chain allocationBps bucket key when set
+  label     String
+  targetBps Int // 3800 = 38%
+  color     String
+}
+
+/// Constitution / doctrine text (preamble, Article IV doctrine, etc.).
+model ConstitutionText {
+  id       String  @id @default(cuid())
+  key      String  @unique // "preamble" | "doctrine_art_iv" | "dividend_legal_note"
+  title    String
+  body     String
+  citation String? // "CONSTITUTION ART. IV §1 · RATIFIED MMXXVI"
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Wave 9 — ADMIN back office. ALL PUBLIC data — no secret columns.
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Admin audit trail (Wave 9). EVERY admin mutation writes a row IN THE SAME
+/// prisma.$transaction as the mutation (lib/admin/audit.ts writeAudit). before/
+/// afterJson pass a per-targetType serializer ALLOWLIST — passwordHash/tokenHash
+/// can never appear. actorUserId is a plain column (no FK) so audit rows survive
+/// user deletion; null actorUserId = the CLI bootstrap (actorLabel "cli").
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  actorLabel  String // "admin:<email>" | "cli"
+  action      String // dot-namespaced: "user.suspend", "content.asset.update", "flag.upsert", …
+  targetType  String // AuditTargetType union (lib/admin/audit.ts)
+  targetId    String
+  beforeJson  String? // allowlist-serialized JSON snapshot (nullable for creates)
+  afterJson   String? // allowlist-serialized JSON snapshot (nullable for deletes)
+  ipHash      String? // reserved; null in v1 (no existing app ipHash convention — divergence noted)
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([actorUserId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+/// Feature flags (Wave 9). Missing row => the per-flag DECLARED default
+/// (lib/flags/defaults.ts), undeclared key => false. Public read via /api/flags.
+model FeatureFlag {
+  key         String   @id
+  enabled     Boolean  @default(false)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

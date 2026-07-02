@@ -21,6 +21,8 @@
     "e2e:critical": "playwright test --grep @critical",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
+    "db:generate:pg": "prisma generate --schema prisma/postgres/schema.prisma",
+    "db:migrate:pg:deploy": "prisma migrate deploy --schema prisma/postgres/schema.prisma",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "admin:grant": "tsx scripts/grant-admin.ts",
