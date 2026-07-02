@@ -95,6 +95,9 @@ model CitizenshipApplication {
   citizenTokenId String?
   sealedAt       DateTime?
   reviewNote     String? // admin review note (Wave 9) — off-chain only, never chain state
+  // --- Wave 10 (admin-mint override). OFF-CHAIN INTENT, never chain truth. ---
+  adminApprovedAt DateTime? // admin-mint override APPROVAL time (Wave 10) — citizen state stays chain-derived
+  adminApprovedBy String? // the admin userId who approved (Wave 10) — off-chain intent only
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

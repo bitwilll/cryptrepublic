@@ -74,6 +74,8 @@ export const AUDIT_FIELD_ALLOWLIST: Record<AuditTargetType, readonly string[]> =
     "sealTxHash",
     "citizenTokenId",
     "sealedAt",
+    "adminApprovedAt", // Wave 10 — off-chain admin-mint approval intent (never chain truth)
+    "adminApprovedBy", // Wave 10 — the approving admin's userId (public)
     "createdAt",
     "updatedAt",
   ],

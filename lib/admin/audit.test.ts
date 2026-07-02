@@ -46,6 +46,20 @@ describe("serializeForAudit (allowlist serializer)", () => {
     expect(parsed.userAgent).toBe("vitest");
   });
 
+  it("APPLICATION: Wave-10 adminApprovedAt/adminApprovedBy serialize (ISO / string), passwordHash NEVER", () => {
+    const out = serializeForAudit("APPLICATION", {
+      id: "app1",
+      adminApprovedAt: new Date(0),
+      adminApprovedBy: "u1",
+      passwordHash: "SECRET-ARGON2",
+    });
+    const parsed = JSON.parse(out) as Record<string, unknown>;
+    expect(parsed.adminApprovedAt).toBe("1970-01-01T00:00:00.000Z");
+    expect(parsed.adminApprovedBy).toBe("u1");
+    expect(Object.keys(parsed)).not.toContain("passwordHash");
+    expect(out).not.toContain("SECRET-ARGON2");
+  });
+
   it("ALLOWLIST INVARIANT: no targetType allowlist contains a secret-adjacent name", () => {
     for (const t of Object.keys(AUDIT_FIELD_ALLOWLIST) as AuditTargetType[]) {
       for (const field of AUDIT_FIELD_ALLOWLIST[t]) {
