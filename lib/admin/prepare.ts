@@ -1,4 +1,4 @@
-import { encodeFunctionData, keccak256, stringToHex, toBytes, type Abi } from "viem";
+import { encodeFunctionData, keccak256, size, stringToHex, toBytes, type Abi } from "viem";
 import {
   accessControlAbi,
   adminDistributorAbi,
@@ -224,6 +224,56 @@ export function prepareSetRequiredWitnesses(
       [n],
       { n: String(n) },
       `setRequiredWitnesses(${n})`,
+    ),
+  );
+}
+
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+const HEX_ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
+
+/** PREPARE the witness-FREE admin passport mint (PASSPORT_ADMIN_ROLE,
+ *  CryptRepublicPassport.sol:122 — mints with ZERO witnesses; the admin is the
+ *  sole attestor). The `to` address and the three bytes32 args are supplied
+ *  ALREADY resolved/encoded by the caller (per-application:
+ *  resolveApplicantAddress + the lib/passport/attestation encoders); this
+ *  function only validates + encodes, mirroring the contract's ZeroAddress
+ *  revert (an all-zero `to` throws BEFORE encoding). The AlreadyCitizen revert
+ *  needs a chain read — that is the route/UI's job, NOT this pure encoder's.
+ *  Returns a single-tx batch (PreparedActionCard + safeTxBuilderJson ready). */
+export function prepareAdminMint(
+  chainId: number,
+  passport: `0x${string}`,
+  to: `0x${string}`,
+  nameHash: `0x${string}`,
+  motto: `0x${string}`,
+  domicile: `0x${string}`,
+): PreparedBatch {
+  if (!HEX_ADDRESS_RE.test(to)) {
+    throw new Error(`adminMint destination must be a 20-byte hex address (got "${to}").`);
+  }
+  if (to.toLowerCase() === ZERO_ADDRESS) {
+    throw new Error("ZeroAddress mirror: adminMint destination must be a non-zero address.");
+  }
+  for (const [label, value] of [
+    ["nameHash", nameHash],
+    ["motto", motto],
+    ["domicile", domicile],
+  ] as const) {
+    if (size(value) !== 32) {
+      throw new Error(`adminMint ${label} must be exactly 32 bytes of hex (got ${value}).`);
+    }
+  }
+  return single(
+    `Admin-mint passport to ${to} (override witnesses)`,
+    tx(
+      chainId,
+      "passport",
+      passport,
+      adminPassportAbi,
+      "adminMint",
+      [to, nameHash, motto, domicile],
+      { to, nameHash, motto, domicile },
+      `adminMint(${to}, nameHash, motto, domicile)`,
     ),
   );
 }

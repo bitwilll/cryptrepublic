@@ -16,6 +16,7 @@ import {
   prepareRevokeRole,
   preparePause,
   prepareUnpause,
+  prepareAdminMint,
   prepareSetRequiredWitnesses,
   prepareSetBaseURI,
   prepareSetBurnEnabled,
@@ -279,6 +280,65 @@ describe("treasury GOVERNANCE_ROLE actions — governance-proposal payloads, NEV
     expect(() =>
       prepareFundDividendsProposal(CHAIN, GOVERNANCE, TREASURY, DISTRIBUTOR, 1n, "   "),
     ).toThrow(/description/i);
+  });
+});
+
+describe("prepareAdminMint (witness-FREE admin passport mint — Wave 10)", () => {
+  const TO = "0x2000000000000000000000000000000000000009" as const;
+  const ZERO_ADDR = "0x0000000000000000000000000000000000000000" as const;
+  const NAME_HASH = keccak256(stringToHex("Ada Test"));
+  const MOTTO = stringToHex("code is law", { size: 32 });
+  const DOMICILE = stringToHex("Neo Berlin", { size: 32 });
+
+  it("encodes adminMint(to, nameHash, motto, domicile) — decode round-trip", () => {
+    const batch = prepareAdminMint(CHAIN, PASSPORT, TO, NAME_HASH, MOTTO, DOMICILE);
+    const decoded = decodeFunctionData({ abi: adminPassportAbi, data: batch.txs[0].data });
+    expect(decoded.functionName).toBe("adminMint");
+    expect(decoded.args).toEqual([TO, NAME_HASH, MOTTO, DOMICILE]);
+  });
+
+  it("returns a single-tx PreparedBatch addressed to the passport, value 0, decoded passport/adminMint", () => {
+    const batch = prepareAdminMint(CHAIN, PASSPORT, TO, NAME_HASH, MOTTO, DOMICILE);
+    expect(batch.kind).toBe("single");
+    expect(batch.txs).toHaveLength(1);
+    expect(batch.txs[0].to).toBe(PASSPORT);
+    expect(batch.txs[0].value).toBe("0");
+    expect(batch.txs[0].decoded.contract).toBe("passport");
+    expect(batch.txs[0].decoded.functionName).toBe("adminMint");
+    expect(batch.txs[0].decoded.summary).toContain("adminMint");
+  });
+
+  it("rejects the zero address BEFORE encoding (ZeroAddress mirror)", () => {
+    expect(() => prepareAdminMint(CHAIN, PASSPORT, ZERO_ADDR, NAME_HASH, MOTTO, DOMICILE)).toThrow(
+      /non-zero address/i,
+    );
+  });
+
+  it("rejects a malformed `to` (not a 20-byte hex address)", () => {
+    expect(() =>
+      prepareAdminMint(CHAIN, PASSPORT, "0x1234" as `0x${string}`, NAME_HASH, MOTTO, DOMICILE),
+    ).toThrow(/address/i);
+  });
+
+  it("rejects a non-32-byte nameHash / motto / domicile", () => {
+    expect(() =>
+      prepareAdminMint(CHAIN, PASSPORT, TO, "0x1234" as `0x${string}`, MOTTO, DOMICILE),
+    ).toThrow(/32/);
+    expect(() =>
+      prepareAdminMint(CHAIN, PASSPORT, TO, NAME_HASH, "0xab" as `0x${string}`, DOMICILE),
+    ).toThrow(/32/);
+    expect(() =>
+      prepareAdminMint(CHAIN, PASSPORT, TO, NAME_HASH, MOTTO, "0xab" as `0x${string}`),
+    ).toThrow(/32/);
+  });
+
+  it("safeTxBuilderJson exports the single adminMint tx byte-faithfully", () => {
+    const batch = prepareAdminMint(CHAIN, PASSPORT, TO, NAME_HASH, MOTTO, DOMICILE);
+    const json = safeTxBuilderJson(batch);
+    expect(json.transactions).toHaveLength(1);
+    expect(json.transactions[0].to).toBe(batch.txs[0].to);
+    expect(json.transactions[0].data).toBe(batch.txs[0].data);
+    expect(json.transactions[0].value).toBe("0");
   });
 });
 
