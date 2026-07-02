@@ -139,6 +139,15 @@ does not overwrite already-set variables), so prefix — don't edit `.env`.
 Use the **direct (unpooled)** URL for these one-offs. Get both URLs from
 Vercel → Storage → your database → `.env.local` tab, or `vercel env pull`.
 
+> **TRAP — `.env.local` shadows `.env`.** `vercel env pull` (and the Neon
+> integration's provisioning step) write the PRODUCTION `DATABASE_URL` into
+> `.env.local`, which Next.js loads with HIGHER priority than `.env`. A local
+> `pnpm start`/`pnpm dev` then points the SQLite-generated Prisma client at the
+> remote Postgres and every DB route 500s (observed live: the whole e2e suite
+> fails at register). Pull to a throwaway file instead
+> (`vercel env pull .env.vercel.tmp`), prefix the one-off commands from it, and
+> delete it — never leave production URLs in `.env.local`.
+
 ```bash
 pnpm db:generate:pg                                        # client -> postgres
 
