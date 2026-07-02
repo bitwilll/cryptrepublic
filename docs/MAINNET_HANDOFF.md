@@ -229,7 +229,7 @@ otherwise leave as shipped.
 | --- | --- | --- |
 | 1 | External contract audit; all High/Critical resolved; report published | **OPEN — USER.** No external audit has been performed or commissioned. |
 | 2 | ≥4 continuous weeks Base Sepolia burn-in, critical path exercised, no unresolved P0/P1 | **OPEN — USER.** Not started (no user testnet deployment exists yet). Plan above. |
-| 3 | Full test suite green on the exact deploy commit | **PENDING — evidenced by the Wave 8 D3 close-out run** (updated there once the gate actually runs). Current evidence: Wave-7 close-out `447ff2a` — 378 unit / 11 integration / 11 e2e / 165 forge, all green. Must be re-verified on the exact deploy commit at deploy time. |
+| 3 | Full test suite green on the exact deploy commit | **EVIDENCED at the v0.8.0 Wave-8 close-out** (2026-07-02, D3 close-out commit on this branch — full results in that commit body): 398 unit / 11 integration (anvil) / 22 e2e / 165 forge, plus `forge snapshot --check`, the coverage gate, and a green production build within the perf budget. **Must be re-verified on the exact deploy commit at deploy time** — this row evidences the release commit, not a future deploy commit. |
 | 4 | slither/solhint clean or triaged | **EVIDENCED.** [../contracts/audit/triage.md](../contracts/audit/triage.md) — 0 high/medium findings; all results triaged with dispositions. |
 | 5 | Bug bounty open before large treasury/dividend funding | **OPEN — USER.** No bounty program exists; platform/budget are the user's call (spec §10.3 #9). |
 | 6 | Legal sign-off (spec §10) | **OPEN — USER.** See [LEGAL_FLAGS_REFERENCE.md](LEGAL_FLAGS_REFERENCE.md); blocks funding (step 7) and public mainnet. |

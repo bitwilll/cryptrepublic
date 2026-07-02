@@ -84,6 +84,7 @@ step** (deploy + fork tests + burn-in per
   markers mapped to spec-§10.1 risks
 - [contracts/docs/DEPLOY_RUNBOOK.md](contracts/docs/DEPLOY_RUNBOOK.md) — contract
   deploy/configure/seed runbook (USER steps)
+- [CHANGELOG.md](CHANGELOG.md) — release history (Waves 1–8)
 
 ## Wave status
 
@@ -98,3 +99,17 @@ step** (deploy + fork tests + burn-in per
 | 7    | Remaining dashboard screens wired            | Delivered                              |
 | 8    | Polish + tests + docs + mainnet runbook      | Delivered (assistant scope)            |
 | 9    | Admin panel (capstone)                       | Pending                                |
+
+## Release (v0.8.0)
+
+Current version: `0.8.0` ([CHANGELOG.md](CHANGELOG.md)). **Tagging is a USER
+step, post-merge** — after merging this branch to `main`:
+
+```bash
+git checkout main && git pull && git tag -a v0.8.0 -m "CryptRepublic v0.8.0 — Wave 8 close-out" && git push origin v0.8.0
+```
+
+The assistant does not create or push tags. Three Wave-8 spec-row items remain
+OPEN (USER): the runbook testnet dry-run, starting the ≥4-week burn-in, and
+cutting this tag — see the Pre-Mainnet Gate in
+[docs/MAINNET_HANDOFF.md](docs/MAINNET_HANDOFF.md).
