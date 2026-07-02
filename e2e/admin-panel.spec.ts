@@ -10,7 +10,9 @@ import path from "node:path";
  * ADMIN PANEL e2e (Wave 9 D2) — the over-the-wire proof of the admin back
  * office: layout guard, suspend-kills-the-live-session, content edit + audit,
  * the ONE flag consumer flipping, chain actions (stubbed registered fixture +
- * the live graceful default), and axe.
+ * the live graceful default), axe, and the Wave-10 A4 approve-mint override
+ * station (witness-free adminMint prepared card — zero extra registrations,
+ * zero extra logins; fixtures via DIRECT prisma, cascaded away in afterAll).
  *
  * REGISTER BUDGET (Global Constraint #5/#9): a full `pnpm e2e` run performs 9
  * registrations — auth.spec 1 + mint.spec 2 + wallet-screen.spec 2 +
@@ -70,6 +72,10 @@ const HOURS_MARKER = `E2E HOURS ${Date.now()}`;
 // ─────────────────────────────────────────────────────────────────────────────
 const ANVIL_ADMIN = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
 const GRANT_ACCOUNT = "0x9965507d1a55bcc2695c58ba16fb37d819b0a4dc";
+// Station 8 (Wave-10 A4) — the citizen fixture's verified wallet: the CHECKSUMMED
+// anvil #4 address (a throwaway; no key ever touches this spec). resolvedMintTo
+// must render exactly this checksummed form (getAddress-normalized by the server).
+const MINT_TO = "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65";
 const ADDRS = {
   token: "0x5fbdb2315678afecb367f032d93f642f64180aa3",
   passport: "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
@@ -557,5 +563,101 @@ test.describe.serial("admin panel (Wave 9 D2 — zero registrations)", () => {
       const results = await new AxeBuilder({ page: adminPage }).analyze();
       await expectNoCriticalOrSerious(route, results);
     }
+  });
+
+  test("station 8 — Wave-10 A4: approve-mint override prepares the witness-free adminMint card", async () => {
+    test.setTimeout(120_000);
+    // The witness-free override's PRIMARY case: an application row whose
+    // applicantAddress snapshot is NULL (the applicant never ran the witness
+    // flow) — the mint gate must come from the LIVE resolveApplicantAddress,
+    // never the stored column.
+    const app = await db.citizenshipApplication.create({
+      data: {
+        userId: citizenId,
+        status: "OATH_ACCEPTED",
+        name: "E2E Ordinary User",
+        domicileCity: "Lisbon",
+        hostCountry: "Portugal",
+        motto: "code is law",
+      },
+    });
+
+    // No verified wallet yet → the pillar is DISABLED with the honest reason
+    // (route would 400 too — the UI gate mirrors the server's own resolution).
+    await adminPage.goto(`/admin/applications/${app.id}`);
+    await expect(adminPage.getByTestId("approve-mint-disabled")).toContainText(
+      /no verified wallet/,
+    );
+
+    // Verify a wallet (direct prisma; checksummed anvil #4 — never a real key).
+    // applicantAddress stays NULL in the DB: the destination below proves the
+    // LIVE resolution, not a stale snapshot.
+    await db.linkedWallet.create({
+      data: { userId: citizenId, address: MINT_TO, chain: "EVM", verifiedAt: new Date() },
+    });
+
+    // Deterministic REGISTERED-chain stubs (station-6 params + a passport
+    // PASSPORT_ADMIN_ROLE topology) so the prepared card can render holders.
+    await adminPage.route("**/api/admin/chain/params", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(PARAMS_FIXTURE),
+      }),
+    );
+    await adminPage.route("**/api/admin/chain/roles", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ...ROLES_FIXTURE,
+          contracts: [
+            ...ROLES_FIXTURE.contracts,
+            {
+              contract: "passport",
+              address: ADDRS.passport,
+              roles: [
+                {
+                  role: "PASSPORT_ADMIN_ROLE",
+                  roleId: `0x${"33".repeat(32)}`,
+                  holders: [ANVIL_ADMIN],
+                },
+              ],
+            },
+          ],
+        }),
+      }),
+    );
+
+    await adminPage.goto(`/admin/applications/${app.id}`);
+    await expect(adminPage.getByTestId("resolved-mint-to")).toHaveText(MINT_TO);
+
+    // Approve → the server records OFF-CHAIN intent + returns the resolved
+    // params; the client feeds them into the PURE encoder → the prepared card.
+    await adminPage.getByRole("button", { name: "Approve & prepare admin mint" }).click();
+    const card = adminPage.getByTestId("prepared-action-card");
+    await expect(card).toBeVisible();
+    await expect(card.getByTestId("never-signs-label")).toContainText(/THIS PANEL NEVER SIGNS/);
+    await expect(card.getByTestId("required-role")).toContainText(/PASSPORT_ADMIN_ROLE/);
+    await expect(card.getByTestId("prepared-tx")).toContainText(/adminMint/);
+    await expect(card.getByTestId("prepared-tx")).toContainText(MINT_TO);
+
+    // Over-the-wire mutation proof: off-chain intent + audit row written; NO
+    // chain-cache column touched (chain-truth honesty — constraint #3).
+    const after = await db.citizenshipApplication.findUniqueOrThrow({ where: { id: app.id } });
+    expect(after.adminApprovedAt).not.toBeNull();
+    expect(after.adminApprovedBy).toBe(adminId);
+    expect(after.status).toBe("OATH_ACCEPTED");
+    expect(after.citizenTokenId).toBeNull();
+    expect(after.sealTxHash).toBeNull();
+    expect(after.sealedAt).toBeNull();
+    expect(after.applicantAddress).toBeNull();
+    const audit = await db.auditLog.findFirst({
+      where: { action: "application.approve_mint", targetId: app.id },
+    });
+    expect(audit?.actorUserId).toBe(adminId);
+
+    await adminPage.unroute("**/api/admin/chain/params");
+    await adminPage.unroute("**/api/admin/chain/roles");
   });
 });
