@@ -67,7 +67,25 @@ export function ApplicationsApp() {
       <div className="kicker">CITIZENSHIP APPLICATIONS</div>
 
       <article className="pillar" style={{ padding: "24px 28px" }}>
-        <h3 style={{ margin: 0, fontSize: 20 }}>Applications</h3>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <h3 style={{ margin: 0, fontSize: 20 }}>Applications</h3>
+          <a
+            className="btn btn-ghost"
+            href="/api/admin/export/applications"
+            download
+            data-testid="download-applications-csv"
+          >
+            Download applications CSV
+          </a>
+        </div>
         <p style={{ color: "var(--muted)", marginTop: 4, fontSize: 12 }}>
           Review sets kycStatus and a note ONLY — the application status machine is forward-only and
           SEALED is chain-derived; the admin cannot set it.

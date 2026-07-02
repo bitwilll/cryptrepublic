@@ -108,4 +108,12 @@ describe("UsersApp", () => {
     fireEvent.click(screen.getByRole("button", { name: /retry/i }));
     await waitFor(() => expect(screen.getByText("citizen@ex.org")).toBeInTheDocument());
   });
+
+  it("offers a keyboard-focusable CSV download anchor to the audited export route (B3)", async () => {
+    render(<UsersApp />);
+    const link = await screen.findByTestId("download-users-csv");
+    expect(link.tagName).toBe("A"); // a real anchor — keyboard-focusable, no onClick div
+    expect(link).toHaveAttribute("href", "/api/admin/export/users");
+    expect(link).toHaveAttribute("download");
+  });
 });

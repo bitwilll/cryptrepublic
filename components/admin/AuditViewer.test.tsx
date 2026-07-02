@@ -122,4 +122,12 @@ describe("AuditViewer", () => {
     fireEvent.click(screen.getByRole("button", { name: /retry/i }));
     await waitFor(() => expect(screen.getByTestId("audit-row")).toBeInTheDocument());
   });
+
+  it("offers a keyboard-focusable CSV download anchor to the audited export route (B3)", async () => {
+    render(<AuditViewer />);
+    const link = await screen.findByTestId("download-audit-csv");
+    expect(link.tagName).toBe("A");
+    expect(link).toHaveAttribute("href", "/api/admin/export/audit");
+    expect(link).toHaveAttribute("download");
+  });
 });

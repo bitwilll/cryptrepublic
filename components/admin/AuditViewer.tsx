@@ -78,7 +78,25 @@ export function AuditViewer() {
       <div className="kicker">AUDIT TRAIL</div>
 
       <article className="pillar" style={{ padding: "24px 28px" }}>
-        <h3 style={{ margin: 0, fontSize: 20 }}>Administrative actions</h3>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <h3 style={{ margin: 0, fontSize: 20 }}>Administrative actions</h3>
+          <a
+            className="btn btn-ghost"
+            href="/api/admin/export/audit"
+            download
+            data-testid="download-audit-csv"
+          >
+            Download audit CSV
+          </a>
+        </div>
         <p style={{ color: "var(--muted)", marginTop: 4, fontSize: 12 }}>
           Read-only. Every admin mutation writes its audit row in the same database transaction;
           before/after snapshots pass a per-type field allowlist.

@@ -107,4 +107,12 @@ describe("ApplicationsApp", () => {
     fireEvent.click(screen.getByRole("button", { name: /retry/i }));
     await waitFor(() => expect(screen.getByText("citizen@ex.org")).toBeInTheDocument());
   });
+
+  it("offers a keyboard-focusable CSV download anchor to the audited export route (B3)", async () => {
+    render(<ApplicationsApp />);
+    const link = await screen.findByTestId("download-applications-csv");
+    expect(link.tagName).toBe("A");
+    expect(link).toHaveAttribute("href", "/api/admin/export/applications");
+    expect(link).toHaveAttribute("download");
+  });
 });

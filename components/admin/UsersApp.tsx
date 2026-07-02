@@ -63,7 +63,25 @@ export function UsersApp() {
       <div className="kicker">USERS &amp; CITIZENS</div>
 
       <article className="pillar" style={{ padding: "24px 28px" }}>
-        <h3 style={{ margin: 0, fontSize: 20 }}>Registered users</h3>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <h3 style={{ margin: 0, fontSize: 20 }}>Registered users</h3>
+          <a
+            className="btn btn-ghost"
+            href="/api/admin/export/users"
+            download
+            data-testid="download-users-csv"
+          >
+            Download users CSV
+          </a>
+        </div>
 
         <form
           onSubmit={(e) => {
