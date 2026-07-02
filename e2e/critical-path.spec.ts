@@ -281,6 +281,8 @@ test.describe.serial("@critical path — register → vault → mint UI → send
 
   test("station 3 — create + unlock the embedded vault", async () => {
     await page.goto("/wallet");
+    // Wave 11 A2: a fresh context lands on the mode chooser — pick EMBEDDED.
+    await page.getByTestId("mode-embedded").click();
     await page.getByLabel(/Choose a vault passphrase/i).fill(PASS);
     await page.getByRole("button", { name: /Create wallet/i }).click();
     await expect(page.getByTestId("mnemonic")).toBeVisible({ timeout: 25_000 });
