@@ -11,14 +11,39 @@ jobs:
         with:
           submodules: recursive
       - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          # PINNED TOOLCHAIN (Wave 8 B2): must match the local forge that regenerated
+          # contracts/.gas-snapshot — forge 1.0.0-stable (commit e144b8207061).
+          # The fuzz-seed -> input mapping is NOT guaranteed stable across forge
+          # versions, so an unpinned "stable" install could redden the snapshot
+          # gate below on unrelated PRs. This pin and the fuzz seed in
+          # contracts/foundry.toml ([fuzz] seed = 0x20260702...0702) are a PAIR:
+          # bump both together and regenerate .gas-snapshot in the same commit.
+          version: v1.0.0
       - run: forge fmt --check
       - run: forge build
       - run: forge test -vvv
+      - name: Gas snapshot check
+        # Deterministic under the pinned fuzz seed (contracts/foundry.toml) +
+        # the pinned toolchain above; determinism proven locally by two
+        # consecutive green `forge snapshot --check` runs after regeneration.
+        # Plain --check (no tolerance): the version+seed pin is the determinism
+        # mechanism, and two identical local runs showed zero residual noise.
+        run: forge snapshot --check
       - name: Coverage gate
-        # --ir-minimum: the plain (optimizer-off) coverage build hits "stack too deep" on the
-        # CryptGovernance 13-field struct getter. The local gate in contracts/audit/triage.md is
-        # authoritative; this surfaces the summary in CI.
-        run: forge coverage --ir-minimum --report summary
+        # Enforces the documented coverage thresholds via scripts/coverage-gate.sh:
+        # every src/*.sol >= 95% lines, with two PINNED NO-REGRESS exceptions
+        # (CryptToken.sol >= 86.67%, CryptGovernance.sol >= 98.82% — documented
+        # --ir-minimum instrumentation artifacts, real coverage ~100%; see
+        # contracts/audit/triage.md). The spec-§8.1 ">=90% branch" half is
+        # resolved with PER-FILE NO-REGRESS BRANCH FLOORS pinned from the current
+        # --ir-minimum run — a flat 90% floor is unattainable because --ir-minimum
+        # inflates branch denominators (triage.md:22-39: CryptGovernance 71.43%,
+        # CryptStaking 60%, Passport 89.47% under instrumentation); new files get
+        # the spec's 90% default. Coverage runs with --ir-minimum because the
+        # plain (optimizer-off) build hits "stack too deep" on the CryptGovernance
+        # 13-field struct getter.
+        run: bash scripts/coverage-gate.sh
       - name: Static analysis (slither)
         run: |
           pip install slither-analyzer || true

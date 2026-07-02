@@ -10,5 +10,13 @@ remappings = [
     "forge-std/=lib/forge-std/src/",
 ]
 
+[fuzz]
+# Pinned fuzz seed (Wave 8 B2): fuzz/invariant gas figures land in .gas-snapshot,
+# and `forge snapshot --check` (CI gate) needs deterministic inputs. The seed is
+# an arbitrary fixed bytes32; it is pinned TOGETHER with the CI toolchain version
+# in .github/workflows/foundry.yml (fuzz seed -> input mapping is not guaranteed
+# stable across forge versions) — bump both together and regenerate .gas-snapshot.
+seed = "0x2026070220260702202607022026070220260702202607022026070220260702"
+
 [fmt]
 line_length = 100
