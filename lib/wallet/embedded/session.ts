@@ -1,10 +1,16 @@
 import "client-only";
 import type { Account } from "viem";
 import { activeChain } from "@/lib/config/chain";
-import { generateMnemonic, mnemonicToEntropy, entropyToMnemonic, mnemonicToSeed } from "./mnemonic";
+import {
+  generateMnemonic,
+  validateMnemonic,
+  mnemonicToEntropy,
+  entropyToMnemonic,
+  mnemonicToSeed,
+} from "./mnemonic";
 import { deriveEvm, deriveSolana, deriveBitcoin, evmSigner } from "./derive";
 import { encryptEntropy, decryptEntropy, type VaultBlob } from "./vault";
-import { saveVault, loadVault } from "./storage";
+import { saveVault, loadVault, hasVault } from "./storage";
 
 /**
  * The single owner of unlocked key material. Secrets live ONLY in this
@@ -50,6 +56,43 @@ export async function createWallet(passphrase: string, label = "Primary"): Promi
   unlockedSeed = seed;
   cachedAccounts = accounts;
   return { mnemonic, accounts };
+}
+
+export interface ImportResult {
+  accounts: WalletAccounts; // NO mnemonic returned — the user already has it
+}
+
+/**
+ * Import an existing BIP-39 vault (Wave 11 A1). Validates the phrase BEFORE
+ * any derivation (invalid -> throw, no vault written), then mirrors
+ * createWallet byte-for-byte: entropy -> seed -> deriveAllAccounts ->
+ * encryptEntropy -> saveVault -> unlockedSeed. Overwriting an existing
+ * "primary" vault is the CALLER's explicit, confirmed choice (overwrite=true)
+ * — never a silent clobber.
+ */
+export async function importWallet(
+  passphrase: string,
+  mnemonic: string,
+  label = "Primary",
+  overwrite = false,
+): Promise<ImportResult> {
+  // Normalize pasted phrases (stray spacing / case) — English BIP-39 is lowercase.
+  const phrase = mnemonic.trim().replace(/\s+/g, " ").toLowerCase();
+  if (!validateMnemonic(phrase)) {
+    throw new Error("Invalid recovery phrase. Check the words and try again.");
+  }
+  if (!overwrite && (await hasVault())) {
+    throw new Error("A wallet already exists. Confirm overwrite to import a new one.");
+  }
+  const entropy = mnemonicToEntropy(phrase);
+  const seed = await mnemonicToSeed(phrase);
+  const accounts = deriveAllAccounts(seed);
+  const blob = await encryptEntropy(entropy, passphrase, accounts, label);
+  await saveVault(blob);
+  entropy.fill(0);
+  unlockedSeed = seed;
+  cachedAccounts = accounts;
+  return { accounts };
 }
 
 export async function unlock(passphrase: string): Promise<WalletAccounts> {
