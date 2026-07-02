@@ -23,6 +23,7 @@
 import { PrismaClient } from "@prisma/client";
 import { pathToFileURL } from "node:url";
 import { normalizeEmail } from "../lib/validation/auth";
+import { writeAudit } from "../lib/admin/audit";
 import type { UserRole } from "../lib/auth/types";
 
 const prisma = new PrismaClient();
@@ -45,22 +46,17 @@ export async function setAdminRole(
     return { userId: user.id, role: targetRole };
   }
 
-  // Hand-allowlisted snapshot ({id, email, role} ONLY — never passwordHash).
-  // TODO(A2): switch to writeAudit (lib/admin/audit.ts) once the serializer lands.
-  const snapshot = (role: string) => JSON.stringify({ id: user.id, email: user.email, role });
-
   await prisma.$transaction(async (tx) => {
-    await tx.user.update({ where: { id: user.id }, data: { role: targetRole } });
-    await tx.auditLog.create({
-      data: {
-        actorUserId: null,
-        actorLabel: "cli",
-        action: opts?.revoke ? "user.role.revoke_admin" : "user.role.grant_admin",
-        targetType: "USER",
-        targetId: user.id,
-        beforeJson: snapshot(user.role),
-        afterJson: snapshot(targetRole),
-      },
+    const after = await tx.user.update({ where: { id: user.id }, data: { role: targetRole } });
+    // writeAudit serializes through the USER field allowlist — passwordHash can never appear.
+    await writeAudit(tx, {
+      actorUserId: null,
+      actorLabel: "cli",
+      action: opts?.revoke ? "user.role.revoke_admin" : "user.role.grant_admin",
+      targetType: "USER",
+      targetId: user.id,
+      before: user,
+      after,
     });
   });
 
