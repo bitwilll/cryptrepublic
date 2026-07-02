@@ -37,10 +37,10 @@ async function thrownResponse(p: Promise<unknown>): Promise<Response> {
 }
 
 const suffix = `${Date.now()}`;
-const adminEmail = `admin-guard-a${suffix}@ex.org`;
-const userEmail = `admin-guard-u${suffix}@ex.org`;
-const suspendedEmail = `admin-guard-s${suffix}@ex.org`;
-const grantEmail = `admin-guard-g${suffix}@ex.org`;
+const adminEmail = `admin-guard-a${suffix}@admin-guard.example`;
+const userEmail = `admin-guard-u${suffix}@admin-guard.example`;
+const suspendedEmail = `admin-guard-s${suffix}@admin-guard.example`;
+const grantEmail = `admin-guard-g${suffix}@admin-guard.example`;
 
 let adminId: string;
 let userId: string;
@@ -173,7 +173,9 @@ describe("requireAdmin + suspend enforcement + grant-admin", () => {
     });
 
     it("rejects an unknown email", async () => {
-      await expect(setAdminRole(`nobody-${suffix}@ex.org`)).rejects.toThrow(/No user/i);
+      await expect(setAdminRole(`nobody-${suffix}@admin-guard.example`)).rejects.toThrow(
+        /No user/i,
+      );
     });
   });
 

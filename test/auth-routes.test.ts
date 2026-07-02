@@ -20,7 +20,8 @@ function cookieToken(res: Response): string | undefined {
 }
 
 describe("email auth routes", () => {
-  const email = `r${Date.now()}@ex.org`;
+  const email = `r${Date.now()}@auth-routes.example`;
+  const lockEmail = `lock${Date.now()}@auth-routes.example`;
   const pass = "correct horse battery";
 
   it("rejects a foreign origin with 403", async () => {
@@ -56,12 +57,12 @@ describe("email auth routes", () => {
   });
 
   it("locks the account after MAX_FAILED failed logins", async () => {
-    const bad = `lock${Date.now()}@ex.org`;
-    await register(post({ email: bad, passphrase: pass, name: "L" }));
-    for (let i = 0; i < MAX_FAILED; i++) await login(post({ email: bad, passphrase: "nope" }));
-    const res = await login(post({ email: bad, passphrase: pass })); // correct pw, but locked
+    await register(post({ email: lockEmail, passphrase: pass, name: "L" }));
+    for (let i = 0; i < MAX_FAILED; i++)
+      await login(post({ email: lockEmail, passphrase: "nope" }));
+    const res = await login(post({ email: lockEmail, passphrase: pass })); // correct pw, but locked
     expect(res.status).toBe(401);
-    const u = await prisma.user.findUniqueOrThrow({ where: { email: bad } });
+    const u = await prisma.user.findUniqueOrThrow({ where: { email: lockEmail } });
     expect(u.lockedUntil).not.toBeNull();
   });
 
@@ -84,7 +85,10 @@ describe("email auth routes", () => {
   });
 
   afterAll(async () => {
-    await prisma.user.deleteMany({ where: { email: { contains: "@ex.org" } } });
+    // Delete ONLY this suite's fixtures. Vitest runs files in parallel against
+    // the shared dev.db, so a domain-wide deleteMany cascades sessions out from
+    // under other suites mid-run (intermittent 401s — see c23f524).
+    await prisma.user.deleteMany({ where: { email: { in: [email, lockEmail] } } });
     await prisma.$disconnect();
   });
 });

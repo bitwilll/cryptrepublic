@@ -31,7 +31,7 @@ describe("applications route", () => {
   beforeAll(async () => {
     const user = await prisma.user.create({
       data: {
-        email: `app${Date.now()}@ex.org`,
+        email: `app${Date.now()}@app-route.example`,
         passwordHash: await hashPassword("x".repeat(12)),
         application: { create: { status: "DRAFT" } },
       },
