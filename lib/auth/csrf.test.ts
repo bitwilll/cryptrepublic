@@ -34,4 +34,45 @@ describe("csrf origin allowlist", () => {
     const req = new Request(APP + "/api/auth/login", { method: "POST" });
     expect(isAllowedOrigin(req)).toBe(false);
   });
+
+  describe("www variant of the configured host (same-site, hit live on cryptrepublic.com)", () => {
+    const withAppUrl = (url: string, fn: () => void) => {
+      const prev = process.env.NEXT_PUBLIC_APP_URL;
+      process.env.NEXT_PUBLIC_APP_URL = url;
+      try {
+        fn();
+      } finally {
+        if (prev === undefined) delete process.env.NEXT_PUBLIC_APP_URL;
+        else process.env.NEXT_PUBLIC_APP_URL = prev;
+      }
+    };
+    const post = (origin: string) =>
+      new Request("https://cryptrepublic.com/api/applications/attest", {
+        method: "POST",
+        headers: { origin },
+      });
+
+    it("accepts www.<host> when the apex is configured", () => {
+      withAppUrl("https://cryptrepublic.com", () => {
+        expect(isAllowedOrigin(post("https://www.cryptrepublic.com"))).toBe(true);
+        expect(isAllowedOrigin(post("https://cryptrepublic.com"))).toBe(true);
+      });
+    });
+
+    it("accepts the apex when www.<host> is configured", () => {
+      withAppUrl("https://www.cryptrepublic.com", () => {
+        expect(isAllowedOrigin(post("https://cryptrepublic.com"))).toBe(true);
+        expect(isAllowedOrigin(post("https://www.cryptrepublic.com"))).toBe(true);
+      });
+    });
+
+    it("still rejects near-miss and foreign hosts", () => {
+      withAppUrl("https://cryptrepublic.com", () => {
+        expect(isAllowedOrigin(post("https://wwwcryptrepublic.com"))).toBe(false); // no dot
+        expect(isAllowedOrigin(post("https://www.evil.example"))).toBe(false);
+        expect(isAllowedOrigin(post("https://cryptrepublic.com.evil.example"))).toBe(false);
+        expect(isAllowedOrigin(post("https://sub.cryptrepublic.com"))).toBe(false); // only www, not any subdomain
+      });
+    });
+  });
 });

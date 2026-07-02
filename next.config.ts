@@ -2,6 +2,21 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Canonical host: www serves the same Vercel deployment, but sessions/CSRF and
+  // NEXT_PUBLIC_APP_URL are pinned to the apex — permanently redirect www so
+  // users never browse (and mutate) from the twin host. Host-conditioned, so
+  // local dev is unaffected. (lib/auth/csrf.ts additionally accepts the www twin
+  // as defense in depth for in-flight pages.)
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.cryptrepublic.com" }],
+        destination: "https://cryptrepublic.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
   // Legacy design-tool exports (*.html, *.jsx) sit at repo root as reference only.
   // They are not imported by app/, so Next ignores them.
   //

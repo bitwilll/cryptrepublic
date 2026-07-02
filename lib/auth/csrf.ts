@@ -18,12 +18,25 @@ function appHost(): string {
   }
 }
 
+/**
+ * The configured host PLUS its `www.` twin (and vice versa). `www.<apex>` is the
+ * same registrable domain under our control, and users genuinely land on it
+ * (hit live on cryptrepublic.com: every mutation from www 403'd and the mint
+ * flow surfaced "Could not save your attestation"). ONLY the www twin is
+ * allowed — never arbitrary subdomains.
+ */
+function allowedHosts(): ReadonlySet<string> {
+  const host = appHost();
+  const twin = host.startsWith("www.") ? host.slice(4) : `www.${host}`;
+  return new Set([host, twin]);
+}
+
 export function isAllowedOrigin(req: Request): boolean {
-  const allowed = appHost();
+  const allowed = allowedHosts();
   const origin = req.headers.get("origin");
   if (origin) {
     try {
-      return new URL(origin).host === allowed;
+      return allowed.has(new URL(origin).host);
     } catch {
       return false;
     }
@@ -31,7 +44,7 @@ export function isAllowedOrigin(req: Request): boolean {
   const referer = req.headers.get("referer");
   if (referer) {
     try {
-      return new URL(referer).host === allowed;
+      return allowed.has(new URL(referer).host);
     } catch {
       return false;
     }
