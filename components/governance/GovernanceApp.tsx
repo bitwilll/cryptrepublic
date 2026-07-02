@@ -180,11 +180,14 @@ function AmendmentList({
             }}
           >
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              {/* var(--blue) (6.3:1 on #fff), not var(--gold) (2.25:1 — fails
+                  WCAG AA 4.5:1 at 11px): a11y contrast fix (Wave 8 C1 axe
+                  station); token DEFINITIONS untouched. */}
               <span
                 style={{
                   fontFamily: "var(--mono)",
                   fontSize: 11,
-                  color: "var(--gold)",
+                  color: "var(--blue)",
                   fontWeight: 700,
                 }}
               >
@@ -211,7 +214,10 @@ function AmendmentDetail({ proposal }: { proposal: Proposal }) {
         {proposal.tag && <Chip>{proposal.tag}</Chip>}
       </div>
       <h2 style={{ margin: "14px 0 0", fontSize: 30 }}>
-        <span style={{ color: "var(--gold)" }}>#{proposal.proposalId}.</span>{" "}
+        {/* var(--gold-d) (3.67:1) passes WCAG AA large-text 3:1 at 30px where
+            var(--gold) (2.25:1) fails: a11y contrast fix (Wave 8 C1 axe
+            station); token DEFINITIONS untouched. */}
+        <span style={{ color: "var(--gold-d)" }}>#{proposal.proposalId}.</span>{" "}
         {proposal.title ?? `Proposal #${proposal.proposalId}`}
       </h2>
       {proposal.body && (
@@ -543,8 +549,11 @@ function StateChip({ state }: { state: string }) {
         fontWeight: 700,
         letterSpacing: "0.08em",
         padding: "2px 6px",
+        // Text var(--blue) (>=4.5:1 on #fff and --paper), not var(--gold)
+        // (2.25:1 — fails WCAG AA at 9px): a11y contrast fix (Wave 8 C1 axe
+        // station). The gold BORDER stays (non-text); token DEFINITIONS untouched.
         border: `1px solid ${active ? "var(--gold)" : "var(--line)"}`,
-        color: active ? "var(--gold)" : "var(--muted)",
+        color: active ? "var(--blue)" : "var(--muted)",
       }}
     >
       {state.toUpperCase()}

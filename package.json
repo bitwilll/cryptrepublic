@@ -17,6 +17,7 @@
     "test:watch": "vitest",
     "test:integration": "NEXT_PUBLIC_CHAIN_ENV=local vitest run --config vitest.integration.config.ts",
     "e2e": "playwright test",
+    "e2e:critical": "playwright test --grep @critical",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",

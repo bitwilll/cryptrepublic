@@ -182,8 +182,11 @@ function HoldingsHero({ state, onRetry }: { state: Load<AssetsPayload>; onRetry:
             fontWeight: 700,
             letterSpacing: "0.08em",
             padding: "2px 6px",
+            // Text var(--blue) (6.3:1 on #fff), not var(--gold) (2.25:1 — fails
+            // WCAG AA 4.5:1 at 9px): a11y contrast fix (Wave 8 C1 axe station).
+            // Gold BORDER stays (non-text); token DEFINITIONS untouched.
             border: "1px solid var(--gold)",
-            color: "var(--gold)",
+            color: "var(--blue)",
           }}
         >
           SEEDED · DEMONSTRATIVE
