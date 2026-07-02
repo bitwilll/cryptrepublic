@@ -36,7 +36,9 @@ export async function GET(req: Request): Promise<Response> {
 
   const applicant = await resolveApplicantAddress(userId);
   if (!applicant) {
-    return badRequest("Connect and verify a wallet before requesting witnesses.");
+    return badRequest(
+      "Verify a wallet first (Dashboard → Wallet → Verify this wallet) — witnesses attest to your verified address.",
+    );
   }
 
   const chainId = activeChain().primaryChainId;

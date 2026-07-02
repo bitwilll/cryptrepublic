@@ -20,6 +20,7 @@ import { WalletModeSelect } from "./WalletModeSelect";
 import { ExternalWalletPanel } from "./ExternalWalletPanel";
 import { WatchOnlySetup } from "./WatchOnlySetup";
 import { WatchOnlyBadge } from "./WatchOnlyBadge";
+import { VerifyWalletCard } from "./VerifyWalletCard";
 import { loadPortfolio, type Portfolio } from "@/lib/wallet/services/portfolio";
 import { readChainStats, type ChainStats } from "@/lib/wallet/services/chainStats";
 import {
@@ -390,6 +391,7 @@ export function WalletChainApp() {
 
         <aside style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <ChainStatsPanel stats={stats} />
+          <VerifyWalletCard requireUnlock={requireUnlock} />
           <div id="stake-panel-anchor">
             <StakePanel
               chainId={chainId}

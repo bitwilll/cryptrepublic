@@ -336,6 +336,16 @@ export function ApplicationDetail({ applicationId }: { applicationId: string }) 
               This applicant has no verified wallet — adminMint needs a destination. The mint
               destination is always the server-resolved verified wallet, never a typed address.
             </p>
+            <p style={{ marginTop: 8, fontSize: 12, color: "var(--muted)" }}>
+              Two honest paths: (1) the applicant verifies a wallet themselves — Dashboard → Wallet
+              → &ldquo;Verify this wallet&rdquo; (signs a message locally; unblocks this button), or
+              (2) you prepare a MANUAL admin mint in{" "}
+              <a href="/admin/chain" style={{ textDecoration: "underline" }}>
+                Chain actions
+              </a>{" "}
+              — typing a destination there requires verifying it with its owner off-chain (a wrong
+              address mints an irrevocable soulbound passport).
+            </p>
           </div>
         ) : (
           <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>

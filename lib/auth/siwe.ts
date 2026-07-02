@@ -46,7 +46,17 @@ export interface SiweVerifyResult {
   address: string;
 }
 
-export async function verifySiwe(message: string, signature: string): Promise<SiweVerifyResult> {
+/**
+ * The cryptographic core of SIWE verification — message binding (domain/uri/
+ * chain), signature verification, and single-use nonce consumption — WITHOUT
+ * user resolution. Returns the checksummed signer address. Shared by the
+ * SIWE login path (verifySiwe, below) and the wallet-LINK path
+ * (POST /api/wallet/link — binds the proven address to the LOGGED-IN account).
+ */
+export async function verifySiweSignature(
+  message: string,
+  signature: string,
+): Promise<{ address: string }> {
   let siwe: SiweMessage;
   try {
     siwe = new SiweMessage(message);
@@ -84,7 +94,11 @@ export async function verifySiwe(message: string, signature: string): Promise<Si
   });
   if (consumed.count !== 1) throw new SiweError("Nonce missing, used, or expired.");
 
-  const address = getAddress(siwe.address);
+  return { address: getAddress(siwe.address) };
+}
+
+export async function verifySiwe(message: string, signature: string): Promise<SiweVerifyResult> {
+  const { address } = await verifySiweSignature(message, signature);
   const existing = await prisma.linkedWallet.findUnique({
     where: { address },
     include: { user: true },
@@ -94,6 +108,8 @@ export async function verifySiwe(message: string, signature: string): Promise<Si
     return { user: existing.user, address };
   }
 
+  // Unknown wallet at LOGIN → a fresh wallet-native account. (Linking a wallet
+  // to an EXISTING email account is the separate /api/wallet/link flow.)
   const user = await prisma.user.create({
     data: {
       linkedWallets: { create: { address, chain: "EVM", verifiedAt: new Date() } },
