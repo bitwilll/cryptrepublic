@@ -134,8 +134,9 @@ After seeding:
 
 - **Revoke `GENESIS_ATTESTOR_ROLE`** (`passport.revokeRole(GENESIS_ATTESTOR_ROLE, seeder)`) so no further
   zero-witness bootstrap mints are possible — this is time-boxed by policy.
-- Publish the verified `broadcast/<chainId>/run-latest.json` addresses into the app's
-  `config/addresses.testnet.ts` (Wave 5/6 integration; a user step).
+- Publish the verified `broadcast/<chainId>/run-latest.json` addresses into the app's contract-address
+  registry — `CONTRACTS[84532]` in `config/contracts.ts` (a user step; see the address-registry flow in
+  `docs/ARCHITECTURE.md`).
 
 ### Fork tests (once live addresses exist)
 
@@ -157,9 +158,9 @@ and spec §10.1), KYC/AML, and MSB/money-transmission posture.**
 The mainnet steps mirror spec §8.3 (user-only):
 
 1. **Obtain funds** — ETH on Base mainnet in deployer/signer accounts.
-2. **Prepare config** — `.env.mainnet`; `NEXT_PUBLIC_CHAIN_ENV=mainnet`, mainnet RPC + explorer key; no
-   private key in any repo file (hardware wallet / `cast wallet` / keystore reference); confirm no testnet
-   addresses remain.
+2. **Prepare config** — copy `.env.mainnet.example` (repo root) → `.env.mainnet`;
+   `NEXT_PUBLIC_CHAIN_ENV=mainnet`, mainnet RPC + explorer key; no private key in any repo file (hardware
+   wallet / `cast wallet` / keystore reference); confirm no testnet addresses remain.
 3. **Deploy** — `forge script script/Deploy.s.sol --rpc-url $BASE_MAINNET_RPC --broadcast --verify --ledger`
    (or `--account <keystore>`) in the order above, then `Configure.s.sol`.
 4. **Verify** on Basescan (`--verify` / `forge verify-contract`); confirm source + constructor args; publish
@@ -167,7 +168,8 @@ The mainnet steps mirror spec §8.3 (user-only):
 5. **Transfer/renounce roles** — move admin/minter/attestor/treasury/governance/funder/rewards-admin roles
    to the Safe + `TimelockController`; renounce the deployer EOA; time-box + revoke the genesis attestor;
    confirm no single EOA can drain the treasury or mint passports.
-6. **Set app config to mainnet** — paste verified addresses into `config/addresses.mainnet.ts`, set
+6. **Set app config to mainnet** — paste the verified mainnet addresses into `CONTRACTS[8453]` in
+   `config/contracts.ts` (the app's only address registry — see `docs/ARCHITECTURE.md`), set
    `NEXT_PUBLIC_CHAIN_ENV=mainnet`, deploy the app, confirm live reads + no testnet banners.
 7. **Fund treasury / distributor / staking** — after legal sign-off, transfer real funds / `$CRYPT` via the
    multisig with explicit confirmation. `// LEGAL:` markers at the token mint, dividend open/claim, and

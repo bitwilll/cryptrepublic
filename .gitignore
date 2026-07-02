@@ -4,10 +4,12 @@ out/
 dist/
 coverage/
 *.log
-.env
-.env.*.local
-.env.testnet
-.env.mainnet
+# Env files: ignore EVERY .env* variant (keyed RPC URLs and other secrets live
+# here — incl. .env.local/.env.production, which Next.js loads), EXCEPT the two
+# committed placeholder templates re-included below.
+.env*
+!.env.example
+!.env.mainnet.example
 prisma/dev.db
 prisma/dev.db-journal
 prisma/ci.db
