@@ -1,5 +1,5 @@
 import "client-only";
-import { encodeFunctionData, erc20Abi, type Account } from "viem";
+import { encodeFunctionData, erc20Abi, type Account, type WalletClient } from "viem";
 import { Connection, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { publicClientFor } from "./evmClients";
 import { requireSeed, withEvmSigner } from "@/lib/wallet/embedded/session";
@@ -114,6 +114,34 @@ export async function sendEvm(req: EvmSendRequest): Promise<`0x${string}`> {
     // viem surfaces a JSON-RPC `{error:{...}}` from the proxy as a thrown error.
     return client.sendRawTransaction({ serializedTransaction });
   });
+}
+
+/**
+ * EXTERNAL wallet (wagmi/hardware) plain SEND (Wave 11 B1). The wallet's OWN
+ * signer signs and broadcasts — this app never sees the key. Native →
+ * walletClient.sendTransaction; ERC-20 → writeContract(erc20.transfer) (the
+ * wallet encodes + estimates + broadcasts). `chain: null` uses the wallet's
+ * connected chain — the correct-chain guard lives in the UI before this is
+ * called. A user rejection / wrong chain propagates as a thrown error (never
+ * a false success).
+ */
+export async function sendEvmExternal(
+  walletClient: WalletClient,
+  req: EvmSendRequest,
+): Promise<`0x${string}`> {
+  const account = walletClient.account;
+  if (!account) throw new Error("External wallet has no account.");
+  if (req.token) {
+    return walletClient.writeContract({
+      account,
+      chain: null,
+      address: req.token,
+      abi: erc20Abi,
+      functionName: "transfer",
+      args: [req.to, req.amount],
+    });
+  }
+  return walletClient.sendTransaction({ account, chain: null, to: req.to, value: req.amount });
 }
 
 /**
