@@ -5,6 +5,86 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 numbers on the same branch line and are recorded below as dated development
 history (dates are the real commit dates from the git trail).
 
+## [0.9.0] — 2026-07-02 (Wave 9 — Admin panel, the capstone)
+
+Non-custodial admin back office. Full gate at this release: **665 unit / 15
+integration (local anvil) / 29 e2e (9 registrations per run) / 165 forge**,
+plus `forge snapshot --check`, the coverage gate, and a green production
+build. The same three spec-row items remain **OPEN (USER)** as at 0.8.0
+(runbook testnet dry-run, burn-in started, release tag cut).
+
+### Group A — Foundation
+
+- Schema: `User.role` (`USER|ADMIN`, default `USER`), `User.suspendedAt`
+  (distinct from the login lockout), `CitizenshipApplication.reviewNote`,
+  `AuditLog`, `FeatureFlag` — all public data, `pnpm guard:secrets` green.
+- `requireAdmin` guard; the suspend choke point in `validateSessionToken`
+  plus generic-401 rejections at BOTH session-creating login paths (password
+  and SIWE verify) — no suspension oracle.
+- `scripts/grant-admin.ts` (`pnpm admin:grant <email>` / `--revoke`) — the
+  ONLY role-change path (no promotion API), audited as `cli`; a real-tsx
+  subprocess smoke test guards its import graph.
+- `lib/admin/audit.ts`: `writeAudit(tx, …)` in the SAME transaction as every
+  mutation, per-targetType serializer allowlist (`passwordHash`/`tokenHash`
+  provably never serialized; BigInt-safe).
+- Admin chain layer (`lib/admin/{abis,roles,prepare,serverReads}`): pure
+  validated encoders → `{to, value, data, chainId, decoded}` + 2-tx pull
+  batches + governance-proposal payloads + Safe Transaction Builder JSON;
+  role topology from `RoleGranted` logs confirmed via `hasRole`;
+  `test/no-admin-signing.test.ts` statically enforces the never-signs
+  boundary (forbidden tokens + import boundary).
+
+### Group B — API
+
+- `/api/admin/*` routes (27): overview, audit list, users
+  (list/detail/suspend/kyc/session-revoke), applications (list/detail/review
+  — off-chain-honest: `status`/`citizenTokenId`/`sealTxHash` are 400 by
+  strictness), content CRUD for the 6 seeded groups + comment moderation
+  (deleted body preserved in `beforeJson`), flags CRUD, chain params/roles
+  (graceful `available:false` on the unregistered default env). Wave-8 guard
+  stack verbatim on every mutation; session revoke binds ownership (404 on a
+  foreign sessionId).
+- Honesty guards: fabricated-provenance regex 400, allocation-sum ≤ 10000
+  mirror, proposal body immutable once `descriptionHash` is set.
+- Public `GET /api/flags` (`Cache-Control: no-store`, never throws) +
+  `lib/flags` declared-default helpers.
+
+### Group C — UI
+
+- `/admin` route group with a server layout guard (unauthenticated → `/auth`,
+  non-admin → `/dashboard`) and a thin `AdminShell` (no citizen/wallet
+  polling): Overview, Users, Applications, Content (tabbed CRUD), Flags,
+  Chain actions, Audit viewer — Wave-7 state matrix + Wave-8 a11y patterns.
+- Chain actions: per-contract params, hasRole-confirmed role topology, the
+  prepared-tx composer with inline contract-require mirrors, required-role
+  annotations, and `PreparedActionCard` ("PREPARED FOR YOUR SAFE — THIS PANEL
+  NEVER SIGNS"; proposal payloads get the governance-payload variant and no
+  Safe JSON).
+- The ONE flag consumer: `population_world_map` (default true) gating the
+  population world-map card; `dashboard-screens` stubs `/api/flags` for
+  parallel-worker determinism.
+
+### Group D — Verification + docs
+
+- `test/integration/admin-prepared-e2e.test.ts`: prepared calldata proven
+  byte-correct on local anvil — grant/revoke flip `hasRole`, setApr lands,
+  the approve+openEpoch batch opens epoch 1 with the exact `perCitizen`, the
+  Safe JSON is byte-faithful, and the disburse proposal payload executes
+  end-to-end (citizen propose → vote → warp → execute moves the treasury;
+  non-citizen propose reverts). The TEST signs with anvil throwaway keys —
+  panel code never.
+- `e2e/admin-panel.spec.ts`: 7 stations, ZERO registrations (budget stays
+  9/run) — guard redirects + API 401/403, suspend kills the live session
+  over the wire, content edit + audit afterJson, the live flag flip, the
+  stubbed composer producing byte-exact calldata + the graceful unregistered
+  state, axe zero critical/serious on the admin screens.
+- Docs: README (wave row 9 Delivered + admin section + refreshed matrix),
+  ARCHITECTURE §11 (role model, audit + the prepared-calldata audit
+  exclusion, flags, prepared-tx model, getLogs `deployBlock` note),
+  MAINNET_HANDOFF (panel-prepares-Safe-txs + grant-admin bootstrap runbook +
+  prepared-calldata-not-audited note). Version 0.9.0 (tagging stays a USER
+  step).
+
 ## [0.8.0] — 2026-07-02 (Wave 8 — Polish + Tests + Docs + Mainnet Runbook)
 
 Assistant-scope close-out for the user's mainnet handoff. Full gate at this

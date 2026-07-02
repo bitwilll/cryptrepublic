@@ -137,6 +137,51 @@ re-point; there is no in-place patch.
 Safe **threshold and signer set are the user's decision** (spec §10.3 open
 question 3 — e.g. 2-of-3 minimum, 3-of-5 preferred; hardware-backed signers).
 
+### The admin panel prepares Safe transactions — it never signs (Wave 9)
+
+The `/admin` chain-actions screen **PREPARES** admin transactions —
+`{to, value, data, chainId, decoded}` calldata plus a **Safe Transaction
+Builder JSON** file you import into the Safe web app — and **never holds keys,
+signs, or broadcasts**. The Safe + timelock remain the sole signers of admin
+actions (statically enforced in code by `test/no-admin-signing.test.ts`;
+calldata validity is proven on local anvil by
+`test/integration/admin-prepared-e2e.test.ts`). Two operating rules:
+
+- **Panel-prepared transactions go through the SAME Safe review discipline as
+  hand-built ones** — decode and verify every `to`/`data` in the Safe queue
+  before signing. **Prepared calldata is NOT audited by the panel** (composing
+  and exporting are pure client-side and write no `AuditLog` row); the Safe's
+  own review/queue is the audit surface for prepared transactions.
+- Treasury `GOVERNANCE_ROLE` actions (disburse / fundDividends) are prepared
+  as **governance-proposal payloads**, never direct Safe transactions — the
+  role is held by the Governance contract; the `propose()` artifact must be
+  submitted by a **citizen wallet** (a Safe holding no passport reverts
+  `NotCitizen`) and the `descriptionHash` must bind a
+  `GovernanceProposalContent` row.
+
+On real networks, set the registry entry's `deployBlock`
+(`config/contracts.ts`) so the role-topology `eth_getLogs` scans start at the
+deploy block — providers commonly limit from-genesis ranges on Base.
+
+### Admin-role bootstrap runbook (grant-admin)
+
+There is **no promotion API** — no request, admin-authenticated or otherwise,
+can set `User.role`. Granting the first (and every) admin is an
+**operator-run CLI step with direct DB access**:
+
+```bash
+pnpm admin:grant ops@example.com            # grant ADMIN (audited, actor "cli")
+pnpm admin:grant ops@example.com --revoke   # demote back to USER (audited)
+```
+
+Rules: run it only from the trusted ops environment that holds `DATABASE_URL`;
+never grant to shared accounts (one human, one admin identity — the audit
+trail attributes actions per admin); re-granting an existing admin
+short-circuits without duplicate audit noise; review grants in the `/admin`
+audit viewer (`user.role.grant_admin` / `user.role.revoke_admin`, actor
+`cli`). Suspending an admin's user account kills their sessions like any
+other user's.
+
 **Rotation procedure (routine, e.g. quarterly or on personnel change):** add
 the new signer to the Safe → confirm on-chain → remove the old signer →
 verify threshold unchanged → record in the ops log. Contract roles never move

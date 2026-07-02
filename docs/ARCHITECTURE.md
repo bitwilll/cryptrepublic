@@ -232,3 +232,71 @@ No Lighthouse claims are made — no Lighthouse run has been performed.
   no seed/key/plaintext-password storage anywhere server-side.
 - Zod validation (unknown fields rejected) on every route; mutating dashboard
   routes verify passport ownership **on-chain** — no client-trusted `isCitizen`.
+
+## 11. Admin panel (Wave 9)
+
+**Role model.** `User.role` is a String union `USER|ADMIN` (default `USER`).
+`requireAdmin(req)` (`lib/auth/guard.ts`) extends `requireSession` and throws
+`forbidden()` for non-admins; the `/admin` layout server-guards (no session →
+`/auth`; non-admin → `/dashboard` — a redirect, not a 403 page, so the admin
+surface is not advertised; the API layer returns the real 401/403s). **No API
+sets or changes `role`** — not even an admin's (no promotion path, enforced by
+strict schemas with explicit 400 tests). Bootstrap is the operator CLI
+`pnpm admin:grant <email>` (`scripts/grant-admin.ts`, DB-access operator only,
+audited with `actorLabel: "cli"`; `--revoke` demotes).
+
+**Suspend.** `User.suspendedAt` is distinct from the login-lockout
+`lockedUntil`. Suspending sets it and revokes every session in ONE
+transaction; enforcement is a single choke point — `validateSessionToken`
+returns `null` for suspended users (killing every guard and page at once) —
+plus generic-401 rejections at BOTH session-creating login paths (password and
+SIWE verify), so no suspension oracle exists.
+
+**Guard stack.** Every `/api/admin/*` mutation runs the Wave-8 stack verbatim:
+`isAllowedOrigin` → `requireAdmin` → `rateLimit` (per-admin userId key, never
+IP) → Zod `.strict()` → business → `prisma.$transaction` → `json`. GETs run
+`requireAdmin` (chain GETs add the rate limit — they scan logs); same-origin
+GETs are exempt from the origin check per the documented CSRF posture.
+
+**Audit log.** EVERY admin mutation writes an `AuditLog` row **in the same
+`prisma.$transaction`** as the mutation via `writeAudit(tx, …)`
+(`lib/admin/audit.ts`). Before/after snapshots pass a per-targetType
+serializer **allowlist** — `passwordHash`/`tokenHash` can provably never be
+serialized (test-enforced against the full secret-name set). A read-only audit
+viewer ships at `/admin/audit`. **Recorded exclusion:** composing/exporting
+PREPARED calldata (below) is pure client-side and writes NO audit row — the
+Safe's own review/queue is the audit surface for prepared transactions; the
+"audit everything" rule is honestly scoped to server mutations.
+
+**Feature flags.** `FeatureFlag` rows + declared per-flag defaults
+(`lib/flags/defaults.ts`): missing row → the declared default, undeclared key
+→ false, failures never throw. Public `GET /api/flags` serves
+`Cache-Control: no-store` (test-pinned — live flips must be immediately
+visible). Exactly ONE consumer is wired: `population_world_map` (default
+true) gating the population world-map card.
+
+**PREPARED on-chain actions (never signed).** `lib/admin/{abis,roles,prepare}`
+are environment-neutral pure modules: `prepare*` functions validate against
+mirrors of the contract `require` strings, then `encodeFunctionData` into
+`{chainId, to, value: "0", data, decoded}` artifacts (single, 2-tx pull
+batches for approve+openEpoch / approve+fundRewards, or a
+`GovernanceProposalPayload`), plus a Safe Transaction Builder JSON export the
+USER imports into their Safe. Treasury `GOVERNANCE_ROLE` actions
+(disburse/fundDividends) are prepared as **full governance-proposal payloads**
+(the role is held by the Governance CONTRACT; the proposer must be a citizen
+wallet and the `descriptionHash` binds a `GovernanceProposalContent` row).
+The static guard `test/no-admin-signing.test.ts` enforces the boundary with a
+case-insensitive forbidden-token scan AND an import-boundary scan over
+`lib/admin|app/admin|app/api/admin|components/admin`;
+`test/integration/admin-prepared-e2e.test.ts` proves the calldata byte-correct
+on local anvil (the TEST signs with anvil throwaway keys, panel code never).
+
+**Chain reads.** `lib/admin/serverReads.ts` (server-only) reads per-contract
+params and reconstructs the role topology from `RoleGranted` logs (candidates
+from grants ONLY; membership is confirmed per-candidate via `hasRole` — a
+set-difference fold would false-negative grant→revoke→re-grant histories).
+The unregistered default chain returns `{available: false}` — never a 500.
+**getLogs note:** topology scans use the registry entry's optional
+`deployBlock` as `fromBlock` (default 0 — correct on anvil). On real networks
+set `deployBlock` to the contract deploy block: providers commonly limit
+from-genesis `eth_getLogs` ranges on Base/Base Sepolia.
