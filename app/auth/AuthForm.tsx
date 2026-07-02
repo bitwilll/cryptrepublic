@@ -294,12 +294,22 @@ export function AuthForm() {
             />
             <div className={styles.err}>› PASSPHRASE MUST BE AT LEAST 12 CHARACTERS</div>
           </div>
+          {/* Busy state (Wave 8 A3): visible label swap + aria-busy while a
+              submission is in flight. The IDLE labels must keep matching
+              e2e/auth.spec.ts's /AUTHENTICATE/i and /MINT/i clicks. */}
           <button
             className={`${styles.submit} ${signin ? "" : styles.gold}`}
             type="submit"
             disabled={busy}
+            aria-busy={busy || undefined}
           >
-            {signin ? "AUTHENTICATE →" : "CREATE RECORD & PROCEED TO MINT →"}
+            {busy
+              ? signin
+                ? "AUTHENTICATING…"
+                : "TRANSMITTING…"
+              : signin
+                ? "AUTHENTICATE →"
+                : "CREATE RECORD & PROCEED TO MINT →"}
           </button>
         </form>
 
