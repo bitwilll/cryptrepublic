@@ -33,10 +33,13 @@ vi.mock("@/lib/passport/serverReads", () => ({
 
 import { prisma } from "@/lib/db";
 import { createSession } from "@/lib/auth/session";
+import { __resetRateLimit } from "@/lib/auth/ratelimit";
 import { POST, GET } from "./route";
 
 let userId: string;
 let token: string;
+let otherUserId: string;
+let otherToken: string;
 
 function post(body: unknown, opts: { origin?: string; cookieToken?: string } = {}) {
   const headers: Record<string, string> = { "content-type": "application/json" };
@@ -57,15 +60,22 @@ describe("POST /api/governance/proposals/[id]/comments", () => {
     const user = await prisma.user.create({ data: { email: `cmt${Date.now()}@ex.org` } });
     userId = user.id;
     ({ token } = await createSession(userId));
+    const other = await prisma.user.create({ data: { email: `cmt2-${Date.now()}@ex.org` } });
+    otherUserId = other.id;
+    ({ token: otherToken } = await createSession(otherUserId));
   });
   afterAll(async () => {
     await prisma.governanceProposalContent.deleteMany({
       where: { proposalId: "3", chainId: 31337 },
     });
-    await prisma.user.deleteMany({ where: { id: userId } });
+    await prisma.user.deleteMany({ where: { id: { in: [userId, otherUserId] } } });
     await prisma.$disconnect();
   });
   beforeEach(() => {
+    // Reset the in-memory rate limiter between tests: the suite fires many
+    // authenticated POSTs as the SAME user, which would otherwise consume the
+    // per-user comment budget across tests (mirrors lib/auth/ratelimit.test.ts).
+    __resetRateLimit();
     h.resolvedAddress = null;
     h.isCitizen = false;
   });
@@ -127,5 +137,29 @@ describe("POST /api/governance/proposals/[id]/comments", () => {
     );
     const getBody = (await getRes.json()) as { comments: { body: string }[] };
     expect(getBody.comments.some((c) => c.body === GOOD.body)).toBe(true);
+  });
+
+  it("rate limit: 10 comments succeed, the 11th within the window draws 429 + Retry-After", async () => {
+    h.resolvedAddress = "0x00000000000000000000000000000000000000a1";
+    h.isCitizen = true;
+    for (let i = 0; i < 10; i++) {
+      const res = await POST(post(GOOD, { origin: APP, cookieToken: token }), params);
+      expect(res.status).toBe(200); // normal use unaffected
+    }
+    const blocked = await POST(post(GOOD, { origin: APP, cookieToken: token }), params);
+    expect(blocked.status).toBe(429);
+    expect(Number(blocked.headers.get("retry-after"))).toBeGreaterThan(0);
+  });
+
+  it("rate limit is per-user: a different user is NOT limited by the first user's hits", async () => {
+    h.resolvedAddress = "0x00000000000000000000000000000000000000a1";
+    h.isCitizen = true;
+    for (let i = 0; i < 10; i++) {
+      await POST(post(GOOD, { origin: APP, cookieToken: token }), params);
+    }
+    const blocked = await POST(post(GOOD, { origin: APP, cookieToken: token }), params);
+    expect(blocked.status).toBe(429);
+    const other = await POST(post(GOOD, { origin: APP, cookieToken: otherToken }), params);
+    expect(other.status).toBe(200);
   });
 });

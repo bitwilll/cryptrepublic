@@ -8,7 +8,8 @@ import { resolveApplicantAddress } from "@/lib/applications/applicant";
 import { readHasPassportServer } from "@/lib/passport/serverReads";
 import { readGovernanceParamServer } from "@/lib/governance/serverReads";
 import { proposeEmbassySchema, canonicalEmbassyContent } from "@/lib/validation/dashboard";
-import { json, badRequest, forbidden } from "@/lib/http/responses";
+import { rateLimit } from "@/lib/auth/ratelimit";
+import { json, badRequest, forbidden, tooManyRequests } from "@/lib/http/responses";
 
 /**
  * POST → attach off-chain content to a citizen's on-chain propose-embassy
@@ -35,6 +36,11 @@ export async function POST(req: Request): Promise<Response> {
     if (res instanceof Response) return res;
     throw res;
   }
+
+  // Per-user rate limit (Wave 8 B1): 5 embassy proposals / 15 min. Keyed on the
+  // session user id (never IP) — Constraint #4.
+  const rl = rateLimit(`embassy-propose:${userId}`, 5, 15 * 60_000);
+  if (!rl.ok) return tooManyRequests(rl.retryAfterSec);
 
   let body: unknown;
   try {

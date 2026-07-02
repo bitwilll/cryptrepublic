@@ -61,6 +61,12 @@ export function middleware(request: NextRequest): NextResponse {
   response.headers.set("x-frame-options", "DENY");
   response.headers.set("referrer-policy", "strict-origin-when-cross-origin");
   response.headers.set("x-content-type-options", "nosniff");
+  if (isProd) {
+    // HSTS is production-only: localhost dev must never cache an HTTPS-only
+    // policy. No `preload` — submitting to the browser preload list is a USER
+    // decision (see docs/MAINNET_HANDOFF.md).
+    response.headers.set("strict-transport-security", "max-age=31536000; includeSubDomains");
+  }
   return response;
 }
 

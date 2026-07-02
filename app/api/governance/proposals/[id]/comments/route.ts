@@ -6,7 +6,8 @@ import { prisma } from "@/lib/db";
 import { resolveApplicantAddress } from "@/lib/applications/applicant";
 import { readHasPassportServer, readPassportStatusServer } from "@/lib/passport/serverReads";
 import { commentSchema } from "@/lib/validation/dashboard";
-import { json, badRequest, forbidden } from "@/lib/http/responses";
+import { rateLimit } from "@/lib/auth/ratelimit";
+import { json, badRequest, forbidden, tooManyRequests } from "@/lib/http/responses";
 
 /** GET → the dissent thread for a proposal (DB content). */
 export async function GET(
@@ -62,6 +63,11 @@ export async function POST(
     if (res instanceof Response) return res;
     throw res;
   }
+
+  // Per-user rate limit (Wave 8 B1): 10 comments / 5 min. Keyed on the session
+  // user id (never IP) so one authenticated user cannot flood the thread.
+  const rl = rateLimit(`comment:${userId}`, 10, 5 * 60_000);
+  if (!rl.ok) return tooManyRequests(rl.retryAfterSec);
 
   const { id } = await params;
   if (!/^\d+$/.test(id)) return badRequest("Invalid proposal id.");

@@ -51,10 +51,13 @@ vi.mock("@/lib/governance/serverReads", () => ({
 
 import { prisma } from "@/lib/db";
 import { createSession } from "@/lib/auth/session";
+import { __resetRateLimit } from "@/lib/auth/ratelimit";
 import { POST } from "./route";
 
 let userId: string;
 let token: string;
+let otherUserId: string;
+let otherToken: string;
 
 function post(body: unknown, opts: { origin?: string; cookieToken?: string } = {}) {
   const headers: Record<string, string> = { "content-type": "application/json" };
@@ -74,15 +77,23 @@ describe("POST /api/embassies/proposals", () => {
     const user = await prisma.user.create({ data: { email: `emb${Date.now()}@ex.org` } });
     userId = user.id;
     ({ token } = await createSession(userId));
+    const other = await prisma.user.create({ data: { email: `emb2-${Date.now()}@ex.org` } });
+    otherUserId = other.id;
+    ({ token: otherToken } = await createSession(otherUserId));
   });
   afterAll(async () => {
     await prisma.governanceProposalContent.deleteMany({
       where: { proposalId: "5", chainId: 31337 },
     });
-    await prisma.user.deleteMany({ where: { id: userId } });
+    await prisma.user.deleteMany({ where: { id: { in: [userId, otherUserId] } } });
     await prisma.$disconnect();
   });
   beforeEach(() => {
+    // Reset the in-memory rate limiter between tests: this suite fires six
+    // authenticated POSTs as the SAME user (five rejection cases + the happy
+    // path) — without the reset the per-user 5/15min budget would 429 the
+    // pre-existing happy path (mirrors lib/auth/ratelimit.test.ts).
+    __resetRateLimit();
     h.resolvedAddress = CALLER;
     h.isCitizen = true;
     h.onchainProposer = CALLER;
@@ -140,5 +151,25 @@ describe("POST /api/embassies/proposals", () => {
       where: { chainId_proposalId: { chainId: 31337, proposalId: "5" } },
     });
     expect(row?.descriptionHash?.toLowerCase()).toBe(GOOD_HASH.toLowerCase());
+  });
+
+  it("rate limit: 5 proposals succeed, the 6th within the window draws 429 + Retry-After", async () => {
+    for (let i = 0; i < 5; i++) {
+      const res = await POST(post(GOOD, { origin: APP, cookieToken: token }));
+      expect(res.status).toBe(200); // normal use unaffected
+    }
+    const blocked = await POST(post(GOOD, { origin: APP, cookieToken: token }));
+    expect(blocked.status).toBe(429);
+    expect(Number(blocked.headers.get("retry-after"))).toBeGreaterThan(0);
+  });
+
+  it("rate limit is per-user: a different user is NOT limited by the first user's hits", async () => {
+    for (let i = 0; i < 5; i++) {
+      await POST(post(GOOD, { origin: APP, cookieToken: token }));
+    }
+    const blocked = await POST(post(GOOD, { origin: APP, cookieToken: token }));
+    expect(blocked.status).toBe(429);
+    const other = await POST(post(GOOD, { origin: APP, cookieToken: otherToken }));
+    expect(other.status).toBe(200);
   });
 });
