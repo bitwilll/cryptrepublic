@@ -51,14 +51,14 @@ vars, deploy commands, seeding/admin bootstrap, cryptrepublic.com DNS:
 
 ## Test matrix
 
-Counts as of the Wave 9 close-out (2026-07-02, this branch):
+Counts as of the Vercel-hosting close-out (2026-07-02, this branch):
 
-| Suite                     | Command                      | Count | What it proves                                                                                                                      |
-| ------------------------- | ---------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Unit (Vitest)             | `pnpm test`                  | 665   | lib/API/component logic against jsdom + disposable SQLite (incl. the admin guard stack, audit allowlist, and the no-signing guard)  |
-| Integration (local anvil) | `pnpm test:integration`      | 15    | REAL on-chain proofs: passport seal/mint, funded send + staking, castVote + dividend claim/no-double-claim, admin PREPARED calldata |
-| E2E (Playwright)          | `pnpm e2e`                   | 29    | browser flows on a prod build with deterministic stubbed reads (9 registrations/run — budget < 10; the admin spec registers nobody) |
-| Contracts (Foundry)       | `cd contracts && forge test` | 165   | unit + fuzz + invariant (soulbound, one-vote, no-double-claim, solvency)                                                            |
+| Suite                     | Command                      | Count | What it proves                                                                                                                                                                         |
+| ------------------------- | ---------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit (Vitest)             | `pnpm test`                  | 678   | lib/API/component logic against jsdom + disposable SQLite (incl. the admin guard stack, audit allowlist, the no-signing guard, and the dual-schema drift + vercel-build wiring guards) |
+| Integration (local anvil) | `pnpm test:integration`      | 15    | REAL on-chain proofs: passport seal/mint, funded send + staking, castVote + dividend claim/no-double-claim, admin PREPARED calldata                                                    |
+| E2E (Playwright)          | `pnpm e2e`                   | 29    | browser flows on a prod build with deterministic stubbed reads (9 registrations/run — budget < 10; the admin spec registers nobody)                                                    |
+| Contracts (Foundry)       | `cd contracts && forge test` | 165   | unit + fuzz + invariant (soulbound, one-vote, no-double-claim, solvency)                                                                                                               |
 
 Gates: `forge snapshot --check` (pinned fuzz seed + pinned CI toolchain) and
 `bash contracts/scripts/coverage-gate.sh` (≥95% lines with two documented

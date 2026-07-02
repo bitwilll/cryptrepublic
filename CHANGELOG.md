@@ -10,7 +10,10 @@ history (dates are the real commit dates from the git trail).
 Repo + docs preparation for hosting the **testnet build** on Vercel with a
 Postgres production database; deployment itself is a USER-driven step
 ([docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md)). Local dev and the entire
-local gate stay on SQLite — zero test regressions.
+local gate stay on SQLite — zero test regressions. Full gate at close-out:
+**678 unit (665 + 13 new guards) / 15 integration (local anvil) / 29 e2e /
+165 forge**, plus `forge snapshot --check`, the coverage gate,
+`guard:secrets`, and a green production build.
 
 - **Dual Prisma schemas:** mirrored `prisma/postgres/schema.prisma`
   (`postgresql` provider + `directUrl` for pooled Neon) with its own
