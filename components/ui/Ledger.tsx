@@ -18,11 +18,13 @@ export function Ledger<Row extends Record<string, unknown>>({
   rows,
   empty = "No entries yet.",
   getRowKey,
+  scrollLabel = "Data table (scrolls horizontally on narrow screens)",
 }: {
   columns: readonly LedgerColumn<Row>[];
   rows: readonly Row[];
   empty?: ReactNode;
   getRowKey?: (row: Row, index: number) => string;
+  scrollLabel?: string;
 }) {
   if (rows.length === 0) {
     return (
@@ -38,8 +40,10 @@ export function Ledger<Row extends Record<string, unknown>>({
   // Wave 8 A1 (wide-row decision): multi-column tables (e.g. the 7-column
   // holdings register) have a min-content width beyond small viewports; they
   // scroll horizontally inside this wrapper instead of propping the page open.
+  // The wrapper is keyboard-focusable (tabIndex + region role) so a keyboard
+  // user can scroll it — axe `scrollable-region-focusable` (Wave 10 C1).
   return (
-    <div style={{ overflowX: "auto" }}>
+    <div role="region" aria-label={scrollLabel} tabIndex={0} style={{ overflowX: "auto" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
         <thead>
           <tr>

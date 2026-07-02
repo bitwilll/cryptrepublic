@@ -238,7 +238,9 @@ export function ApplicationDetail({ applicationId }: { applicationId: string }) 
           <Dt>Oath accepted</Dt>
           <Dd>{app.oathAcceptedAt ? new Date(app.oathAcceptedAt).toISOString() : "—"}</Dd>
           <Dt>Applicant address</Dt>
-          <Dd style={{ fontFamily: "var(--mono)", fontSize: 12 }}>{app.applicantAddress ?? "—"}</Dd>
+          <Dd style={{ fontFamily: "var(--mono)", fontSize: 12, overflowWrap: "anywhere" }}>
+            {app.applicantAddress ?? "—"}
+          </Dd>
         </dl>
       </article>
 
@@ -261,11 +263,11 @@ export function ApplicationDetail({ applicationId }: { applicationId: string }) 
           }}
         >
           <Dt>Seal tx hash</Dt>
-          <Dd style={{ fontFamily: "var(--mono)", fontSize: 12 }}>
+          <Dd style={{ fontFamily: "var(--mono)", fontSize: 12, overflowWrap: "anywhere" }}>
             {app.chainCache.sealTxHash ?? "—"}
           </Dd>
           <Dt>Citizen token id</Dt>
-          <Dd style={{ fontFamily: "var(--mono)", fontSize: 12 }}>
+          <Dd style={{ fontFamily: "var(--mono)", fontSize: 12, overflowWrap: "anywhere" }}>
             {app.chainCache.citizenTokenId ?? "—"}
           </Dd>
           <Dt>Sealed at</Dt>

@@ -107,4 +107,21 @@ describe("AdminOverviewApp", () => {
     await waitFor(() => expect(screen.getByTestId("overview-users")).toBeInTheDocument());
     expect(screen.getByTestId("ledger-empty")).toBeInTheDocument();
   });
+
+  it("C1: the four stat tiles are real keyboard-focusable Links (not onClick divs) → their sections", async () => {
+    render(<AdminOverviewApp />);
+    await waitFor(() => expect(screen.getByTestId("overview-users")).toBeInTheDocument());
+    const cases: Array<[string, string, RegExp]> = [
+      ["overview-users", "/admin/users", /users/i],
+      ["overview-applications", "/admin/applications", /applications/i],
+      ["overview-content", "/admin/content", /content/i],
+      ["overview-flags", "/admin/flags", /flags/i],
+    ];
+    for (const [testid, href, labelRe] of cases) {
+      const tile = screen.getByTestId(testid);
+      expect(tile.tagName, testid).toBe("A"); // native anchor from next/link — focusable
+      expect(tile).toHaveAttribute("href", href);
+      expect(tile.getAttribute("aria-label")).toMatch(labelRe);
+    }
+  });
 });

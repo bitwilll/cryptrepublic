@@ -10,9 +10,11 @@ import path from "node:path";
  * ADMIN PANEL e2e (Wave 9 D2) — the over-the-wire proof of the admin back
  * office: layout guard, suspend-kills-the-live-session, content edit + audit,
  * the ONE flag consumer flipping, chain actions (stubbed registered fixture +
- * the live graceful default), axe, and the Wave-10 A4 approve-mint override
+ * the live graceful default), axe, the Wave-10 A4 approve-mint override
  * station (witness-free adminMint prepared card — zero extra registrations,
- * zero extra logins; fixtures via DIRECT prisma, cascaded away in afterAll).
+ * zero extra logins; fixtures via DIRECT prisma, cascaded away in afterAll),
+ * and the Wave-10 C1 responsive station (390px no-horizontal-overflow, stat
+ * tiles navigate as REAL links, axe at mobile width).
  *
  * REGISTER BUDGET (Global Constraint #5/#9): a full `pnpm e2e` run performs 9
  * registrations — auth.spec 1 + mint.spec 2 + wallet-screen.spec 2 +
@@ -659,5 +661,49 @@ test.describe.serial("admin panel (Wave 9 D2 — zero registrations)", () => {
 
     await adminPage.unroute("**/api/admin/chain/params");
     await adminPage.unroute("**/api/admin/chain/roles");
+  });
+
+  test("station 9 — Wave-10 C1: 390px no-overflow, tiles navigate as real links, axe at mobile", async () => {
+    test.setTimeout(120_000);
+    // A dedicated mobile-viewport page in the SAME admin context (shares the
+    // session; zero extra logins). adminPage keeps its desktop viewport.
+    const mobile = await adminContext.newPage();
+    await mobile.setViewportSize({ width: 390, height: 844 });
+
+    // No horizontal overflow: the page body never scrolls sideways at 390px
+    // (the ≤760 shell collapse + overflowWrap on long mono values must hold).
+    for (const route of ["/admin", "/admin/users", "/admin/applications"]) {
+      await mobile.goto(route);
+      await mobile.waitForLoadState("networkidle");
+      const overflow = await mobile.evaluate(() => ({
+        scrollWidth: document.scrollingElement!.scrollWidth,
+        innerWidth: window.innerWidth,
+      }));
+      expect(
+        overflow.scrollWidth,
+        `${route} must not scroll horizontally at 390px (scrollWidth ${overflow.scrollWidth} vs innerWidth ${overflow.innerWidth})`,
+      ).toBeLessThanOrEqual(overflow.innerWidth + 1);
+    }
+
+    // Tile navigation: each Overview stat tile is a REAL <a> (keyboard-
+    // focusable) that lands on its section. Click-proof one, href-proof all.
+    await mobile.goto("/admin");
+    await expect(mobile.getByTestId("overview-users")).toHaveAttribute("href", "/admin/users");
+    await expect(mobile.getByTestId("overview-applications")).toHaveAttribute(
+      "href",
+      "/admin/applications",
+    );
+    await expect(mobile.getByTestId("overview-content")).toHaveAttribute("href", "/admin/content");
+    await expect(mobile.getByTestId("overview-flags")).toHaveAttribute("href", "/admin/flags");
+    await mobile.getByTestId("overview-applications").click();
+    await expect(mobile).toHaveURL(/\/admin\/applications(?:$|[?#])/);
+
+    // axe at mobile width — the linked tiles must stay ZERO critical/serious.
+    await mobile.goto("/admin");
+    await mobile.waitForLoadState("networkidle");
+    const results = await new AxeBuilder({ page: mobile }).analyze();
+    await expectNoCriticalOrSerious("/admin @390x844", results);
+
+    await mobile.close();
   });
 });

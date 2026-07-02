@@ -1,7 +1,40 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Ledger } from "@/components/ui/Ledger";
 import { Skeleton, CardError, type Load } from "./bits";
+
+/** A stat pillar that NAVIGATES to its admin section (C1). A real keyboard-
+ *  focusable <Link> (native <a>), aria-labelled — never an onClick div. */
+const tileLinkStyle: React.CSSProperties = {
+  padding: "24px 28px",
+  color: "inherit",
+  textDecoration: "none",
+  display: "block",
+};
+function TileLink({
+  href,
+  label,
+  testid,
+  children,
+}: {
+  href: string;
+  label: string;
+  testid: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-label={label}
+      data-testid={testid}
+      className="pillar"
+      style={tileLinkStyle}
+    >
+      {children}
+    </Link>
+  );
+}
 
 /**
  * Admin overview island (Wave 9 C1): stat tiles from /api/admin/overview
@@ -79,22 +112,18 @@ export function AdminOverviewApp() {
               alignItems: "start",
             }}
           >
-            <article
-              className="pillar"
-              data-testid="overview-users"
-              style={{ padding: "24px 28px" }}
-            >
+            <TileLink href="/admin/users" label="View all users" testid="overview-users">
               <h3 style={{ margin: 0, fontSize: 20 }}>Users</h3>
               <div style={{ marginTop: 14, display: "flex", gap: 28, flexWrap: "wrap" }}>
                 <Tile value={state.data.users.total} label="Total" />
                 <Tile value={state.data.users.suspended} label="Suspended" />
                 <Tile value={state.data.users.admins} label="Admins" />
               </div>
-            </article>
-            <article
-              className="pillar"
-              data-testid="overview-applications"
-              style={{ padding: "24px 28px" }}
+            </TileLink>
+            <TileLink
+              href="/admin/applications"
+              label="Review citizenship applications"
+              testid="overview-applications"
             >
               <h3 style={{ margin: 0, fontSize: 20 }}>Applications</h3>
               <div style={{ marginTop: 14, display: "flex", gap: 24, flexWrap: "wrap" }}>
@@ -102,24 +131,16 @@ export function AdminOverviewApp() {
                   <Tile key={status} value={count} label={status} />
                 ))}
               </div>
-            </article>
-            <article
-              className="pillar"
-              data-testid="overview-content"
-              style={{ padding: "24px 28px" }}
-            >
+            </TileLink>
+            <TileLink href="/admin/content" label="Manage content" testid="overview-content">
               <h3 style={{ margin: 0, fontSize: 20 }}>Content</h3>
               <div style={{ marginTop: 14, display: "flex", gap: 24, flexWrap: "wrap" }}>
                 {Object.entries(state.data.content).map(([key, count]) => (
                   <Tile key={key} value={count} label={CONTENT_LABELS[key] ?? key} />
                 ))}
               </div>
-            </article>
-            <article
-              className="pillar"
-              data-testid="overview-flags"
-              style={{ padding: "24px 28px" }}
-            >
+            </TileLink>
+            <TileLink href="/admin/flags" label="Manage feature flags" testid="overview-flags">
               <h3 style={{ margin: 0, fontSize: 20 }}>Feature flags</h3>
               <div style={{ marginTop: 14 }}>
                 <Tile
@@ -127,7 +148,7 @@ export function AdminOverviewApp() {
                   label="Flag rows (missing rows use declared defaults)"
                 />
               </div>
-            </article>
+            </TileLink>
           </div>
 
           <article className="pillar" style={{ padding: "24px 28px" }}>

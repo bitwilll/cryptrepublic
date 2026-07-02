@@ -95,3 +95,21 @@ export const inputStyle: React.CSSProperties = {
   width: "100%",
   boxSizing: "border-box",
 };
+
+/**
+ * Visually-hidden (screen-reader-only) style — CSP-safe inline object (no
+ * external stylesheet). Used by every chart's accessible data table (Wave 10 C2,
+ * addendum #7) so a sighted user sees the SVG while assistive tech + axe read the
+ * underlying values as a real <table>.
+ */
+export const srOnly: React.CSSProperties = {
+  position: "absolute",
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: "hidden",
+  clip: "rect(0 0 0 0)",
+  whiteSpace: "nowrap",
+  border: 0,
+};
