@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getAddress, type Address, type Hex } from "viem";
 import { activeChain } from "@/lib/config/chain";
 import { getAccounts, isUnlocked } from "@/lib/wallet/embedded/session";
-import { readHasPassport } from "@/lib/passport/client";
+import { readHasPassport, readRequiredWitnesses } from "@/lib/passport/client";
 import { toBytes32String } from "@/lib/passport/attestation";
 import { submitMintEmbedded, StaleAttestationsError, type MintArgs } from "@/lib/passport/mint";
 import type { Attestation } from "@/lib/passport/attestation";
@@ -24,7 +24,18 @@ type WitnessRequest = {
 type CollectedWitnesses = {
   applicant: string | null;
   nameHash: string | null;
+  /** The OUTSTANDING request context (null when none was ever persisted). */
+  nonce?: string | null;
+  deadline?: string | null;
   signatures: { witnessAddress: string; signature: string; nonce: string; deadline: string }[];
+};
+type SavedApplication = {
+  status: string;
+  name: string | null;
+  domicileCity: string | null;
+  hostCountry: string | null;
+  motto: string | null;
+  citizenTokenId: string | null;
 };
 
 async function postJson(url: string, body: unknown): Promise<Response> {
@@ -53,6 +64,11 @@ export default function MintFlow(): React.ReactElement {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [alreadyCitizen, setAlreadyCitizen] = useState(false);
+  const [resuming, setResuming] = useState(true);
+  // Steps 0-1 are COMMITTED server-side (status OATH_ACCEPTED+): re-submitting
+  // Attest from there is rejected by the state machine, so BACK is locked.
+  const [locked, setLocked] = useState(false);
+  const [sealedTokenId, setSealedTokenId] = useState<string | null>(null);
 
   // On mount: if the user's public embedded address is already a citizen,
   // short-circuit. Uses getAccounts().evm (PUBLIC cached, no unlock); handles
@@ -85,6 +101,67 @@ export default function MintFlow(): React.ReactElement {
       setCollected(c.signatures.length);
     }
   }, []);
+
+  // RESUME the saved application on mount (live report: revisiting /dashboard/mint
+  // restarted at Attest — re-submitting from OATH_ACCEPTED 400s, and re-entering
+  // the witness step via `witnesses/request` would ROTATE the nonce and wipe the
+  // collected signatures). Prefill the saved fields (seal() rebuilds motto/domicile
+  // from them), jump to the step the status implies, and NEVER rotate when a live
+  // outstanding request exists.
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/applications");
+        if (!res.ok || !mounted) return;
+        const { application } = (await res.json()) as { application: SavedApplication | null };
+        if (!mounted || !application) return;
+
+        setAttest((f) => ({
+          name: application.name ?? f.name,
+          city: application.domicileCity ?? f.city,
+          country: application.hostCountry ?? f.country,
+        }));
+        if (application.motto) setOath({ motto: application.motto, accepted: true });
+
+        const st = application.status;
+        if (st === "SEALED") {
+          setSealedTokenId(application.citizenTokenId ?? "");
+          return;
+        }
+        if (st === "ATTESTED") {
+          setStep(1);
+          return;
+        }
+        if (st === "OATH_ACCEPTED" || st === "WITNESSED") {
+          setLocked(true);
+          setStep(2);
+          const wres = await fetch("/api/applications/witnesses");
+          if (wres.ok && mounted) {
+            const c = (await wres.json()) as CollectedWitnesses;
+            setCollected(c.signatures.length);
+            const live =
+              Boolean(c.nonce) && Boolean(c.deadline) && Number(c.deadline) * 1000 > Date.now();
+            if (!live && st === "OATH_ACCEPTED") {
+              // No outstanding (or an expired) request — rotating is CORRECT here:
+              // expired-deadline sigs are unusable on-chain anyway.
+              await refreshWitnesses();
+            }
+          }
+          try {
+            setRequired(await readRequiredWitnesses(chainId));
+          } catch {
+            /* unregistered chain / RPC down — keep the default of 7 */
+          }
+        }
+      } finally {
+        if (mounted) setResuming(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [chainId, refreshWitnesses]);
 
   // Poll the collected count while on the Witness step.
   useEffect(() => {
@@ -204,17 +281,29 @@ export default function MintFlow(): React.ReactElement {
     }
   }
 
-  if (alreadyCitizen) {
+  if (alreadyCitizen || sealedTokenId !== null) {
     return (
       <div className={styles.card}>
         <span className={`${styles.tag} ${styles.tagSuccess}`}>✓ ALREADY SEALED</span>
         <h2 className={styles.heading}>You are already a citizen.</h2>
-        <p className={styles.lede}>Your passport is sealed. View it any time.</p>
+        <p className={styles.lede}>
+          {alreadyCitizen
+            ? "Your passport is sealed. View it any time."
+            : "Your application records a sealed passport. View it any time — the chain is the authority."}
+        </p>
         <div className={styles.receiptActions} style={{ justifyContent: "flex-start" }}>
           <Button as="a" variant="dark" href="/dashboard/passport">
             VIEW MY PASSPORT →
           </Button>
         </div>
+      </div>
+    );
+  }
+
+  if (resuming) {
+    return (
+      <div className={styles.card} data-testid="mint-resuming">
+        <p className={styles.lede}>Loading your application…</p>
       </div>
     );
   }
@@ -234,12 +323,28 @@ export default function MintFlow(): React.ReactElement {
               <MintOathStep form={oath} onChange={(p) => setOath((f) => ({ ...f, ...p }))} />
             )}
             {step === 2 && (
-              <MintWitnessStep
-                collected={collected}
-                required={required}
-                ready={witnessReady}
-                onReadyChange={setWitnessReady}
-              />
+              <>
+                <p
+                  data-testid="witness-waiting-note"
+                  style={{
+                    margin: "0 0 14px",
+                    padding: "10px 14px",
+                    background: "var(--paper)",
+                    border: "1px solid var(--line)",
+                    fontSize: 13,
+                    color: "var(--muted)",
+                  }}
+                >
+                  Waiting for witness attestations — {collected} of {required} collected. Your
+                  application is saved; you can leave this page and it will resume here.
+                </p>
+                <MintWitnessStep
+                  collected={collected}
+                  required={required}
+                  ready={witnessReady}
+                  onReadyChange={setWitnessReady}
+                />
+              </>
             )}
             {step === 3 && !sealed && <MintSealStep state={sealState} />}
             {step === 3 && sealed && tokenId && (
@@ -257,7 +362,7 @@ export default function MintFlow(): React.ReactElement {
             <div className={styles.nav}>
               <button
                 className="btn btn-ghost"
-                disabled={step === 0 || busy}
+                disabled={step === 0 || busy || (locked && step <= 2)}
                 onClick={() => setStep((s) => Math.max(0, s - 1))}
               >
                 ← BACK

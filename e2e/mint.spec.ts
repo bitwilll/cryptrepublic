@@ -37,8 +37,11 @@ test("mint UI: 4-step flow gating (Attest → Oath → Witness)", async ({ page 
   await expect(page.getByText("SEAL", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: /Attest who you are/i })).toBeVisible();
 
-  // CONTINUE is gated until name + city are valid.
+  // The name is PREFILLED from registration (resume behavior), so CONTINUE
+  // starts enabled; clearing the name re-gates it, proving the gate still works.
   const continueBtn = page.getByRole("button", { name: /CONTINUE/i });
+  await expect(continueBtn).toBeEnabled();
+  await page.getByLabel(/Legal or chosen name/i).fill("");
   await expect(continueBtn).toBeDisabled();
   await page.getByLabel(/Legal or chosen name/i).fill("A. Nakadai");
   // city is pre-filled ("Lisbon"); the button should now enable.
@@ -62,6 +65,27 @@ test("mint UI: 4-step flow gating (Attest → Oath → Witness)", async ({ page 
   // the "ready" checkbox (which itself is disabled until collected >= required).
   await expect(page.getByTestId("witness-tile-0")).toBeVisible();
   await expect(page.getByRole("button", { name: /SEAL MY PASSPORT/i })).toBeDisabled();
+
+  // RESUME (live report): reloading must NOT restart at Attest — the saved
+  // OATH_ACCEPTED application resumes at the witness step with the waiting note,
+  // and BACK is locked (steps 0-1 are committed server-side; re-submitting attest
+  // from there is exactly the 400 that surfaced as "Could not save your attestation").
+  await page.reload();
+  await expect(page.getByRole("heading", { name: /witnesses, signing/i })).toBeVisible();
+  await expect(page.getByTestId("witness-waiting-note")).toBeVisible();
+  await expect(page.getByRole("button", { name: /back/i })).toBeDisabled();
+
+  // The dashboard shows the in-flight state — waiting at the witness stage with a
+  // RESUME affordance, and NO "start a new mint" CTA.
+  await page.goto("/dashboard");
+  const pending = page.getByTestId("witness-pending");
+  await expect(pending).toBeVisible();
+  await expect(pending).toContainText(/witness/i);
+  await expect(pending.getByRole("link", { name: /resume/i })).toHaveAttribute(
+    "href",
+    "/dashboard/mint",
+  );
+  await expect(page.getByRole("link", { name: /mint your passport/i })).toHaveCount(0);
 });
 
 test("Your Passport shows the not-yet-citizen state with a mint CTA", async ({ page }) => {

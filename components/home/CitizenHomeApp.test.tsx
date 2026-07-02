@@ -126,6 +126,32 @@ describe("CitizenHomeApp", () => {
     );
   });
 
+  it("in-flight mint (witness stage) replaces the mint CTA with the waiting state", async () => {
+    h.isCitizen = false;
+    h.tokenId = null;
+    h.obligations = [
+      {
+        kind: "witness",
+        ref: "witnessing",
+        label: "Your passport mint is waiting for witness attestations (3 of 7 collected).",
+      },
+    ];
+    render(<CitizenHomeApp />);
+    const obligations = await screen.findByTestId("obligations");
+    // The waiting label renders and links back to the (resuming) mint flow…
+    expect(
+      within(obligations).getByText(/waiting for witness attestations \(3 of 7/i),
+    ).toBeInTheDocument();
+    expect(within(obligations).getByRole("link", { name: /resume/i })).toHaveAttribute(
+      "href",
+      "/dashboard/mint",
+    );
+    // …and the "start a new mint" CTA is GONE everywhere — obligations AND the
+    // passport rail card swap to the waiting/resume state (no re-mint affordance).
+    expect(screen.queryByRole("link", { name: /mint your passport/i })).not.toBeInTheDocument();
+    expect(screen.getByTestId("passport-rail-pending")).toHaveTextContent(/mint in progress/i);
+  });
+
   it("renders a per-card retry (not a blank screen) when the activity fetch errors", async () => {
     h.activityThrows = true;
     render(<CitizenHomeApp />);

@@ -4,7 +4,7 @@ import { activeChain } from "@/lib/config/chain";
 import { governanceAvailable, distributorAvailable } from "@/config/contracts";
 import { prisma } from "@/lib/db";
 import { resolveApplicantAddress } from "@/lib/applications/applicant";
-import { readPassportStatusServer } from "@/lib/passport/serverReads";
+import { readPassportStatusServer, readRequiredWitnessesServer } from "@/lib/passport/serverReads";
 import {
   readProposalCountServer,
   readProposalServer,
@@ -36,18 +36,52 @@ export async function GET(req: Request): Promise<Response> {
   const chainId = activeChain().primaryChainId;
   const address = await resolveApplicantAddress(userId);
 
-  // Pending witness requests are relevant even before minting.
-  const pendingWitness = await prisma.citizenshipApplication.count({
-    where: { userId, status: "WITNESSING" },
+  // The applicant's own in-flight mint (witness stage) — relevant even before a
+  // wallet is linked, so it is surfaced BEFORE the address gate below. Statuses
+  // per lib/applications/state.ts: OATH_ACCEPTED = collecting attestations (when
+  // a witness request is outstanding) or ready to request them; WITNESSED =
+  // enough attestations collected, awaiting the on-chain seal.
+  const application = await prisma.citizenshipApplication.findUnique({
+    where: { userId },
+    select: {
+      status: true,
+      witnessNonce: true,
+      _count: { select: { witnessSignatures: true } },
+    },
   });
 
   const obligations: { kind: string; ref: string; label: string }[] = [];
-  if (pendingWitness > 0) {
+  if (application?.status === "WITNESSED") {
     obligations.push({
       kind: "witness",
-      ref: "witnessing",
-      label: "Your witness attestations are pending.",
+      ref: "seal",
+      label: "All witness attestations collected — seal your passport.",
     });
+  } else if (application?.status === "OATH_ACCEPTED") {
+    if (application.witnessNonce) {
+      const n = application._count.witnessSignatures;
+      // The denominator is a chain read; omit it honestly when unreadable.
+      let required: number | null = null;
+      try {
+        required = await readRequiredWitnessesServer(chainId);
+      } catch {
+        required = null;
+      }
+      obligations.push({
+        kind: "witness",
+        ref: "witnessing",
+        label:
+          required !== null
+            ? `Your passport mint is waiting for witness attestations (${n} of ${required} collected).`
+            : `Your passport mint is waiting for witness attestations (${n} collected so far).`,
+      });
+    } else {
+      obligations.push({
+        kind: "witness",
+        ref: "witnessing",
+        label: "Your application is at the witness stage — resume to request attestations.",
+      });
+    }
   }
 
   if (!address) {

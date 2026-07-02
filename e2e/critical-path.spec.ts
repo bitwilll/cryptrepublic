@@ -292,9 +292,12 @@ test.describe.serial("@critical path — register → vault → mint UI → send
   test("station 4 — attest → oath → witness gate UI (+ mint mobile + axe)", async () => {
     await page.goto("/dashboard/mint");
 
-    // Attest (step 1): gated CONTINUE until name + city valid.
+    // Attest (step 1): the name is PREFILLED from registration (resume), so
+    // CONTINUE starts enabled; clearing the name re-gates it (proves the gate).
     await expect(page.getByRole("heading", { name: /Attest who you are/i })).toBeVisible();
     const continueBtn = page.getByRole("button", { name: /CONTINUE/i });
+    await expect(continueBtn).toBeEnabled();
+    await page.getByLabel(/Legal or chosen name/i).fill("");
     await expect(continueBtn).toBeDisabled();
     await page.getByLabel(/Legal or chosen name/i).fill("A. Nakadai");
     await expect(continueBtn).toBeEnabled();

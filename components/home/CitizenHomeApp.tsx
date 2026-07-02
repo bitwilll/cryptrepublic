@@ -105,7 +105,12 @@ export function CitizenHomeApp() {
         </div>
 
         <aside style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <PassportRailCard isCitizen={isCitizen} />
+          <PassportRailCard
+            isCitizen={isCitizen}
+            witnessPending={
+              obligations.status === "ok" && obligations.data.some((o) => o.kind === "witness")
+            }
+          />
           <CensusTickerCard total={totalCitizens} />
         </aside>
       </div>
@@ -178,7 +183,37 @@ function ObligationsCard({
       {state.status === "error" && <CardError onRetry={onRetry} testid="obligations-error" />}
       {state.status === "ok" && (
         <>
-          {!isCitizen ? (
+          {!isCitizen && state.data.some((o) => o.kind === "witness") ? (
+            // An in-flight mint at the witness/seal stage: show the waiting state
+            // and RESUME the saved flow — never a "start a new mint" affordance.
+            <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+              {state.data
+                .filter((o) => o.kind === "witness")
+                .map((o) => (
+                  <div
+                    key={`${o.kind}-${o.ref}`}
+                    data-testid="witness-pending"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 14,
+                      padding: "12px 14px",
+                      background: "var(--paper)",
+                      border: "1px solid var(--line)",
+                    }}
+                  >
+                    <div style={{ flex: 1, fontWeight: 500 }}>{o.label}</div>
+                    <Link
+                      className="btn"
+                      href="/dashboard/mint"
+                      style={{ padding: "8px 16px", fontSize: 12 }}
+                    >
+                      RESUME →
+                    </Link>
+                  </div>
+                ))}
+            </div>
+          ) : !isCitizen ? (
             <div
               style={{
                 marginTop: 16,
@@ -291,7 +326,31 @@ function RepublicLedger({
   );
 }
 
-function PassportRailCard({ isCitizen }: { isCitizen: boolean }) {
+function PassportRailCard({
+  isCitizen,
+  witnessPending,
+}: {
+  isCitizen: boolean;
+  witnessPending: boolean;
+}) {
+  if (!isCitizen && witnessPending) {
+    // In-flight mint at the witness/seal stage — no "start a new mint" wording.
+    return (
+      <article className="pillar" style={{ padding: 20 }} data-testid="passport-rail-pending">
+        <div
+          style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.12em", fontWeight: 700 }}
+        >
+          YOUR PASSPORT
+        </div>
+        <p style={{ color: "var(--muted)", marginTop: 12, fontSize: 13 }}>
+          Passport mint in progress — waiting for witness attestations.
+        </p>
+        <Link className="btn" href="/dashboard/mint" style={{ marginTop: 14, width: "100%" }}>
+          RESUME →
+        </Link>
+      </article>
+    );
+  }
   return (
     <article className="pillar" style={{ padding: 20 }}>
       <div
