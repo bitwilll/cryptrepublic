@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { useChainInfo } from "@/lib/hooks/useChainInfo";
+import { useFlag } from "@/lib/flags/client";
 import { Ledger } from "@/components/ui/Ledger";
 
 /**
@@ -32,6 +33,10 @@ type Load<T> = { status: "loading" } | { status: "ok"; data: T } | { status: "er
 
 export function PopulationApp() {
   const chain = useChainInfo();
+  // The ONE Wave-9 feature-flag consumer (C3): gates ONLY the world-map card.
+  // Declared default TRUE (lib/flags/defaults.ts) — zero behavior change until
+  // an admin flips it; a failed /api/flags fetch degrades to the default.
+  const worldMapEnabled = useFlag("population_world_map");
   const [census, setCensus] = useState<Load<{ totalCitizens: string | null; cities: City[] }>>({
     status: "loading",
   });
@@ -83,7 +88,20 @@ export function PopulationApp() {
       <div className="kicker">POPULATION</div>
 
       <CensusHero total={total} delta24h={delta24h} state={census} onRetry={loadCensus} />
-      <WorldMap cities={cities} />
+      {worldMapEnabled ? (
+        <WorldMap cities={cities} />
+      ) : (
+        <article
+          className="pillar"
+          data-testid="world-map-disabled"
+          style={{ padding: "24px 28px" }}
+        >
+          <h3 style={{ margin: 0, fontSize: 20 }}>The Republic on earth</h3>
+          <p style={{ color: "var(--muted)", marginTop: 8, fontSize: 13 }}>
+            The world map is disabled by the administration.
+          </p>
+        </article>
+      )}
       <div
         style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "start" }}
       >

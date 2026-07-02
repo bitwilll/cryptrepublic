@@ -80,6 +80,11 @@ function rpcResult(method: string): unknown {
  * the AUM hero is the thing under test.
  */
 const API_FIXTURES: Record<string, unknown> = {
+  // Wave 9 C3 determinism: the population world-map card is gated by the
+  // `population_world_map` flag (declared default TRUE). Spec FILES run in
+  // parallel workers — without this stub the admin spec's live flag flip could
+  // race this file's world-map assertions. `{ flags: {} }` = declared defaults.
+  "/api/flags": { flags: {} },
   "/api/citizen/obligations": { obligations: [] },
   "/api/stats/activity": { activity: [] },
   "/api/stats/summary": { totalCitizens: "3" },

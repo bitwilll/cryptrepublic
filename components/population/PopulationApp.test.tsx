@@ -18,6 +18,8 @@ const h = vi.hoisted(() => ({
   delta24h: 0,
   cities: [] as Array<Record<string, unknown>>,
   inductions: [] as Array<Record<string, unknown>>,
+  flags: {} as Record<string, boolean>,
+  flagsReject: false,
 }));
 
 vi.mock("@/lib/hooks/useChainInfo", () => ({
@@ -47,8 +49,14 @@ beforeEach(() => {
   h.delta24h = 0;
   h.cities = [];
   h.inductions = [];
+  h.flags = {};
+  h.flagsReject = false;
   globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
+    if (url.includes("/api/flags")) {
+      if (h.flagsReject) throw new Error("network down");
+      return jsonResponse({ flags: h.flags });
+    }
     if (url.includes("/api/population/census")) {
       return jsonResponse({
         totalCitizens: h.totalCitizens,
@@ -132,5 +140,36 @@ describe("PopulationApp", () => {
     render(<PopulationApp />);
     await waitFor(() => expect(screen.getByText(/№3/)).toBeInTheDocument());
     expect(screen.queryByTestId("inductions-empty")).not.toBeInTheDocument();
+  });
+
+  // ── Wave 9 C3: the ONE feature-flag consumer (population_world_map, default TRUE) ──
+
+  it("hides the world map behind the in-voice note when the flag is OFF", async () => {
+    h.cities = CITIES;
+    h.flags = { population_world_map: false };
+    render(<PopulationApp />);
+    await waitFor(() => expect(screen.getByTestId("world-map-disabled")).toBeInTheDocument());
+    expect(screen.getByTestId("world-map-disabled")).toHaveTextContent(
+      /disabled by the administration/i,
+    );
+    expect(screen.queryByTestId("world-map")).not.toBeInTheDocument();
+    // scope = exactly one card: the rest of the screen is unaffected
+    expect(screen.getByTestId("top-cities")).toBeInTheDocument();
+    expect(screen.getByTestId("census-hero")).toBeInTheDocument();
+  });
+
+  it("still renders the map when the flags fetch REJECTS (default-true resilience)", async () => {
+    h.cities = CITIES;
+    h.flagsReject = true;
+    render(<PopulationApp />);
+    await waitFor(() => expect(screen.getByTestId("world-map")).toBeInTheDocument());
+    expect(screen.queryByTestId("world-map-disabled")).not.toBeInTheDocument();
+  });
+
+  it("renders the map with the default (no flag row) — zero behavior change", async () => {
+    h.cities = CITIES;
+    h.flags = {};
+    render(<PopulationApp />);
+    await waitFor(() => expect(screen.getByTestId("world-map")).toBeInTheDocument());
   });
 });
