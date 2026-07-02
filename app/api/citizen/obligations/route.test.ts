@@ -88,6 +88,7 @@ async function setApplication(
     status: string;
     witnessNonce?: string | null;
     witnessSignatures?: number;
+    adminApprovedAt?: Date | null;
   } | null,
 ): Promise<void> {
   await prisma.citizenshipApplication.deleteMany({ where: { userId } });
@@ -97,6 +98,7 @@ async function setApplication(
       userId,
       status: data.status,
       name: "Obligation Probe",
+      adminApprovedAt: data.adminApprovedAt ?? null,
       witnessNonce: data.witnessNonce ?? null,
       witnessDeadline: data.witnessNonce ? "9999999999" : null,
       witnessSignatures: {
@@ -212,6 +214,72 @@ describe("GET /api/citizen/obligations", () => {
         const body = (await res.json()) as { obligations: { kind: string }[] };
         expect(body.obligations.some((o) => o.kind === "witness")).toBe(false);
       }
+    });
+  });
+
+  describe("admin-approved reflection (Wave 10 A5 — chain-truth gated)", () => {
+    it("adminApprovedAt + NOT a citizen → the admin-approved obligation (witness path superseded)", async () => {
+      await setApplication({
+        status: "OATH_ACCEPTED",
+        witnessNonce: "5",
+        witnessSignatures: 3,
+        adminApprovedAt: new Date(),
+      });
+      h.resolvedAddress = "0x00000000000000000000000000000000000000a1";
+      h.isCitizen = false;
+      const res = await GET(get(token));
+      const body = (await res.json()) as {
+        isCitizen: boolean;
+        obligations: { kind: string; label: string }[];
+      };
+      expect(body.isCitizen).toBe(false);
+      const a = body.obligations.find((o) => o.kind === "admin-approved");
+      expect(a).toBeDefined();
+      expect(a!.label).toBe(
+        "An administrator has approved your application; your passport is being issued by the Republic.",
+      );
+      // Recorded choice: the approval OVERTAKES the witness path.
+      expect(body.obligations.some((o) => o.kind === "witness")).toBe(false);
+    });
+
+    it("surfaces the approval even BEFORE a wallet is linked (address gate)", async () => {
+      await setApplication({
+        status: "OATH_ACCEPTED",
+        witnessNonce: null,
+        adminApprovedAt: new Date(),
+      });
+      h.resolvedAddress = null;
+      const res = await GET(get(token));
+      const body = (await res.json()) as { obligations: { kind: string }[] };
+      expect(body.obligations.some((o) => o.kind === "admin-approved")).toBe(true);
+    });
+
+    it("SUPPRESSED once the chain says citizen — no admin-approved, no witness (addendum #3)", async () => {
+      await setApplication({
+        status: "OATH_ACCEPTED",
+        witnessNonce: "5",
+        witnessSignatures: 3,
+        adminApprovedAt: new Date(),
+      });
+      h.resolvedAddress = "0x00000000000000000000000000000000000000a1";
+      h.isCitizen = true;
+      h.tokenId = 7n;
+      const res = await GET(get(token));
+      const body = (await res.json()) as {
+        isCitizen: boolean;
+        obligations: { kind: string }[];
+      };
+      expect(body.isCitizen).toBe(true);
+      expect(body.obligations.some((o) => o.kind === "admin-approved")).toBe(false);
+      expect(body.obligations.some((o) => o.kind === "witness")).toBe(false);
+    });
+
+    it("no approval → no admin-approved obligation (the witness path is untouched)", async () => {
+      await setApplication({ status: "OATH_ACCEPTED", witnessNonce: "5", witnessSignatures: 2 });
+      const res = await GET(get(token));
+      const body = (await res.json()) as { obligations: { kind: string }[] };
+      expect(body.obligations.some((o) => o.kind === "admin-approved")).toBe(false);
+      expect(body.obligations.some((o) => o.kind === "witness")).toBe(true);
     });
   });
 

@@ -24,6 +24,7 @@ export async function GET(req: Request): Promise<Response> {
       oathAcceptedAt: true,
       citizenTokenId: true,
       sealTxHash: true,
+      adminApprovedAt: true, // Wave 10 — admin-mint override approval (off-chain intent)
     },
   });
   return json({ application });
@@ -63,6 +64,7 @@ export async function POST(req: Request): Promise<Response> {
       oathAcceptedAt: true,
       citizenTokenId: true,
       sealTxHash: true,
+      adminApprovedAt: true, // Wave 10 — admin-mint override approval (off-chain intent)
     },
   });
   return json({ ok: true, application });

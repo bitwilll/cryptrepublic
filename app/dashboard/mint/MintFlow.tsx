@@ -36,6 +36,8 @@ type SavedApplication = {
   hostCountry: string | null;
   motto: string | null;
   citizenTokenId: string | null;
+  /** Wave 10 — admin-mint override approval time. OFF-CHAIN INTENT, never chain truth. */
+  adminApprovedAt?: string | null;
 };
 
 async function postJson(url: string, body: unknown): Promise<Response> {
@@ -69,6 +71,9 @@ export default function MintFlow(): React.ReactElement {
   // Attest from there is rejected by the state machine, so BACK is locked.
   const [locked, setLocked] = useState(false);
   const [sealedTokenId, setSealedTokenId] = useState<string | null>(null);
+  // Wave 10 A5 — an administrator approved this application (off-chain intent).
+  // Chain-truth gated in render: alreadyCitizen/sealed state always wins.
+  const [adminApproved, setAdminApproved] = useState(false);
 
   // On mount: if the user's public embedded address is already a citizen,
   // short-circuit. Uses getAccounts().evm (PUBLIC cached, no unlock); handles
@@ -127,6 +132,14 @@ export default function MintFlow(): React.ReactElement {
         const st = application.status;
         if (st === "SEALED") {
           setSealedTokenId(application.citizenTokenId ?? "");
+          return;
+        }
+        if (application.adminApprovedAt) {
+          // Admin-mint override approved (Wave 10): the Republic issues the
+          // passport — show the approved state INSTEAD of the witness flow and
+          // NEVER touch witnesses/request (no nonce rotation). Once the chain
+          // confirms (readHasPassport), the citizen state supersedes this.
+          setAdminApproved(true);
           return;
         }
         if (st === "ATTESTED") {
@@ -304,6 +317,23 @@ export default function MintFlow(): React.ReactElement {
     return (
       <div className={styles.card} data-testid="mint-resuming">
         <p className={styles.lede}>Loading your application…</p>
+      </div>
+    );
+  }
+
+  if (adminApproved) {
+    // OFF-CHAIN INTENT, honestly stated: approved and being issued — never a
+    // fabricated tokenId/SEALED. The alreadyCitizen branch above wins once the
+    // chain confirms the passport.
+    return (
+      <div className={styles.card} data-testid="admin-approved-state">
+        <span className={`${styles.tag} ${styles.tagSuccess}`}>✓ APPROVED BY AN ADMINISTRATOR</span>
+        <h2 className={styles.heading}>Your passport is being issued by the Republic.</h2>
+        <p className={styles.lede}>
+          An administrator has approved your application — no further witness attestations are
+          required. Citizenship becomes real only when the admin-issued mint is confirmed on chain;
+          this page shows your sealed passport once the chain confirms it.
+        </p>
       </div>
     );
   }

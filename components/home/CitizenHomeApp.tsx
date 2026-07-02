@@ -107,8 +107,13 @@ export function CitizenHomeApp() {
         <aside style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <PassportRailCard
             isCitizen={isCitizen}
-            witnessPending={
-              obligations.status === "ok" && obligations.data.some((o) => o.kind === "witness")
+            pendingKind={
+              obligations.status === "ok"
+                ? // The admin-approved state wins over the witness path (Wave 10 A5).
+                  (obligations.data.find((o) => o.kind === "admin-approved")?.kind ??
+                  obligations.data.find((o) => o.kind === "witness")?.kind ??
+                  null)
+                : null
             }
           />
           <CensusTickerCard total={totalCitizens} />
@@ -183,16 +188,19 @@ function ObligationsCard({
       {state.status === "error" && <CardError onRetry={onRetry} testid="obligations-error" />}
       {state.status === "ok" && (
         <>
-          {!isCitizen && state.data.some((o) => o.kind === "witness") ? (
-            // An in-flight mint at the witness/seal stage: show the waiting state
-            // and RESUME the saved flow — never a "start a new mint" affordance.
+          {!isCitizen && state.data.some((o) => MINT_PENDING_KINDS.includes(o.kind)) ? (
+            // An in-flight mint (witness/seal stage OR admin-approved — Wave 10
+            // addendum #6): show the waiting state and RESUME the saved flow —
+            // never a "start a new mint" affordance.
             <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
               {state.data
-                .filter((o) => o.kind === "witness")
+                .filter((o) => MINT_PENDING_KINDS.includes(o.kind))
                 .map((o) => (
                   <div
                     key={`${o.kind}-${o.ref}`}
-                    data-testid="witness-pending"
+                    data-testid={
+                      o.kind === "admin-approved" ? "admin-approved-pending" : "witness-pending"
+                    }
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -272,6 +280,9 @@ function ObligationsCard({
   );
 }
 
+/** Obligation kinds that mean "a mint is pending" (Wave 10: admin-approved counts). */
+const MINT_PENDING_KINDS = ["witness", "admin-approved"];
+
 function obligationHref(kind: string): string {
   switch (kind) {
     case "vote":
@@ -328,13 +339,15 @@ function RepublicLedger({
 
 function PassportRailCard({
   isCitizen,
-  witnessPending,
+  pendingKind,
 }: {
   isCitizen: boolean;
-  witnessPending: boolean;
+  pendingKind: string | null;
 }) {
-  if (!isCitizen && witnessPending) {
-    // In-flight mint at the witness/seal stage — no "start a new mint" wording.
+  if (!isCitizen && pendingKind) {
+    // In-flight mint (witness/seal stage OR admin-approved) — no "start a new
+    // mint" wording. The admin-approved copy is chain-truth honest: approved,
+    // being issued — never "citizen" until the chain confirms.
     return (
       <article className="pillar" style={{ padding: 20 }} data-testid="passport-rail-pending">
         <div
@@ -343,7 +356,9 @@ function PassportRailCard({
           YOUR PASSPORT
         </div>
         <p style={{ color: "var(--muted)", marginTop: 12, fontSize: 13 }}>
-          Passport mint in progress — waiting for witness attestations.
+          {pendingKind === "admin-approved"
+            ? "Approved by an administrator — your passport is being issued by the Republic."
+            : "Passport mint in progress — waiting for witness attestations."}
         </p>
         <Link className="btn" href="/dashboard/mint" style={{ marginTop: 14, width: "100%" }}>
           RESUME →

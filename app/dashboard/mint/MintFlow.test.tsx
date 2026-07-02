@@ -32,18 +32,22 @@ const h = vi.hoisted(() => ({
     }[],
   },
   requestCalls: 0,
+  accounts: null as { evm: string } | null,
+  hasPassport: false,
+  hasPassportThrows: true, // default: unregistered chain (the standing posture)
 }));
 
 vi.mock("@/lib/config/chain", () => ({
   activeChain: () => ({ primaryChainId: 84532 }),
 }));
 vi.mock("@/lib/wallet/embedded/session", () => ({
-  getAccounts: () => null,
+  getAccounts: () => h.accounts,
   isUnlocked: () => false,
 }));
 vi.mock("@/lib/passport/client", () => ({
   readHasPassport: async () => {
-    throw new Error("unregistered chain");
+    if (h.hasPassportThrows) throw new Error("unregistered chain");
+    return h.hasPassport;
   },
   readRequiredWitnesses: async () => {
     throw new Error("unregistered chain");
@@ -73,6 +77,9 @@ beforeEach(() => {
   h.application = null;
   h.witnesses = { applicant: null, nameHash: null, nonce: null, deadline: null, signatures: [] };
   h.requestCalls = 0;
+  h.accounts = null;
+  h.hasPassport = false;
+  h.hasPassportThrows = true;
   globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
     if (url.includes("/api/applications/witnesses/request")) {
@@ -179,6 +186,57 @@ describe("MintFlow resume", () => {
     render(<MintFlow />);
     await waitFor(() => expect(h.requestCalls).toBe(1));
     expect(screen.getByTestId("witness-waiting-note")).toBeInTheDocument();
+  });
+
+  it("adminApprovedAt + NOT a citizen → 'approved by an administrator' state INSTEAD of witness waiting (Wave 10 A5)", async () => {
+    h.application = {
+      status: "OATH_ACCEPTED",
+      name: "Resume Probe",
+      domicileCity: "Tallinn",
+      hostCountry: "Estonia",
+      motto: "Recognized in time",
+      citizenTokenId: null,
+      adminApprovedAt: "2026-07-03T00:00:00.000Z",
+    };
+    // A live witness request exists — the approved state must still win.
+    h.witnesses = {
+      applicant: "0x00000000000000000000000000000000000000a1",
+      nameHash: "0xbeef",
+      nonce: "5",
+      deadline: FUTURE,
+      signatures: [sig(1), sig(2), sig(3)],
+    };
+    render(<MintFlow />);
+    await waitFor(() => expect(screen.getByTestId("admin-approved-state")).toBeInTheDocument());
+    expect(screen.getByTestId("admin-approved-state")).toHaveTextContent(
+      /approved by an administrator/i,
+    );
+    expect(screen.getByTestId("admin-approved-state")).toHaveTextContent(
+      /being issued by the republic/i,
+    );
+    // Chain-truth honesty: no fake tokenId/SEALED — and no witness-waiting UI.
+    expect(screen.queryByTestId("witness-waiting-note")).not.toBeInTheDocument();
+    expect(screen.queryByText(/already sealed/i)).not.toBeInTheDocument();
+    // The approved path never touches witnesses/request (no nonce rotation).
+    expect(h.requestCalls).toBe(0);
+  });
+
+  it("adminApprovedAt + the chain says CITIZEN → the sealed/citizen state WINS (chain truth)", async () => {
+    h.application = {
+      status: "OATH_ACCEPTED",
+      name: "Resume Probe",
+      domicileCity: "Tallinn",
+      hostCountry: "Estonia",
+      motto: "Recognized in time",
+      citizenTokenId: null,
+      adminApprovedAt: "2026-07-03T00:00:00.000Z",
+    };
+    h.accounts = { evm: "0x00000000000000000000000000000000000000a1" };
+    h.hasPassportThrows = false;
+    h.hasPassport = true; // the chain confirms citizenship
+    render(<MintFlow />);
+    await waitFor(() => expect(screen.getByText(/already a citizen/i)).toBeInTheDocument());
+    expect(screen.queryByTestId("admin-approved-state")).not.toBeInTheDocument();
   });
 
   it("SEALED (DB record) → sealed state with no re-mint UI", async () => {

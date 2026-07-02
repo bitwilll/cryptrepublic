@@ -152,6 +152,42 @@ describe("CitizenHomeApp", () => {
     expect(screen.getByTestId("passport-rail-pending")).toHaveTextContent(/mint in progress/i);
   });
 
+  it("admin-approved (non-citizen) renders the pending state with the admin-approved wording (Wave 10, addendum #6)", async () => {
+    h.isCitizen = false;
+    h.tokenId = null;
+    h.obligations = [
+      {
+        kind: "admin-approved",
+        ref: "issuing",
+        label:
+          "An administrator has approved your application; your passport is being issued by the Republic.",
+      },
+    ];
+    render(<CitizenHomeApp />);
+    const obligations = await screen.findByTestId("obligations");
+    // The approved wording renders in the pending grouping with a RESUME link…
+    expect(within(obligations).getByTestId("admin-approved-pending")).toHaveTextContent(
+      /approved your application/i,
+    );
+    expect(within(obligations).getByRole("link", { name: /resume/i })).toHaveAttribute(
+      "href",
+      "/dashboard/mint",
+    );
+    // …the "start a new mint" CTA is GONE (no silent fall-through to Mint your passport)…
+    expect(screen.queryByRole("link", { name: /mint your passport/i })).not.toBeInTheDocument();
+    // …and the passport rail swaps to the pending state with the issued-by-the-Republic wording.
+    expect(screen.getByTestId("passport-rail-pending")).toHaveTextContent(/being issued/i);
+  });
+
+  it("a citizen never sees the pending rail — the chain-truth citizen state wins (Wave 10)", async () => {
+    h.isCitizen = true;
+    h.tokenId = 7n;
+    h.obligations = [];
+    render(<CitizenHomeApp />);
+    await waitFor(() => expect(screen.getByTestId("salutation")).toHaveTextContent(/citizen/i));
+    expect(screen.queryByTestId("passport-rail-pending")).not.toBeInTheDocument();
+  });
+
   it("renders a per-card retry (not a blank screen) when the activity fetch errors", async () => {
     h.activityThrows = true;
     render(<CitizenHomeApp />);

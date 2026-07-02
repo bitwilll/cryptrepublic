@@ -46,12 +46,25 @@ export async function GET(req: Request): Promise<Response> {
     select: {
       status: true,
       witnessNonce: true,
+      adminApprovedAt: true,
       _count: { select: { witnessSignatures: true } },
     },
   });
 
-  const obligations: { kind: string; ref: string; label: string }[] = [];
-  if (application?.status === "WITNESSED") {
+  let obligations: { kind: string; ref: string; label: string }[] = [];
+  // Wave 10 A5 — the admin-mint override reflection. OFF-CHAIN INTENT only:
+  // when an administrator approved the application, the approval OVERTAKES the
+  // witness path (recorded choice — the witness obligations below are skipped).
+  // It is chain-truth gated: the citizen branch further down SUPPRESSES it
+  // (addendum #3) — approval is never presented as citizenship.
+  if (application?.adminApprovedAt != null && application.status !== "SEALED") {
+    obligations.push({
+      kind: "admin-approved",
+      ref: "issuing",
+      label:
+        "An administrator has approved your application; your passport is being issued by the Republic.",
+    });
+  } else if (application?.status === "WITNESSED") {
     obligations.push({
       kind: "witness",
       ref: "seal",
@@ -100,6 +113,11 @@ export async function GET(req: Request): Promise<Response> {
     return json({ isCitizen: false, tokenId: null, obligations });
   }
   const tokenId = status.tokenId;
+
+  // CHAIN-TRUTH suppression (addendum #3): once the chain says citizen, the
+  // in-flight-mint obligations (witness AND admin-approved) are moot — the
+  // citizen state supersedes them.
+  obligations = obligations.filter((o) => o.kind !== "witness" && o.kind !== "admin-approved");
 
   // Unvoted OPEN proposals.
   if (governanceAvailable(chainId)) {
