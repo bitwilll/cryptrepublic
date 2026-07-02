@@ -44,6 +44,15 @@ vi.mock("@/lib/wallet/embedded/storage", () => ({
   hasVault: async () => h.hasVault,
 }));
 
+// Wave 11 A2 — no persisted mode in these tests: an existing vault lands
+// straight in embedded (the chooser never blocks an existing embedded user).
+vi.mock("@/lib/wallet/mode", () => ({
+  getWalletMode: async () => ({ mode: "embedded" }),
+  hasWalletMode: async () => false,
+  setWalletMode: async () => {},
+  clearWalletMode: async () => {},
+}));
+
 vi.mock("@/lib/config/chain", () => ({
   activeChain: () => ({ primaryChainId: 84532 }),
 }));

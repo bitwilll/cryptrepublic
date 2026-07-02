@@ -42,6 +42,9 @@ test("create → lock → unlock (wrong fails, right works) → reveal, with zer
 
   await page.goto("/wallet");
 
+  // Wave 11 A2: a fresh context lands on the mode chooser — pick EMBEDDED.
+  await page.getByTestId("mode-embedded").click();
+
   // CREATE — Argon2id vault-encrypt must succeed under the prod CSP.
   await page.getByLabel(/Choose a vault passphrase/i).fill(PASS);
   await page.getByRole("button", { name: /Create wallet/i }).click();

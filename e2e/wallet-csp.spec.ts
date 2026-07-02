@@ -43,6 +43,10 @@ test("/wallet mounts the wagmi provider tree with a mock wallet and zero CSP vio
 }) => {
   const c = collect(page);
   await page.goto("/wallet", { waitUntil: "networkidle" });
+  // Wave 11 A2: the mode chooser renders first; selecting EMBEDDED must also
+  // stay violation-free (both views run under the same prod CSP).
+  await expect(page.getByRole("heading", { name: /Choose your wallet mode/i })).toBeVisible();
+  await page.getByTestId("mode-embedded").click();
   // The embedded exerciser renders (providers mounted successfully).
   await expect(page.getByRole("heading", { name: /Embedded wallet/i })).toBeVisible();
   // Give wagmi/connectors a moment to initialize any sockets/requests.

@@ -9,6 +9,14 @@ import {
   type WalletAccounts,
 } from "@/lib/wallet/embedded/session";
 import { hasVault } from "@/lib/wallet/embedded/storage";
+import {
+  getWalletMode,
+  setWalletMode,
+  clearWalletMode,
+  hasWalletMode,
+  type WalletMode,
+} from "@/lib/wallet/mode";
+import { WalletModeSelect } from "./WalletModeSelect";
 import { loadPortfolio, type Portfolio } from "@/lib/wallet/services/portfolio";
 import { readChainStats, type ChainStats } from "@/lib/wallet/services/chainStats";
 import {
@@ -29,7 +37,9 @@ import { ReceiveModal } from "./ReceiveModal";
 import { SendModal } from "./SendModal";
 import { SwapBridgeModal } from "./SwapBridgeModal";
 
-type View = "loading" | "create" | "locked" | "unlocked";
+// Wave 11 A2: "choose" (mode chooser), "hardware" (external wallet panel,
+// B2), "watchonly" (watch-only + air-gapped, C1/C4).
+type View = "loading" | "choose" | "create" | "locked" | "unlocked" | "hardware" | "watchonly";
 
 /**
  * Wallet & Chain screen orchestrator (client island). Resolves the active chain,
@@ -55,24 +65,50 @@ export function WalletChainApp() {
 
   const stakeEnabled = safeStakingAvailable(chainId);
 
-  // Initial view + auto-lock.
+  // Initial view + auto-lock. A persisted NON-embedded mode is the user's
+  // explicit choice and wins; otherwise an existing vault lands straight in
+  // embedded (the chooser never blocks an existing embedded user).
+  const initView = useCallback(async (alive: () => boolean) => {
+    const [exists, persisted] = await Promise.all([hasVault(), hasWalletMode()]);
+    const meta = persisted ? await getWalletMode() : null;
+    if (!alive()) return;
+    if (meta && meta.mode === "hardware") {
+      setView("hardware");
+    } else if (meta && meta.mode === "watchonly") {
+      setView("watchonly");
+    } else if (exists) {
+      setAccounts(await loadPublicAccounts());
+      if (!alive()) return;
+      setView(isUnlocked() ? "unlocked" : "locked");
+    } else if (meta) {
+      setView("create");
+    } else {
+      setView("choose");
+    }
+  }, []);
+
   useEffect(() => {
     let mounted = true;
-    (async () => {
-      const exists = await hasVault();
-      if (!mounted) return;
-      if (exists) {
-        setAccounts(await loadPublicAccounts());
-        setView(isUnlocked() ? "unlocked" : "locked");
-      } else {
-        setView("create");
-      }
-    })();
+    void initView(() => mounted);
     const teardown = startAutoLock();
     return () => {
       mounted = false;
       teardown();
     };
+  }, [initView]);
+
+  const onSelectMode = useCallback(
+    async (mode: WalletMode) => {
+      await setWalletMode({ mode });
+      setView("loading");
+      await initView(() => true);
+    },
+    [initView],
+  );
+
+  const onChangeMode = useCallback(async () => {
+    await clearWalletMode();
+    setView("choose");
   }, []);
 
   const evmAddress = accounts?.evm ?? null;
@@ -170,22 +206,66 @@ export function WalletChainApp() {
     );
   }
 
+  if (view === "choose") {
+    return (
+      <div className="wrap" style={{ padding: "32px 0", maxWidth: 720 }}>
+        <div className="kicker">SOVEREIGN WALLET</div>
+        <h1 style={{ marginTop: 12 }}>Choose your wallet mode</h1>
+        <p style={{ color: "var(--muted)", marginTop: 12 }}>
+          Every mode is non-custodial: CryptRepublic never holds keys and never signs.
+        </p>
+        <WalletModeSelect onSelect={onSelectMode} />
+      </div>
+    );
+  }
+
+  if (view === "hardware") {
+    return (
+      <div className="wrap" style={{ padding: "32px 0", maxWidth: 720 }}>
+        <div className="kicker">SOVEREIGN WALLET</div>
+        <h1 style={{ marginTop: 12 }}>Hardware / external wallet</h1>
+        <p style={{ color: "var(--muted)", marginTop: 12 }} data-testid="hardware-panel">
+          Connect a wallet you already have — the connect panel is being assembled in this wave.
+        </p>
+        <button className="btn" type="button" onClick={onChangeMode} style={{ marginTop: 16 }}>
+          Change wallet mode
+        </button>
+      </div>
+    );
+  }
+
+  if (view === "watchonly") {
+    return (
+      <div className="wrap" style={{ padding: "32px 0", maxWidth: 720 }}>
+        <div className="kicker">SOVEREIGN WALLET</div>
+        <h1 style={{ marginTop: 12 }}>Watch-only wallet</h1>
+        <p style={{ color: "var(--muted)", marginTop: 12 }} data-testid="watchonly-panel">
+          Track a public address read-only — the setup panel is being assembled in this wave.
+        </p>
+        <button className="btn" type="button" onClick={onChangeMode} style={{ marginTop: 16 }}>
+          Change wallet mode
+        </button>
+      </div>
+    );
+  }
+
   if (view === "create") {
     return (
       <div className="wrap" style={{ padding: "32px 0" }}>
         <div className="kicker">SOVEREIGN WALLET</div>
         <h1 style={{ marginTop: 12 }}>No wallet yet</h1>
         <p style={{ color: "var(--muted)", marginTop: 12 }}>
-          Create your embedded wallet first, then return here to manage tokens, staking, and chain
-          activity.
+          Create or import your embedded wallet first, then return here to manage tokens, staking,
+          and chain activity.
         </p>
-        <a
-          className="btn btn-primary"
-          href="/wallet"
-          style={{ marginTop: 20, display: "inline-flex" }}
-        >
-          Create wallet
-        </a>
+        <div style={{ marginTop: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <a className="btn btn-primary" href="/wallet" style={{ display: "inline-flex" }}>
+            Create wallet
+          </a>
+          <button className="btn" type="button" onClick={onChangeMode}>
+            Change wallet mode
+          </button>
+        </div>
       </div>
     );
   }

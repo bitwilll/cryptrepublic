@@ -6,11 +6,15 @@ import type { VaultBlob } from "./vault";
  * IndexedDB persistence for the encrypted vault. The blob contains only
  * ciphertext + public addresses + non-secret KDF params — nothing here is ever
  * transmitted to the server. Single active vault id "primary" in v1.
+ * v2 (Wave 11 A2) adds the `meta` store (wallet mode + watch-only address —
+ * PUBLIC metadata only, never a secret) in the SAME upgrade path; one openDB
+ * per app — lib/wallet/mode.ts owns the meta records via openWalletDb().
  */
 
 const DB_NAME = "cryptrepublic";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE = "vaults";
+export const META_STORE = "meta";
 const DEFAULT_ID = "primary";
 
 interface StoredVault extends VaultBlob {
@@ -26,10 +30,18 @@ function db(): Promise<IDBPDatabase> {
         if (!database.objectStoreNames.contains(STORE)) {
           database.createObjectStore(STORE, { keyPath: "id" });
         }
+        if (!database.objectStoreNames.contains(META_STORE)) {
+          database.createObjectStore(META_STORE, { keyPath: "id" });
+        }
       },
     });
   }
   return dbPromise;
+}
+
+/** The shared wallet DB handle (vaults + meta) — for lib/wallet/mode.ts. */
+export function openWalletDb(): Promise<IDBPDatabase> {
+  return db();
 }
 
 export async function saveVault(blob: VaultBlob, id: string = DEFAULT_ID): Promise<void> {

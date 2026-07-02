@@ -12,8 +12,17 @@ import {
   type WalletAccounts,
 } from "@/lib/wallet/embedded/session";
 import { hasVault } from "@/lib/wallet/embedded/storage";
+import {
+  getWalletMode,
+  setWalletMode,
+  clearWalletMode,
+  hasWalletMode,
+  type WalletMode,
+} from "@/lib/wallet/mode";
 import { receiveQrDataUrl } from "@/lib/wallet/receive";
 import { UnlockWalletModal } from "./UnlockWalletModal";
+import { WalletModeSelect } from "./WalletModeSelect";
+import { ImportWalletForm } from "./ImportWalletForm";
 
 const MIN_PASSPHRASE = 12;
 
@@ -22,7 +31,10 @@ const HONEST_WARNING =
   "anyone who sees it can take everything; we will never ask for it. This is separate " +
   "from your recoverable web-login passphrase.";
 
-type View = "loading" | "create" | "locked" | "unlocked";
+// Wave 11 A2: "choose" (mode chooser — only when no vault AND no persisted
+// mode), "import" (BIP-39 import), "othermode" (hardware/watch-only chosen —
+// those live on the Wallet & Chain screen).
+type View = "loading" | "choose" | "othermode" | "create" | "import" | "locked" | "unlocked";
 
 export function WalletApp() {
   const [view, setView] = useState<View>("loading");
@@ -36,7 +48,9 @@ export function WalletApp() {
   const [qr, setQr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // Determine initial view + wire auto-lock.
+  // Determine initial view + wire auto-lock. An existing vault user is NEVER
+  // blocked by the chooser; the chooser shows only with no vault AND no
+  // persisted mode choice.
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -45,8 +59,12 @@ export function WalletApp() {
       if (exists) {
         setAccounts(await loadPublicAccounts());
         setView(isUnlocked() ? "unlocked" : "locked");
+      } else if (await hasWalletMode()) {
+        const meta = await getWalletMode();
+        if (!mounted) return;
+        setView(meta.mode === "embedded" ? "create" : "othermode");
       } else {
-        setView("create");
+        setView("choose");
       }
     })();
     const teardown = startAutoLock();
@@ -55,6 +73,16 @@ export function WalletApp() {
       teardown();
     };
   }, []);
+
+  async function onSelectMode(mode: WalletMode) {
+    await setWalletMode({ mode });
+    setView(mode === "embedded" ? "create" : "othermode");
+  }
+
+  async function onChangeMode() {
+    await clearWalletMode();
+    setView("choose");
+  }
 
   // Render a receive QR for the EVM address whenever accounts are known.
   useEffect(() => {
@@ -125,12 +153,64 @@ export function WalletApp() {
     <section className="block">
       <div className="wrap" style={{ maxWidth: 720 }}>
         <div className="kicker">SOVEREIGN WALLET</div>
-        <h1 style={{ marginTop: 12 }}>Embedded wallet</h1>
-        <p role="note" style={{ color: "var(--muted)", marginTop: 12, maxWidth: 560 }}>
-          {HONEST_WARNING}
-        </p>
+        <h1 style={{ marginTop: 12 }}>
+          {view === "choose"
+            ? "Choose your wallet mode"
+            : view === "othermode"
+              ? "Wallet mode"
+              : "Embedded wallet"}
+        </h1>
+        {view !== "choose" && view !== "othermode" && (
+          <p role="note" style={{ color: "var(--muted)", marginTop: 12, maxWidth: 560 }}>
+            {HONEST_WARNING}
+          </p>
+        )}
 
         {view === "loading" && <p style={{ marginTop: 24 }}>Loading…</p>}
+
+        {/* MODE CHOOSER (no vault + no persisted choice) */}
+        {view === "choose" && (
+          <>
+            <p style={{ color: "var(--muted)", marginTop: 12, maxWidth: 560 }}>
+              Every mode is non-custodial: CryptRepublic never holds keys and never signs.
+            </p>
+            <WalletModeSelect onSelect={onSelectMode} />
+          </>
+        )}
+
+        {/* HARDWARE / WATCH-ONLY chosen — those modes live on the dashboard screen */}
+        {view === "othermode" && (
+          <div style={{ marginTop: 24 }}>
+            <p style={{ color: "var(--muted)", maxWidth: 560 }}>
+              Hardware/external and watch-only wallets are managed on the Wallet &amp; Chain screen.
+            </p>
+            <div style={{ marginTop: 16, display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <a className="btn btn-primary" href="/dashboard/wallet">
+                Open Wallet &amp; Chain
+              </a>
+              <button className="btn" type="button" onClick={onChangeMode}>
+                Change wallet mode
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* IMPORT */}
+        {view === "import" && (
+          <>
+            <ImportWalletForm
+              onImported={(acc) => {
+                setAccounts(acc);
+                setView("unlocked");
+              }}
+            />
+            <p style={{ marginTop: 16 }}>
+              <button className="btn" type="button" onClick={() => setView("create")}>
+                Create a new wallet instead
+              </button>
+            </p>
+          </>
+        )}
 
         {/* CREATE */}
         {view === "create" && !mnemonic && (
@@ -157,9 +237,12 @@ export function WalletApp() {
                 {createError}
               </p>
             )}
-            <div style={{ marginTop: 20 }}>
+            <div style={{ marginTop: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
               <button className="btn btn-primary" type="submit" disabled={busy}>
                 {busy ? "Creating…" : "Create wallet"}
+              </button>
+              <button className="btn" type="button" onClick={() => setView("import")}>
+                Import an existing wallet instead
               </button>
             </div>
           </form>

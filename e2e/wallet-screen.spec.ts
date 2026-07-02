@@ -118,6 +118,8 @@ async function register(page: Page) {
 /** Create the embedded vault at /wallet (persists in IndexedDB for this context). */
 async function createVault(page: Page) {
   await page.goto("/wallet");
+  // Wave 11 A2: a fresh context lands on the mode chooser — pick EMBEDDED.
+  await page.getByTestId("mode-embedded").click();
   await page.getByLabel(/Choose a vault passphrase/i).fill(PASS);
   await page.getByRole("button", { name: /Create wallet/i }).click();
   await expect(page.getByTestId("mnemonic")).toBeVisible({ timeout: 25_000 });
@@ -129,6 +131,8 @@ async function createVault(page: Page) {
 test("no vault → the wallet screen shows the create state", async ({ page }) => {
   await register(page);
   await page.goto("/dashboard/wallet");
+  // Wave 11 A2: a fresh context lands on the mode chooser — pick EMBEDDED.
+  await page.getByTestId("mode-embedded").click();
   await expect(page.getByRole("heading", { name: /No wallet yet/i })).toBeVisible();
   await expect(page.getByRole("link", { name: /Create wallet/i })).toHaveAttribute(
     "href",
