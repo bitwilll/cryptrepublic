@@ -60,6 +60,21 @@ describe("serializeForAudit (allowlist serializer)", () => {
     expect(out).not.toContain("SECRET-ARGON2");
   });
 
+  it("EXPORT (Wave 10): the tiny allowlist serializes kind/rowCount/requestedAt, no secret", () => {
+    const out = serializeForAudit("EXPORT", {
+      kind: "users",
+      rowCount: 3,
+      requestedAt: new Date(0),
+      passwordHash: "SECRET-ARGON2",
+    });
+    const parsed = JSON.parse(out) as Record<string, unknown>;
+    expect(parsed.kind).toBe("users");
+    expect(parsed.rowCount).toBe(3);
+    expect(parsed.requestedAt).toBe("1970-01-01T00:00:00.000Z");
+    expect(Object.keys(parsed)).not.toContain("passwordHash");
+    expect(out).not.toContain("SECRET-ARGON2");
+  });
+
   it("ALLOWLIST INVARIANT: no targetType allowlist contains a secret-adjacent name", () => {
     for (const t of Object.keys(AUDIT_FIELD_ALLOWLIST) as AuditTargetType[]) {
       for (const field of AUDIT_FIELD_ALLOWLIST[t]) {

@@ -41,7 +41,8 @@ export type AuditTargetType =
   | "CONSTITUTION"
   | "PROPOSAL_CONTENT"
   | "COMMENT"
-  | "FLAG";
+  | "FLAG"
+  | "EXPORT";
 
 /** Per-targetType field ALLOWLIST — the ONLY keys serializeForAudit will emit.
  *  INVARIANT (test-enforced): no allowlist ever contains passwordHash, tokenHash,
@@ -115,6 +116,9 @@ export const AUDIT_FIELD_ALLOWLIST: Record<AuditTargetType, readonly string[]> =
     "createdAt",
   ],
   FLAG: ["key", "enabled", "description", "updatedAt"],
+  // Wave 10 — CSV report exports (a READ, audited before the body returns). Tiny
+  // allowlist: the export KIND + row count + timestamp; never a per-row secret.
+  EXPORT: ["kind", "rowCount", "requestedAt"],
 };
 
 function auditValue(v: unknown): unknown {
