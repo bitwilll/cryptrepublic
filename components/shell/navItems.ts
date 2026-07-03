@@ -18,6 +18,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/dashboard/passport", label: "Your passport", icon: "passport" },
   { href: "/dashboard/holdings", label: "Sovereign holdings", icon: "holdings", badge: "dividend" },
   { href: "/dashboard/embassies", label: "Embassies", icon: "embassy" },
+  { href: "/dashboard/referrals", label: "Referrals & trust", icon: "referrals" },
   { href: "/dashboard/wallet", label: "Wallet & chain", icon: "wallet" },
 ] as const;
 

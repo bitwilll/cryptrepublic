@@ -11,7 +11,8 @@ export type NavIconKind =
   | "embassy"
   | "mint"
   | "holdings"
-  | "wallet";
+  | "wallet"
+  | "referrals";
 
 export function NavIcon({
   kind,
@@ -98,6 +99,15 @@ export function NavIcon({
           <rect x="3" y="7" width="18" height="12" rx="2" />
           <path d="M3 9 H 17 V 5 H 5 Q 3 5 3 7 Z" />
           <circle cx="17" cy="13" r="1.5" fill={color} />
+        </g>
+      )}
+      {kind === "referrals" && (
+        <g {...p}>
+          <circle cx="6" cy="7" r="2.5" />
+          <circle cx="18" cy="7" r="2.5" />
+          <circle cx="12" cy="17" r="2.5" />
+          <line x1="8" y1="8.5" x2="10.5" y2="15" />
+          <line x1="16" y1="8.5" x2="13.5" y2="15" />
         </g>
       )}
     </svg>
