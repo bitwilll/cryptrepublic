@@ -82,6 +82,13 @@ describe("email auth routes", () => {
         where: { tokenHash: (await import("@/lib/auth/tokens")).hashToken(token) },
       }),
     ).toBeNull();
+    // The clear cookie mirrors the set attributes (HttpOnly/SameSite/Path) and
+    // expires immediately (audit hardening).
+    const clear = out.headers.get("set-cookie") ?? "";
+    expect(clear).toMatch(/cr_session=;/);
+    expect(clear).toMatch(/HttpOnly/);
+    expect(clear).toMatch(/SameSite=Lax/);
+    expect(clear).toMatch(/Max-Age=0/);
   });
 
   afterAll(async () => {

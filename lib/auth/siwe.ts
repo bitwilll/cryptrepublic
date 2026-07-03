@@ -34,6 +34,17 @@ export function appUri(): string {
 export class SiweError extends Error {}
 
 export async function issueNonce(): Promise<string> {
+  // Opportunistic hygiene: drop expired + already-consumed nonces so the table
+  // stays bounded under repeated issuance (audit finding — the @@index on
+  // expiresAt keeps this cheap). Best-effort: a cleanup failure never blocks a
+  // legitimate nonce.
+  try {
+    await prisma.siweNonce.deleteMany({
+      where: { OR: [{ expiresAt: { lt: new Date() } }, { usedAt: { not: null } }] },
+    });
+  } catch {
+    /* non-fatal */
+  }
   const nonce = generateSessionToken().slice(0, 32); // alphanumeric-ish hex, ≥8 chars per EIP-4361
   await prisma.siweNonce.create({
     data: { nonce, expiresAt: new Date(Date.now() + SIWE_NONCE_TTL_MS) },

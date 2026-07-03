@@ -41,6 +41,14 @@ export function withSessionCookie(res: Response, token: string): Response {
   return res;
 }
 export function clearSessionCookie(res: Response): Response {
-  res.headers.append("set-cookie", `${SESSION_COOKIE}=; Path=/; Max-Age=0`);
+  // Mirror the SET attributes (HttpOnly / Secure-in-prod / SameSite / Path) so
+  // the clear reliably overwrites the session cookie under strict cookie
+  // handling; logout also deletes the row server-side, so the cookie is inert
+  // either way (audit hardening).
+  const secure = process.env.NODE_ENV === "production" ? " Secure;" : "";
+  res.headers.append(
+    "set-cookie",
+    `${SESSION_COOKIE}=; HttpOnly;${secure} SameSite=Lax; Path=/; Max-Age=0`,
+  );
   return res;
 }

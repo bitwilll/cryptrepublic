@@ -31,7 +31,15 @@ export async function POST(req: Request): Promise<Response> {
   const email = normalizeEmail(parsed.data.email);
   const user = await prisma.user.findUnique({ where: { email } });
 
-  // Always run a verify to equalize timing (enumeration resistance).
+  // Always run a verify against a real or DUMMY_HASH so the DOMINANT cost (the
+  // Argon2id verify) is paid on every path — this equalizes the primary timing
+  // channel between unknown-email and known-email. NOTE (honest scope): a
+  // successful login additionally does resetFailedLogins + createSession
+  // (two extra DB round-trips), so a determined attacker with many samples
+  // could still statistically separate "valid credentials" from "unknown
+  // email" by end-to-end latency. That residual channel is narrow and
+  // high-noise; the response BODY is identical (genericAuthError) on every
+  // failure, so there is no cheap enumeration oracle.
   const hash = user?.passwordHash ?? DUMMY_HASH;
   const passwordOk = await verifyPassword(hash, parsed.data.passphrase);
 

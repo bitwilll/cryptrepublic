@@ -75,14 +75,23 @@ export async function guardAdminGet(
   return actorOf(user, req);
 }
 
-/** page ≥ 1, 1 ≤ pageSize ≤ 100 (default 1 / 20); null = invalid → 400. */
+// Upper bound on `page` so a huge value never reaches Prisma as an
+// out-of-range `skip` (a 500). With pageSize ≤ 100, skip ≤ 1e8 stays well
+// inside the signed-32-bit range Prisma requires; 1e6 pages is far beyond any
+// real admin list.
+const MAX_PAGE = 1_000_000;
+
+/** page 1..MAX_PAGE, 1 ≤ pageSize ≤ 100 (default 1 / 20); null = invalid → 400. */
 export function parseListQuery(url: URL): { page: number; pageSize: number } | null {
   const pageRaw = url.searchParams.get("page") ?? "1";
   const sizeRaw = url.searchParams.get("pageSize") ?? "20";
   if (!/^\d+$/.test(pageRaw) || !/^\d+$/.test(sizeRaw)) return null;
   const page = Number(pageRaw);
   const pageSize = Number(sizeRaw);
-  if (page < 1 || pageSize < 1 || pageSize > 100) return null;
+  // Number.isSafeInteger rejects digit strings that overflow to Infinity/loss;
+  // MAX_PAGE keeps the derived `skip` in Prisma's int range (audit hardening).
+  if (!Number.isSafeInteger(page) || page < 1 || page > MAX_PAGE) return null;
+  if (pageSize < 1 || pageSize > 100) return null;
   return { page, pageSize };
 }
 

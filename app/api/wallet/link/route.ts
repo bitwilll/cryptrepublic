@@ -61,10 +61,31 @@ export async function POST(req: Request): Promise<Response> {
   }
   if (existing) {
     await prisma.linkedWallet.update({ where: { address }, data: { verifiedAt: new Date() } });
-  } else {
+    return json({ ok: true, address });
+  }
+
+  try {
     await prisma.linkedWallet.create({
       data: { userId, address, chain: "EVM", verifiedAt: new Date() },
     });
+  } catch (e) {
+    // Concurrent first-time link of the SAME address: the unique constraint
+    // fires on the loser of the race. Re-resolve honestly — another account's
+    // wallet is a 409 (never re-parented); if it became ours, treat as an
+    // idempotent success (audit hardening — no uncaught 500).
+    if (e && typeof e === "object" && (e as { code?: string }).code === "P2002") {
+      const now = await prisma.linkedWallet.findUnique({ where: { address } });
+      if (now && now.userId !== userId) {
+        return json(
+          { error: "This wallet is already linked to another account." },
+          { status: 409 },
+        );
+      }
+      if (!now) throw e;
+      await prisma.linkedWallet.update({ where: { address }, data: { verifiedAt: new Date() } });
+    } else {
+      throw e;
+    }
   }
   return json({ ok: true, address });
 }
