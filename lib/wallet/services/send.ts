@@ -1,9 +1,16 @@
 import "client-only";
-import { encodeFunctionData, erc20Abi, type Account, type WalletClient } from "viem";
+import { erc20Abi, type Account, type WalletClient } from "viem";
 import { Connection, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { publicClientFor } from "./evmClients";
+import { buildCall, type EvmSendRequest } from "./call";
 import { requireSeed, withEvmSigner } from "@/lib/wallet/embedded/session";
 import { solanaKeypair } from "@/lib/wallet/embedded/derive";
+
+// Wave 11 C2: the tx-shape primitives live in the SIGNER-FREE ./call module
+// (shared with the watch-only air-gapped build path, which must never import
+// this file — send.ts transitively pulls the embedded signer). Re-exported
+// here for backward compat.
+export { buildCall, type EvmSendRequest } from "./call";
 
 /**
  * Send layer. The embedded wallet signs LOCALLY with a transient account and
@@ -14,14 +21,6 @@ import { solanaKeypair } from "@/lib/wallet/embedded/derive";
  * BTC send is a flagged fast-follow (PSBT) and is DISABLED in v1 (receive-only).
  */
 
-export interface EvmSendRequest {
-  chainId: number;
-  to: `0x${string}`;
-  amount: bigint;
-  /** ERC-20 contract; omit for a native transfer. */
-  token?: `0x${string}`;
-}
-
 export interface SendPreview {
   to: string;
   amount: string;
@@ -29,26 +28,6 @@ export interface SendPreview {
   chainId: number;
   /** Estimated max fee in wei (gas * maxFeePerGas), as a decimal string. */
   feeEstimate: string;
-}
-
-/** Build the tx `{ to, value, data }` shell for a native or ERC-20 transfer. */
-function buildCall(req: EvmSendRequest): {
-  to: `0x${string}`;
-  value: bigint;
-  data?: `0x${string}`;
-} {
-  if (req.token) {
-    return {
-      to: req.token,
-      value: 0n,
-      data: encodeFunctionData({
-        abi: erc20Abi,
-        functionName: "transfer",
-        args: [req.to, req.amount],
-      }),
-    };
-  }
-  return { to: req.to, value: req.amount };
 }
 
 /** Estimate gas + EIP-1559 fees; returns a human-facing preview. */
