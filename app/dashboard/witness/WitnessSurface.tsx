@@ -29,6 +29,7 @@ export default function WitnessSurface(): React.ReactElement {
   const [raw, setRaw] = useState("");
   const [state, setState] = useState<State>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [submitNote, setSubmitNote] = useState<string | null>(null);
   const [signature, setSignature] = useState<Hex | null>(null);
 
   async function sign() {
@@ -65,20 +66,32 @@ export default function WitnessSurface(): React.ReactElement {
       });
 
       // Best-effort: submit directly (works when the applicant is this same user);
-      // otherwise the applicant collects the signature out of band.
-      await fetch("/api/applications/witnesses/submit", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          attestation: {
-            applicant: attestation.applicant,
-            nameHash: attestation.nameHash,
-            nonce: msg.nonce,
-            deadline: msg.deadline,
-          },
-          signature: sig,
-        }),
-      }).catch(() => undefined);
+      // otherwise the applicant collects the signature out of band. A referral-
+      // gate 400 (Wave 12) is surfaced verbatim as an advisory note — the
+      // signature is still produced for out-of-band sharing; the server gate is
+      // authoritative (keyed on the recovered witness, never a client check).
+      setSubmitNote(null);
+      try {
+        const res = await fetch("/api/applications/witnesses/submit", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            attestation: {
+              applicant: attestation.applicant,
+              nameHash: attestation.nameHash,
+              nonce: msg.nonce,
+              deadline: msg.deadline,
+            },
+            signature: sig,
+          }),
+        });
+        if (!res.ok) {
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          if (data.error) setSubmitNote(data.error);
+        }
+      } catch {
+        /* out-of-band submit — the signature below is still valid to share */
+      }
 
       setSignature(sig);
       setState("signed");
@@ -94,6 +107,12 @@ export default function WitnessSurface(): React.ReactElement {
       <p style={{ color: "var(--muted)", marginTop: 12 }}>
         Paste an applicant&apos;s witness request (the typed-data JSON from their mint flow). You
         must be an existing citizen to witness.
+      </p>
+      <p
+        data-testid="witness-referral-hint"
+        style={{ color: "var(--muted)", marginTop: 8, fontSize: 13 }}
+      >
+        You can only attest for applicants you have referred (Wave 12 referral-gated attestation).
       </p>
       <textarea
         value={raw}
@@ -122,6 +141,15 @@ export default function WitnessSurface(): React.ReactElement {
       {state === "signed" && signature && (
         <div style={{ marginTop: 16 }}>
           <div style={{ color: "var(--success)", fontWeight: 700 }}>✓ SIGNED</div>
+          {submitNote && (
+            <div
+              role="status"
+              data-testid="witness-submit-note"
+              style={{ marginTop: 8, color: "var(--gold-d)", fontSize: 13 }}
+            >
+              {submitNote} (Your signature is still valid to share with the applicant.)
+            </div>
+          )}
           <textarea
             readOnly
             value={signature}
