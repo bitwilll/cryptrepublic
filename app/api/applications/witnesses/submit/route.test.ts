@@ -53,6 +53,42 @@ async function seedApplication(
   return { userId: user.id, token, appId: user.application!.id };
 }
 
+/**
+ * Wave 12: seed a citizen witness who REFERRED the applicant — a User + a
+ * verified LinkedWallet at `witnessAddress` + a Referral(referrer, referred).
+ * The referral gate at submit requires exactly this edge. Returns the
+ * referrer's userId. (Cascade-deletes with the user in afterAll.)
+ */
+async function seedReferrer(witnessAddress: string, referredUserId: string): Promise<string> {
+  const referrer = await prisma.user.create({
+    data: {
+      email: `wref${Date.now()}${Math.random()}@ex.org`,
+      linkedWallets: {
+        create: { address: getAddress(witnessAddress), chain: "EVM", verifiedAt: new Date() },
+      },
+    },
+  });
+  ids.push(referrer.id);
+  await prisma.referral.create({
+    data: { referrerUserId: referrer.id, referredUserId },
+  });
+  return referrer.id;
+}
+
+/** Seed a citizen witness with a verified wallet but NO referral to the applicant. */
+async function seedNonReferrerWitness(witnessAddress: string): Promise<string> {
+  const u = await prisma.user.create({
+    data: {
+      email: `wnoref${Date.now()}${Math.random()}@ex.org`,
+      linkedWallets: {
+        create: { address: getAddress(witnessAddress), chain: "EVM", verifiedAt: new Date() },
+      },
+    },
+  });
+  ids.push(u.id);
+  return u.id;
+}
+
 async function signAs(pk: Hex, applicant: string): Promise<Hex> {
   const account = privateKeyToAccount(pk);
   return account.signTypedData({
@@ -106,10 +142,12 @@ describe("POST /api/applications/witnesses/submit", () => {
     expect(res.status).toBe(403);
   });
 
-  it("accepts a valid citizen witness signature and increments the count", async () => {
+  it("accepts a valid citizen witness signature (who referred the applicant) and increments the count", async () => {
     const applicant = nextAddr();
-    const { token, appId } = await seedApplication(applicant);
-    const sig = await signAs(generatePrivateKey(), applicant);
+    const { token, appId, userId } = await seedApplication(applicant);
+    const wpk = generatePrivateKey();
+    await seedReferrer(privateKeyToAccount(wpk).address, userId); // the witness referred the applicant
+    const sig = await signAs(wpk, applicant);
     const res = await POST(post(attestationBody(applicant, sig), token));
     expect(res.status).toBe(200);
     const body = (await res.json()) as { ok: boolean; collected: number; required: number };
@@ -164,8 +202,9 @@ describe("POST /api/applications/witnesses/submit", () => {
 
   it("rejects a duplicate witness (same address signs twice)", async () => {
     const applicant = nextAddr();
-    const { token } = await seedApplication(applicant);
+    const { token, userId } = await seedApplication(applicant);
     const pk = generatePrivateKey();
+    await seedReferrer(privateKeyToAccount(pk).address, userId);
     const sig = await signAs(pk, applicant);
     const first = await POST(post(attestationBody(applicant, sig), token));
     expect(first.status).toBe(200);
@@ -174,18 +213,41 @@ describe("POST /api/applications/witnesses/submit", () => {
     expect((await second.json()).error).toMatch(/already signed/i);
   });
 
-  it("transitions to WITNESSED when the required count is reached", async () => {
+  it("transitions to WITNESSED when the required count of REFERRER witnesses is reached", async () => {
     const applicant = nextAddr();
     const { token, userId, appId } = await seedApplication(applicant);
-    await POST(
-      post(attestationBody(applicant, await signAs(generatePrivateKey(), applicant)), token),
-    );
-    await POST(
-      post(attestationBody(applicant, await signAs(generatePrivateKey(), applicant)), token),
-    );
+    const pk1 = generatePrivateKey();
+    const pk2 = generatePrivateKey();
+    await seedReferrer(privateKeyToAccount(pk1).address, userId);
+    await seedReferrer(privateKeyToAccount(pk2).address, userId);
+    await POST(post(attestationBody(applicant, await signAs(pk1, applicant)), token));
+    await POST(post(attestationBody(applicant, await signAs(pk2, applicant)), token));
     const app = await prisma.citizenshipApplication.findUnique({ where: { userId } });
     expect(app?.status).toBe("WITNESSED");
     const count = await prisma.witnessSignature.count({ where: { applicationId: appId } });
     expect(count).toBe(2);
+  });
+
+  it("Wave 12: rejects a citizen witness who did NOT refer the applicant (referral gate) — writes no row", async () => {
+    const applicant = nextAddr();
+    const { token, appId } = await seedApplication(applicant);
+    const wpk = generatePrivateKey();
+    await seedNonReferrerWitness(privateKeyToAccount(wpk).address); // citizen + verified, but no referral
+    const sig = await signAs(wpk, applicant);
+    const res = await POST(post(attestationBody(applicant, sig), token));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/only attest for applicants you have referred/i);
+    expect(await prisma.witnessSignature.count({ where: { applicationId: appId } })).toBe(0);
+  });
+
+  it("Wave 12: rejects a witness whose address maps to no verified wallet — writes no row", async () => {
+    const applicant = nextAddr();
+    const { token, appId } = await seedApplication(applicant);
+    // Random witness key with NO LinkedWallet anywhere → resolveUserByWalletAddress null.
+    const sig = await signAs(generatePrivateKey(), applicant);
+    const res = await POST(post(attestationBody(applicant, sig), token));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/referred/i);
+    expect(await prisma.witnessSignature.count({ where: { applicationId: appId } })).toBe(0);
   });
 });

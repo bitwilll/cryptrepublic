@@ -8,6 +8,7 @@ import { passportAddress } from "@/config/contracts";
 import { witnessSubmitSchema } from "@/lib/validation/mint";
 import { recoverWitness } from "@/lib/passport/attestation";
 import { readHasPassportServer, readRequiredWitnessesServer } from "@/lib/passport/serverReads";
+import { resolveUserByWalletAddress, referralExists } from "@/lib/referrals/lookup";
 import { json, badRequest, forbidden } from "@/lib/http/responses";
 
 /**
@@ -48,6 +49,7 @@ export async function POST(req: Request): Promise<Response> {
     where: { userId },
     select: {
       id: true,
+      userId: true, // Wave 12: needed to check Referral(referrer=witness, referred=applicant)
       status: true,
       applicantAddress: true,
       witnessNonce: true,
@@ -104,6 +106,19 @@ export async function POST(req: Request): Promise<Response> {
   }
   if (!isCitizen) {
     return badRequest("Only existing citizens may witness a new citizen.");
+  }
+
+  // Wave 12 — REFERRAL-GATED ATTESTATION: a witness may only attest for an
+  // applicant they REFERRED. The witness is known ONLY as the recovered
+  // `witnessAddress` (crypto-bound, never a session/body field); map it back to
+  // a User via a VERIFIED LinkedWallet, then require a Referral(referrer=that
+  // user, referred=this applicant). A rejected witness persists NO row, so the
+  // `collected >= required → WITNESSED` transition below needs no change.
+  // (The Wave-10 admin-mint OVERRIDE collects zero witnesses and never reaches
+  // this route — it is deliberately exempt from the gate.)
+  const referrerUserId = await resolveUserByWalletAddress(getAddress(witnessAddress));
+  if (!referrerUserId || !(await referralExists(referrerUserId, application.userId))) {
+    return badRequest("You may only attest for applicants you have referred.");
   }
 
   // Store the signature; the unique index enforces no-duplicate-witness.
