@@ -17,8 +17,11 @@ export function WatchOnlyBadge() {
         letterSpacing: "0.1em",
         textTransform: "uppercase",
         padding: "4px 10px",
+        // Gold border for the brand accent; NAVY text — --gold on the light
+        // background fails the 4.5:1 contrast ratio (axe serious).
         border: "1px solid var(--gold)",
-        color: "var(--gold)",
+        color: "var(--navy)",
+        background: "rgba(200, 169, 106, 0.15)",
       }}
     >
       WATCH-ONLY — read-only; this device holds no keys
