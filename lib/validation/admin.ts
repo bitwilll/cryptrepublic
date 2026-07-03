@@ -129,3 +129,16 @@ export const flagSchema = z
     description: z.string().max(300).nullable().optional(),
   })
   .strict();
+
+/** Wave 12 — allocate referral tokens. ADD-ONLY (1..1000 per call): an admin
+ *  cannot set an arbitrary balance or go negative (that would risk under-flowing
+ *  an in-flight consume). Revoking tokens, if ever needed, is a separate route. */
+export const referralTokenAllocateSchema = z
+  .object({ delta: z.number().int().min(1).max(1000) })
+  .strict();
+
+/** Wave 12 — SET the absolute trust adjustment (signed, -100..100). Absolute so
+ *  re-posting is idempotent; the score clamp keeps finalScore in 0..100. */
+export const trustAdjustSchema = z
+  .object({ adjustment: z.number().int().min(-100).max(100) })
+  .strict();

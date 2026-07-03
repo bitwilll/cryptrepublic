@@ -59,6 +59,8 @@ export const AUDIT_FIELD_ALLOWLIST: Record<AuditTargetType, readonly string[]> =
     "failedLoginCount",
     "createdAt",
     "updatedAt",
+    "referralTokenBalance", // Wave 12 — public integer (admin-allocated quota)
+    "trustAdjustment", // Wave 12 — public integer (admin trust delta)
   ],
   SESSION: ["id", "userId", "userAgent", "ipHash", "createdAt", "expiresAt"], // NEVER tokenHash
   APPLICATION: [
