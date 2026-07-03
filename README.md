@@ -51,13 +51,13 @@ vars, deploy commands, seeding/admin bootstrap, cryptrepublic.com DNS:
 
 ## Test matrix
 
-Counts as of the Wave-10 close-out (2026-07-03):
+Counts as of the Wave-11 close-out (2026-07-03):
 
 | Suite                     | Command                      | Count | What it proves                                                                                                                                                                                   |
 | ------------------------- | ---------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Unit (Vitest)             | `pnpm test`                  | 799   | lib/API/component logic against jsdom + disposable SQLite (incl. the admin guard stack, audit allowlist, the no-signing guard, the dual-schema drift guard, the Wave-10 CSV/stats/charts suites) |
-| Integration (local anvil) | `pnpm test:integration`      | 16    | REAL on-chain proofs: passport seal/mint, funded send + staking, castVote + dividend claim/no-double-claim, admin PREPARED calldata, ZERO-witness adminMint                                      |
-| E2E (Playwright)          | `pnpm e2e`                   | 32    | browser flows on a prod build with deterministic stubbed reads (9 registrations/run — budget < 10; the admin spec registers nobody)                                                              |
+| Unit (Vitest)             | `pnpm test`                  | 876   | lib/API/component logic against jsdom + disposable SQLite (incl. the admin guard stack, audit allowlist, the no-signing guard, the dual-schema drift guard, the Wave-10 CSV/stats/charts suites) |
+| Integration (local anvil) | `pnpm test:integration`      | 18    | REAL on-chain proofs: passport seal/mint, funded send + staking, castVote + dividend claim/no-double-claim, admin PREPARED calldata, ZERO-witness adminMint                                      |
+| E2E (Playwright)          | `pnpm e2e`                   | 37    | browser flows on a prod build with deterministic stubbed reads (9 registrations/run — budget < 10; the admin spec registers nobody)                                                              |
 | Contracts (Foundry)       | `cd contracts && forge test` | 165   | unit + fuzz + invariant (soulbound, one-vote, no-double-claim, solvency)                                                                                                                         |
 
 Gates: `forge snapshot --check` (pinned fuzz seed + pinned CI toolchain) and
@@ -94,7 +94,7 @@ step** (deploy + fork tests + burn-in per
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — app structure, the single
   `NEXT_PUBLIC_CHAIN_ENV` switch, address registry, RPC-proxy model,
-  non-custodial write path, testing strategy, perf budget, admin panel (§11)
+  non-custodial write path, testing strategy, perf budget, admin panel (§11), wallet modes (§12)
 - [docs/ENV_REFERENCE.md](docs/ENV_REFERENCE.md) — every environment variable
   (public/server-only), chain-swap procedure
 - [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md) — Vercel hosting runbook
@@ -105,7 +105,7 @@ step** (deploy + fork tests + burn-in per
   markers mapped to spec-§10.1 risks
 - [contracts/docs/DEPLOY_RUNBOOK.md](contracts/docs/DEPLOY_RUNBOOK.md) — contract
   deploy/configure/seed runbook (USER steps)
-- [CHANGELOG.md](CHANGELOG.md) — release history (Waves 1–10)
+- [CHANGELOG.md](CHANGELOG.md) — release history (Waves 1–11)
 
 ## Wave status
 
@@ -121,6 +121,7 @@ step** (deploy + fork tests + burn-in per
 | 8    | Polish + tests + docs + mainnet runbook                                                                  | Delivered (assistant scope)            |
 | 9    | Admin panel (capstone)                                                                                   | Delivered (2026-07-02)                 |
 | 10   | Admin enhancements: admin-mint override + CSV report exports + responsive/clickable tiles + infographics | Delivered (2026-07-03)                 |
+| 11   | Wallet modes: embedded create/import + hardware/external + watch-only with air-gapped QR/camera signing  | Delivered (2026-07-03)                 |
 
 ## Admin panel (Wave 9)
 
@@ -160,13 +161,25 @@ links into their sections, the panel is responsive at 390px, and a
 or is shown as unavailable — never fabricated; census geography is labeled
 SEEDED/demonstrative).
 
-## Release (v0.10.0)
+## Wallet modes (Wave 11)
 
-Current version: `0.10.0` ([CHANGELOG.md](CHANGELOG.md)). **Tagging is a USER
+The wallet is a mode chooser with three non-custodial modes: **embedded**
+(create or import a BIP-39 vault, encrypted on-device), **hardware/external**
+(wagmi injected + WalletConnect, sends signed by the wallet's own signer),
+and **watch-only + air-gapped** (track a public address read-only; sign on a
+separate offline device via QR codes — the embedded wallet doubles as the
+offline signer with honest ERC-20 calldata decoding; the offline device never
+broadcasts, the watch-only device never holds a key — statically and
+at-runtime guarded, proven end-to-end on local anvil). See
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) §12.
+
+## Release (v0.11.0)
+
+Current version: `0.11.0` ([CHANGELOG.md](CHANGELOG.md)). **Tagging is a USER
 step** — on `main`:
 
 ```bash
-git checkout main && git pull && git tag -a v0.10.0 -m "CryptRepublic v0.10.0 — Wave 10 admin enhancements" && git push origin v0.10.0
+git checkout main && git pull && git tag -a v0.11.0 -m "CryptRepublic v0.11.0 — Wave 11 wallet modes" && git push origin v0.11.0
 ```
 
 The assistant does not create or push tags. Three Wave-8 spec-row items remain

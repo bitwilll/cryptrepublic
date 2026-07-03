@@ -17,6 +17,10 @@ import {
   evmPrivateKeyHex,
 } from "@/lib/wallet/embedded/derive";
 import { sendEvm } from "@/lib/wallet/services/send";
+import { buildUnsignedTx } from "@/lib/wallet/airgapped/build";
+import { broadcastSignedRaw } from "@/lib/wallet/airgapped/broadcast";
+import { signUnsignedEnvelope } from "@/lib/wallet/airgapped/sign";
+import { encodeUnsigned, encodeUnsignedToQr, encodeSigned } from "@/lib/wallet/airgapped/codec";
 
 /**
  * AUTHORITATIVE runtime secret-leak guard. Spies on global.fetch across the FULL
@@ -121,5 +125,50 @@ describe("no secret reaches the network (create -> unlock -> sendEvm -> reveal)"
     // Sanity: the signed raw tx WAS broadcast (allowed — it is not a secret).
     const rawTxSent = captured.some((b) => b.includes("eth_sendRawTransaction"));
     expect(rawTxSent).toBe(true);
+  });
+
+  it("Wave 11: air-gapped build+sign+broadcast leaks no secret in fetch bodies OR QR payloads", async () => {
+    const seed = await mnemonicToSeed(M);
+    const entropyHex = bytesToHex(mnemonicToEntropy(M)).slice(2).toLowerCase();
+    const privHex = evmPrivateKeyHex(seed).slice(2).toLowerCase();
+    const secrets = [M, entropyHex, privHex, `0x${privHex}`];
+    const cleanOf = (hay: string) => {
+      const lower = hay.toLowerCase();
+      for (const s of secrets) expect(lower.includes(s)).toBe(false);
+    };
+
+    await seedFixedVault();
+    await unlock(PASS);
+    const evmAddress = deriveEvm(seed).address as `0x${string}`;
+
+    // WATCH-ONLY half: build the unsigned envelope for the (watched) address.
+    const env = await buildUnsignedTx({ chainId: 84532, to: TO, amount: 10n ** 15n }, evmAddress);
+
+    // The QR payloads carry ONLY tx params / a public raw tx — never a secret.
+    const unsignedText = encodeUnsigned(env);
+    cleanOf(unsignedText);
+    const unsignedQr = await encodeUnsignedToQr(env);
+    cleanOf(unsignedQr);
+
+    // OFFLINE-SIGNER half: sign locally (no broadcast happens inside sign).
+    const fetchCountBeforeSign = captured.length;
+    const signed = await signUnsignedEnvelope(env);
+    expect(captured.length).toBe(fetchCountBeforeSign); // signing made ZERO network calls
+    const signedText = encodeSigned(signed);
+    cleanOf(signedText);
+
+    // WATCH-ONLY half: broadcast the signed payload via the app path.
+    const hash = await broadcastSignedRaw(84532, signedText);
+    expect(hash).toBe(STUB_HASH);
+
+    // Every fetch body across the whole loop is secret-free…
+    expect(captured.length).toBeGreaterThan(0);
+    for (const body of captured) cleanOf(body);
+    // …the broadcast used the allowed raw-tx method…
+    expect(captured.some((b) => b.includes("eth_sendRawTransaction"))).toBe(true);
+    // …and the forbidden signing/enumeration methods never appear.
+    for (const forbidden of ["eth_sendTransaction", "personal_sign", "eth_sign", "eth_accounts"]) {
+      expect(captured.some((b) => b.includes(`"${forbidden}"`))).toBe(false);
+    }
   });
 });

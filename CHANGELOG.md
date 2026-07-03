@@ -5,6 +5,58 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 numbers on the same branch line and are recorded below as dated development
 history (dates are the real commit dates from the git trail).
 
+## [0.11.0] — 2026-07-03 (Wave 11 — Wallet modes: import · hardware · watch-only air-gapped)
+
+The wallet becomes a three-mode chooser (persisted, non-custodial in every
+mode) and the air-gapped signing loop closes entirely inside the product.
+Full gate at this release: **876 unit / 18 integration (local
+anvil) / 37 e2e (9 registrations, budget < 10) / 165 forge**, plus
+`forge snapshot --check`, the coverage gate, `guard:secrets`, and a green
+production build.
+
+- **Import (A1/A2):** `importWallet` — normalize → `validateMnemonic` BEFORE
+  any derivation (invalid → no vault written) → the exact create path;
+  overwriting an existing vault requires an explicit confirmed checkbox. The
+  mode chooser (embedded | hardware | watch-only) persists in the wallet
+  IndexedDB `meta` store (DB v2); an existing vault user is never blocked;
+  the three legacy wallet e2e specs pass THROUGH the chooser.
+- **Hardware/external (B1/B2):** `sendEvmExternal` (native `sendTransaction`,
+  ERC-20 `writeContract` — the wallet's OWN signer); the panel connects
+  (injected + WalletConnect), shows live balances, enforces a correct-chain
+  switch guard, and degrades honestly (no connector / rejection / revert).
+  Direct Ledger WebHID = documented deferral.
+- **Watch-only + air-gapped (C1–C5):** checksum-validated watched address →
+  read-only portfolio under a WATCH-ONLY badge; SEND builds an UNSIGNED
+  EIP-1559 envelope (versioned self-contained QR format, EC-L cap 2953 bytes
+  guarded BEFORE render; BC-UR multi-part = follow-up) → the offline signer
+  (embedded wallet, "scan a request to sign") decodes it HONESTLY — ERC-20
+  recipient + amount from transfer calldata, token contract surfaced, never
+  the raw token-contract `to`/`0` value — signs locally and NEVER broadcasts
+  → the watch-only device scans the signed QR and relays via the allow-listed
+  `eth_sendRawTransaction` proxy; "sent" only on a confirmed receipt. Camera
+  scanning is bundled pure-JS `jsqr` (tap-to-scan, manual-paste fallback,
+  track cleanup, ZERO CSP change).
+- **Custody boundary, proven three ways:** a TRANSITIVE static guard
+  (`boundary.test.ts` — build/broadcast import no signer symbol, no embedded
+  module, and NOT `services/send` which transitively pulls the signer; the
+  shared tx-encoding moved to signer-free `services/call.ts`); a runtime
+  zero-fetch spy on the signer; and an anvil end-to-end proof
+  (`airgapped-e2e.test.ts` — the APP builds + broadcasts, only the TEST's
+  throwaway key signs, recipient balance moves, forbidden RPC methods never
+  appear). `no-secret-to-fetch` extended: QR payloads AND fetch bodies are
+  secret-free across the loop.
+- **Wallet verification for existing accounts:** `POST /api/wallet/link` —
+  SIWE-proven key possession binds a wallet to the LOGGED-IN account (409 on
+  another account's wallet); "Citizenship wallet → Verify this wallet" card
+  signs locally with the embedded vault. Closes the gap where
+  email-registered users could never satisfy `resolveApplicantAddress`
+  (witness requests AND the Wave-10 admin-mint override dead-ended).
+- **e2e:** new `wallet-modes.spec.ts` (5 stations, login-bootstrapped, ZERO
+  new registrations — total stays 9) incl. the camera permission-denied →
+  paste fallback and an axe contrast fix on the WATCH-ONLY badge.
+- **Deferred (documented):** BC-UR/Keystone interop, Ledger WebHID,
+  Solana/BTC watch-only.
+
 ## [0.10.0] — 2026-07-03 (Wave 10 — Admin enhancements; live at cryptrepublic.com)
 
 Two threads since 0.9.0: the site went **live in production** at

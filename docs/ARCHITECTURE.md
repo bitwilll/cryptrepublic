@@ -366,3 +366,70 @@ reduced-motion-safe by construction) — each with `role="img"` +
 `<title>`/`<desc>` and a visually-hidden `<table>` as the accessible data
 alternative; the seeded census chart is labeled "SEEDED — demonstrative, not
 live census" in both its visible caption and its accessible alternative.
+
+## 12. Wallet modes (Wave 11)
+
+**Three non-custodial modes**, chosen once (persisted as PUBLIC metadata in
+the wallet IndexedDB's `meta` store — DB v2, same `openDB` upgrade path as
+the vault) and switchable any time; an existing vault user is never blocked
+by the chooser:
+
+1. **Embedded** — create a BIP-39 vault (existing) or **import** one
+   (`importWallet`: normalize → `validateMnemonic` BEFORE any derivation →
+   the same encrypt/save path as create; overwriting an existing vault
+   requires an explicit confirmed `overwrite=true`).
+2. **Hardware / external** — wagmi connect (`injected()` + WalletConnect;
+   direct Ledger WebHID is a DOCUMENTED DEFERRAL — Ledger works today via
+   Ledger Live/WalletConnect or the browser-extension path). Balances reuse
+   the portfolio reads; `sendEvmExternal` sends via the wallet's OWN signer
+   (native `sendTransaction`, ERC-20 `writeContract`); a correct-chain guard
+   blocks send until `useSwitchChain` lands on the active chain.
+3. **Watch-only + air-gapped** — a checksum-validated PUBLIC address drives
+   the same read pipeline (portfolio/history/stats) read-only under a
+   prominent WATCH-ONLY badge; sends are signed on a separate offline device
+   via QR.
+
+**The custody boundary (transitive-safe).** The watch-only build/broadcast
+modules (`lib/wallet/airgapped/{build,broadcast}.ts`) hold NO key — and
+because `services/send.ts` transitively imports the embedded signer, the
+shared tx-encoding (`buildCall` + `EvmSendRequest`) lives in the SIGNER-FREE
+`services/call.ts`; `build.ts` imports only from `call.ts`, never `send.ts`
+(`send.ts` re-exports for compat). The offline signer
+(`lib/wallet/airgapped/sign.ts`) signs via `withEvmSigner` and can never
+broadcast (no `sendRawTransaction`, no `/api/rpc`, no `fetch`). All of this
+is enforced STATICALLY by `lib/wallet/airgapped/boundary.test.ts` (including
+the no-`send.ts`-import transitive guard a per-file symbol grep would miss),
+at runtime by `sign.test.ts`'s zero-fetch spy, and end-to-end by
+`test/integration/airgapped-e2e.test.ts` (anvil: the APP builds + broadcasts;
+only the TEST's throwaway key signs).
+
+**The air-gapped QR envelope** is a SELF-CONTAINED versioned CryptRepublic
+format (`{v:1, t:"cr-eth-tx-unsigned", chainId, tx}` with bigints as decimal
+strings; signed = a bare `0x` raw tx or `{v:1, t:"cr-eth-tx-signed", raw}`)
+— NOT BC-UR; Keystone/Passport interop is documented follow-up.
+`encodeUnsignedToQr` PINS `errorCorrectionLevel:"L"` and guards the exact
+UTF-8 byte length against `QR_BYTE_LIMIT = 2953` (the version-40 EC-L cap of
+the bundled `qrcode` 1.5.4) BEFORE rendering — an oversized payload throws
+the "needs multi-part (BC-UR)" guard, never truncates. **ERC-20 honesty:**
+an ERC-20 envelope's raw `tx.to` is the TOKEN CONTRACT and `tx.value` is 0 —
+`decodeEnvelopeForDisplay` decodes the TRUE recipient + amount from the
+transfer calldata (`decodeFunctionData`), refuses unknown calldata, and the
+offline signer displays the decoded values PLUS the token contract; it never
+shows the raw fields for an ERC-20.
+
+**The scanner** (`QrScanner`) is bundled pure-JS `jsqr` — no CDN, no WASM,
+no worker, ZERO CSP change. `getUserMedia` runs only on an explicit tap;
+permission-denied/no-camera degrade to a manual-paste fallback; every
+MediaStream track stops on decode/close/unmount.
+
+**Scope + guards.** The watch-only/air-gapped MVP is EVM-only (Solana/BTC
+watch-only is a `TODO(follow-up)` in `lib/wallet/mode.ts`). No new RPC
+methods (`eth_sendRawTransaction` and the read set were already
+allow-listed; `eth_sendTransaction`/`personal_sign`/`eth_sign` remain
+rejected). `test/no-secret-to-fetch.test.ts` is EXTENDED across the
+air-gapped loop: no mnemonic/entropy/private-key in any fetch body OR any QR
+payload, signing makes zero network calls, and the forbidden methods never
+appear on the wire. A wallet-verification flow (`POST /api/wallet/link`,
+SIWE-proven key possession) binds a wallet to the LOGGED-IN account —
+closing the gap where email-registered users could never satisfy
+`resolveApplicantAddress`.
