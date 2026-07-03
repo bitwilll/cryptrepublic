@@ -5,6 +5,53 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 numbers on the same branch line and are recorded below as dated development
 history (dates are the real commit dates from the git trail).
 
+## [0.12.0] — 2026-07-04 (Wave 12 — Referral-gated attestation · referral tokens · hybrid trust score)
+
+Three off-chain policy layers over the on-chain 7-witness seal — none of them
+ever citizenship (chain-derived throughout). Full gate at this release:
+**935 unit / 20 integration (local anvil) / 39 e2e (9
+registrations, budget < 10) / 165 forge**, plus snapshot, coverage,
+`guard:secrets`, and a green production build.
+
+### Added
+
+- **Referral-gated attestation (A1–A3):** a `Referral` model (referrer/referred
+  User, `@@unique` to prevent double-referral, `whenTokenConsumed`) + the
+  `User.referralTokenBalance` / `User.trustAdjustment` columns in BOTH prisma
+  schemas with both migrations (drift-guarded; the deploy-scripts guard now
+  scans the union of all postgres migrations so a new table lives in an
+  incremental migration, not a re-created init). `POST
+/api/applications/witnesses/submit` now rejects a witness unless the
+  ECDSA-recovered address maps (via a verified `LinkedWallet`) to a User with a
+  `Referral` to this applicant — a rejected witness persists no row, so the
+  WITNESSED threshold is unchanged; the admin-mint override is exempt.
+- **Hybrid trust score + create gate + create route (B1–B3):**
+  `computeTrustScore` sums five honest, chain-real, try/catch-guarded sub-scores
+  (is-citizen, tenure, referrals-became-citizens via live `readHasPassport`,
+  governance votes, dividend claims) + a clamped admin adjustment, computed on
+  read. `canCreateReferral` = trust > 50 (free) OR an available token (consumed
+  only at trust ≤ 50; 50 is not a bypass). `POST /api/referrals` (name the
+  referred user by email) rejects self / existing-citizen / duplicate and does
+  the create + token decrement in one transaction with a race guard.
+- **Admin (C1–C4):** guarded, in-transaction-audited `referral-tokens` (add-only)
+  - `trust` (absolute) routes (`AUDIT_FIELD_ALLOWLIST.USER` extended with the two
+    public integers), a guarded `referrals` read (chain-derived became-citizen),
+    and an admin user-detail panel wiring all three.
+- **Citizen + witness UI (D1–D3):** `GET /api/citizen/referrals`; a
+  `/dashboard/referrals` page + nav item with a read-only trust card, token
+  balance, and a refer-someone form (citizen-gated); an advisory referral hint
+  on the witness surface that surfaces the server gate error verbatim.
+- **Proofs (D4–D5):** an anvil integration test (referred witness accepted,
+  non-referrer rejected, with a CHAIN-REAL citizen check) and a
+  login-bootstrapped e2e (admin allocate/set-trust + the citizen page + axe,
+  zero new registrations).
+
+### Notes
+
+- Referral tokens are an OFF-CHAIN admin quota (a User Int counter), not an
+  ERC-20; an on-chain referral token and a server-side stake trust signal are
+  documented deferrals.
+
 ## [0.11.0] — 2026-07-03 (Wave 11 — Wallet modes: import · hardware · watch-only air-gapped)
 
 The wallet becomes a three-mode chooser (persisted, non-custodial in every

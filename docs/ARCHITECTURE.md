@@ -433,3 +433,55 @@ appear on the wire. A wallet-verification flow (`POST /api/wallet/link`,
 SIWE-proven key possession) binds a wallet to the LOGGED-IN account —
 closing the gap where email-registered users could never satisfy
 `resolveApplicantAddress`.
+
+## 13. Referral policy & hybrid trust (Wave 12)
+
+Three off-chain **policy** layers over the on-chain 7-witness seal — none of
+them is ever citizenship (that stays chain-derived via `readHasPassport`):
+
+**Referral-gated attestation.** A witness may only attest for an applicant they
+**referred**. Enforced server-side in `POST /api/applications/witnesses/submit`,
+after the citizen check and BEFORE the `WitnessSignature.create`: the witness is
+known SOLELY by ECDSA recovery, mapped back to a `User` via a VERIFIED
+`LinkedWallet` (`resolveUserByWalletAddress`), then a
+`Referral(referrer=thatUser, referred=applicant)` must exist. A rejected witness
+persists NO row, so the existing `collected >= requiredWitnesses → WITNESSED`
+transition is untouched. Because every witness must independently be a referrer,
+an applicant needs ≥ `requiredWitnesses` DISTINCT referrers to seal. The Wave-10
+admin-mint OVERRIDE collects zero witnesses and never reaches this route — it is
+DELIBERATELY exempt.
+
+**Referral tokens (an off-chain admin quota).** `User.referralTokenBalance` is
+an admin-allocated Int counter — **NOT an ERC-20** (an on-chain referral token is
+documented future work). A citizen may create a referral (`POST /api/referrals`,
+naming the referred user by email, resolved server-side) only if their trust
+`finalScore > 50` (free) OR they hold a token (consumed only when trust ≤ 50;
+exactly 50 is not a bypass). The create + conditional decrement run in one
+transaction with a `updateMany({balance:{gt:0}})` race guard so a token can never
+go negative or be double-spent; self-referral, referring an existing on-chain
+citizen, and duplicates are rejected.
+
+**Hybrid trust score (0..100).** `finalScore = clamp(computed + adminAdjustment,
+0, 100)`, computed ON READ (no cache column). `computed` sums five bounded,
+HONEST, chain-real sub-scores (each max 20): is-citizen, tenure (head − mint
+block), referrals-who-became-citizens (live `readHasPassport` on each referred's
+verified wallet — never `CitizenshipApplication.status`), governance votes, and
+dividend claims. Every reader is try/catch-guarded (an unreachable chain degrades
+a signal to 0, never a 500). A server-side STAKE signal is documented future
+work. The only PERSISTED trust input is `User.trustAdjustment` — an admin-set,
+audited signed delta. The score is surfaced READ-ONLY to the citizen.
+
+**Admin surface + audit.** `POST /api/admin/users/[id]/referral-tokens` (add-only
+1..1000) and `POST /api/admin/users/[id]/trust` (absolute −100..100) run the full
+guard stack (origin → requireAdmin → per-admin rate limit → strict Zod) and write
+their audit row in the SAME `$transaction`; `AUDIT_FIELD_ALLOWLIST.USER` gained
+`referralTokenBalance` + `trustAdjustment` (public integers — no secret can
+serialize). `GET /api/admin/users/[id]/referrals` is a guarded read whose
+per-referral `becameCitizen` is chain-derived and labeled. No route can set
+`User.role`.
+
+**Schema + migrations.** The `Referral` model + the two `User` columns live
+byte-identically in both prisma schemas (drift-guarded); a sqlite migration + a
+hand-authored postgres migration share the same timestamp dir, additive and
+prod-safe. New tables added after the postgres init snapshot live in incremental
+migrations (the deploy-scripts guard now scans the union of all migrations).

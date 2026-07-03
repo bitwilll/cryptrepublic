@@ -51,13 +51,13 @@ vars, deploy commands, seeding/admin bootstrap, cryptrepublic.com DNS:
 
 ## Test matrix
 
-Counts as of the Wave-11 close-out (2026-07-03):
+Counts as of the Wave-12 close-out (2026-07-04):
 
 | Suite                     | Command                      | Count | What it proves                                                                                                                                                                                   |
 | ------------------------- | ---------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Unit (Vitest)             | `pnpm test`                  | 876   | lib/API/component logic against jsdom + disposable SQLite (incl. the admin guard stack, audit allowlist, the no-signing guard, the dual-schema drift guard, the Wave-10 CSV/stats/charts suites) |
-| Integration (local anvil) | `pnpm test:integration`      | 18    | REAL on-chain proofs: passport seal/mint, funded send + staking, castVote + dividend claim/no-double-claim, admin PREPARED calldata, ZERO-witness adminMint                                      |
-| E2E (Playwright)          | `pnpm e2e`                   | 37    | browser flows on a prod build with deterministic stubbed reads (9 registrations/run — budget < 10; the admin spec registers nobody)                                                              |
+| Unit (Vitest)             | `pnpm test`                  | 935   | lib/API/component logic against jsdom + disposable SQLite (incl. the admin guard stack, audit allowlist, the no-signing guard, the dual-schema drift guard, the Wave-10 CSV/stats/charts suites) |
+| Integration (local anvil) | `pnpm test:integration`      | 20    | REAL on-chain proofs: passport seal/mint, funded send + staking, castVote + dividend claim/no-double-claim, admin PREPARED calldata, ZERO-witness adminMint                                      |
+| E2E (Playwright)          | `pnpm e2e`                   | 39    | browser flows on a prod build with deterministic stubbed reads (9 registrations/run — budget < 10; the admin spec registers nobody)                                                              |
 | Contracts (Foundry)       | `cd contracts && forge test` | 165   | unit + fuzz + invariant (soulbound, one-vote, no-double-claim, solvency)                                                                                                                         |
 
 Gates: `forge snapshot --check` (pinned fuzz seed + pinned CI toolchain) and
@@ -94,7 +94,7 @@ step** (deploy + fork tests + burn-in per
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — app structure, the single
   `NEXT_PUBLIC_CHAIN_ENV` switch, address registry, RPC-proxy model,
-  non-custodial write path, testing strategy, perf budget, admin panel (§11), wallet modes (§12)
+  non-custodial write path, testing strategy, perf budget, admin panel (§11), wallet modes (§12), referrals & trust (§13)
 - [docs/ENV_REFERENCE.md](docs/ENV_REFERENCE.md) — every environment variable
   (public/server-only), chain-swap procedure
 - [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md) — Vercel hosting runbook
@@ -105,7 +105,7 @@ step** (deploy + fork tests + burn-in per
   markers mapped to spec-§10.1 risks
 - [contracts/docs/DEPLOY_RUNBOOK.md](contracts/docs/DEPLOY_RUNBOOK.md) — contract
   deploy/configure/seed runbook (USER steps)
-- [CHANGELOG.md](CHANGELOG.md) — release history (Waves 1–11)
+- [CHANGELOG.md](CHANGELOG.md) — release history (Waves 1–12)
 
 ## Wave status
 
@@ -122,6 +122,20 @@ step** (deploy + fork tests + burn-in per
 | 9    | Admin panel (capstone)                                                                                   | Delivered (2026-07-02)                 |
 | 10   | Admin enhancements: admin-mint override + CSV report exports + responsive/clickable tiles + infographics | Delivered (2026-07-03)                 |
 | 11   | Wallet modes: embedded create/import + hardware/external + watch-only with air-gapped QR/camera signing  | Delivered (2026-07-03)                 |
+| 12   | Referral-gated attestation + admin-allocated referral tokens + hybrid trust score                        | Delivered (2026-07-04)                 |
+
+## Referrals & trust (Wave 12)
+
+Three off-chain policy layers over the on-chain seal, none of them ever
+citizenship (that stays chain-derived): **referral-gated attestation** (a
+witness may only attest for an applicant they referred — enforced server-side
+on the ECDSA-recovered witness, so a new citizen needs enough distinct
+referrers to seal; the admin-mint override is exempt), **referral tokens** (an
+admin-allocated off-chain quota — a citizen refers for free at trust > 50, else
+spends one token, race-guarded so it never double-spends), and a **hybrid trust
+score** (0–100 computed live from honest chain signals + an admin-set audited
+adjustment, surfaced read-only). See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+§13.
 
 ## Admin panel (Wave 9)
 
