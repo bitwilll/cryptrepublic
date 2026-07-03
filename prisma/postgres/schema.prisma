@@ -47,6 +47,12 @@ model User {
   sessions      Session[]
   linkedWallets LinkedWallet[]
   application   CitizenshipApplication?
+
+  referralTokenBalance Int @default(0) // admin-allocated referral quota; consumed on referral when trust <= 50
+  trustAdjustment      Int @default(0) // admin signed delta folded into the hybrid trust score (clamped 0..100)
+
+  referralsMade     Referral[] @relation("ReferralsMade")
+  referralsReceived Referral[] @relation("ReferralsReceived")
 }
 
 model Session {
@@ -142,6 +148,24 @@ model WitnessSignature {
 
   @@unique([applicationId, witnessAddress]) // no duplicate witness (mirrors on-chain DuplicateWitness)
   @@index([applicationId])
+}
+
+/// A referral edge: a citizen (referrer) vouches for an applicant (referred).
+/// Off-chain POLICY only — never citizenship (that stays chain-derived). All of an
+/// applicant's witnesses must be their referrers (Wave 12 referral-gated attestation).
+/// no model may ever store a private key, seed phrase, or plaintext password.
+model Referral {
+  id                String   @id @default(cuid())
+  referrerUserId    String
+  referrer          User     @relation("ReferralsMade", fields: [referrerUserId], references: [id], onDelete: Cascade)
+  referredUserId    String
+  referred          User     @relation("ReferralsReceived", fields: [referredUserId], references: [id], onDelete: Cascade)
+  whenTokenConsumed Boolean  @default(false) // true = create spent a referral token; false = trust>50 bypass
+  createdAt         DateTime @default(now())
+
+  @@unique([referrerUserId, referredUserId])
+  @@index([referredUserId])
+  @@index([referrerUserId])
 }
 
 // ─────────────────────────────────────────────────────────────────────────

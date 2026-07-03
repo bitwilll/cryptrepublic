@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -48,12 +48,26 @@ describe("postgres deployment scripts (package.json)", () => {
     expect(sql).toContain("TIMESTAMP(3)");
     expect(sql).toContain('"lat" DOUBLE PRECISION NOT NULL');
     expect(sql).not.toContain("DATETIME");
-    // Every model in the schema has a CREATE TABLE.
+  });
+
+  it("every model has a CREATE TABLE across the postgres migration history", () => {
+    // The init migration is the wave-9 snapshot; MODELS ADDED LATER (e.g. the
+    // Wave-12 Referral table) live in a NEW incremental migration that
+    // `migrate deploy` applies to the existing prod DB. So the guard scans the
+    // UNION of every postgres migration — never just init — otherwise a new
+    // table would have to double-create (init + incremental) to satisfy it.
+    const migrationsDir = join(root, "prisma/postgres/migrations");
+    const allSql = readdirSync(migrationsDir, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => readFileSync(join(migrationsDir, d.name, "migration.sql"), "utf8"))
+      .join("\n");
     const schema = readFileSync(join(root, PG_SCHEMA), "utf8");
     const models = [...schema.matchAll(/^model\s+(\w+)\s/gm)].map((m) => m[1]);
     expect(models.length).toBeGreaterThanOrEqual(10);
     for (const model of models) {
-      expect(sql, `missing CREATE TABLE for model ${model}`).toContain(`CREATE TABLE "${model}"`);
+      expect(allSql, `no postgres migration CREATE TABLEs model ${model}`).toContain(
+        `CREATE TABLE "${model}"`,
+      );
     }
   });
 });
