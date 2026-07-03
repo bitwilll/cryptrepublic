@@ -68,6 +68,15 @@ beforeEach(() => {
       h.posts.push({ url, body: init.body ? JSON.parse(String(init.body)) : {} });
       return jsonResponse({ ok: true });
     }
+    if (url.includes("/api/admin/users/u2/referrals")) {
+      // Wave 12: the AdminReferralPanel child fetches this — return its shape so
+      // it renders cleanly (do NOT count it as a user-detail fetch).
+      return jsonResponse({
+        user: { id: "u2", email: null, referralTokenBalance: 0, trustAdjustment: 0 },
+        trust: { finalScore: 0, computed: 0, adminAdjustment: 0 },
+        referrals: [],
+      });
+    }
     if (url.includes("/api/admin/users/u2")) {
       h.detailFetches += 1;
       return jsonResponse(DETAIL());

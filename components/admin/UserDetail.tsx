@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { AdminReferralPanel } from "./AdminReferralPanel";
 import Link from "next/link";
 import { Ledger } from "@/components/ui/Ledger";
 import { Modal } from "@/components/ui/Modal";
@@ -300,6 +301,8 @@ export function UserDetail({ userId, selfUserId }: { userId: string; selfUserId:
           </div>
         )}
       </article>
+
+      <AdminReferralPanel userId={userId} />
 
       {confirmOpen && (
         <Modal
