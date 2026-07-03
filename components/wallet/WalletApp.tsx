@@ -23,6 +23,7 @@ import { receiveQrDataUrl } from "@/lib/wallet/receive";
 import { UnlockWalletModal } from "./UnlockWalletModal";
 import { WalletModeSelect } from "./WalletModeSelect";
 import { ImportWalletForm } from "./ImportWalletForm";
+import { OfflineSignModal } from "./OfflineSignModal";
 
 const MIN_PASSPHRASE = 12;
 
@@ -45,6 +46,7 @@ export function WalletApp() {
   const [backedUp, setBackedUp] = useState(false);
   const [revealed, setRevealed] = useState<string | null>(null);
   const [showUnlock, setShowUnlock] = useState(false);
+  const [showOfflineSign, setShowOfflineSign] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -325,9 +327,19 @@ export function WalletApp() {
         {view === "unlocked" && (
           <div style={{ marginTop: 24 }}>
             <p data-testid="wallet-state">Wallet is unlocked.</p>
-            <button className="btn" type="button" onClick={onLock}>
-              Lock
-            </button>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <button className="btn" type="button" onClick={onLock}>
+                Lock
+              </button>
+              <button
+                className="btn"
+                type="button"
+                data-testid="offline-sign-open"
+                onClick={() => setShowOfflineSign(true)}
+              >
+                Scan a request to sign (air-gapped)
+              </button>
+            </div>
 
             <form onSubmit={onReveal} style={{ marginTop: 24 }}>
               <label htmlFor="reveal-pass" style={{ display: "block", marginBottom: 8 }}>
@@ -406,6 +418,7 @@ export function WalletApp() {
         {showUnlock && (
           <UnlockWalletModal onUnlock={onUnlock} onCancel={() => setShowUnlock(false)} />
         )}
+        {showOfflineSign && <OfflineSignModal onClose={() => setShowOfflineSign(false)} />}
       </div>
     </section>
   );
