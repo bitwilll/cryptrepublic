@@ -15,6 +15,55 @@ type LoadState = "loading" | "no-wallet" | "not-citizen" | "citizen" | "error";
 
 const NEUTRAL = "—"; // em dash
 
+/** The off-chain application shape surfaced by GET /api/applications. */
+interface AppInfo {
+  status: string;
+  name: string | null;
+  domicileCity: string | null;
+  motto: string | null;
+  adminApprovedAt: string | null;
+}
+
+/**
+ * Derive a PROVISIONAL (not-yet-on-chain) passport state from the off-chain
+ * application, for the honest look-and-feel card shown BEFORE the mint lands.
+ * This is NEVER citizenship — the real passport only renders when the chain
+ * says citizen. null → no application → the plain mint CTA.
+ */
+function deriveProvisional(
+  app: AppInfo | null,
+): { label: string; sublabel: string; cta: string } | null {
+  if (!app) return null;
+  if (app.adminApprovedAt) {
+    return {
+      label: "TO BE MINTED",
+      sublabel:
+        "An administrator has approved your application — your passport is being issued by the Republic.",
+      cta: "Open the mint flow →",
+    };
+  }
+  if (app.status === "WITNESSED") {
+    return {
+      label: "TO BE MINTED",
+      sublabel: "Your witnesses are collected — seal your passport on chain to finish.",
+      cta: "Seal your passport →",
+    };
+  }
+  if (app.status === "SEALED") {
+    return {
+      label: "AWAITING CHAIN CONFIRMATION",
+      sublabel: "Your seal is recorded off-chain; waiting for the chain to confirm it.",
+      cta: "Open the mint flow →",
+    };
+  }
+  return {
+    label: "PENDING · TO BE VERIFIED",
+    sublabel:
+      "Your application is in progress. Finish the steps to have your passport verified and minted.",
+    cta: "Continue your application →",
+  };
+}
+
 /** Whether every char in `s` is printable ASCII/Latin (no control/replacement chars). */
 function isPrintable(s: string): boolean {
   if (s.length === 0) return false;
@@ -43,10 +92,18 @@ export default function PassportView(): React.ReactElement {
   const [state, setState] = useState<LoadState>("loading");
   const [status, setStatus] = useState<PassportStatus | null>(null);
   const [total, setTotal] = useState<bigint | null>(null);
+  const [application, setApplication] = useState<AppInfo | null>(null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
+      // The off-chain application (for the provisional card) — fetched in
+      // parallel with the chain read; only USED when the chain says not-citizen.
+      const appPromise = fetch("/api/applications", { credentials: "same-origin" })
+        .then((r) => (r.ok ? r.json() : { application: null }))
+        .then((d: { application: AppInfo | null }) => d.application)
+        .catch(() => null);
+
       // Resolve the address: embedded public cached (no unlock) OR wagmi account.
       let addr: Address | null = null;
       const embedded = getAccounts() ?? (await loadPublicAccounts());
@@ -54,15 +111,21 @@ export default function PassportView(): React.ReactElement {
       else if (wagmiAddress) addr = getAddress(wagmiAddress) as Address;
 
       if (!addr) {
-        if (mounted) setState("no-wallet");
+        const app = await appPromise;
+        if (mounted) {
+          setApplication(app);
+          setState("no-wallet");
+        }
         return;
       }
       try {
         const s = await readPassportStatus(chainId, addr);
         const t = await readTotalCitizens(chainId).catch(() => null);
+        const app = await appPromise;
         if (!mounted) return;
         setStatus(s);
         setTotal(t);
+        setApplication(app);
         setState(s.isCitizen ? "citizen" : "not-citizen");
       } catch {
         if (mounted) setState("error");
@@ -86,6 +149,55 @@ export default function PassportView(): React.ReactElement {
   }
 
   if (state === "no-wallet" || state === "not-citizen") {
+    const provisional = deriveProvisional(application);
+
+    // A PROVISIONAL passport card — the honest pre-mint look-and-feel. Clearly
+    // labeled NOT-YET-ON-CHAIN; the chain (readPassportStatus) remains the sole
+    // source of real citizenship, so this never claims to be a sealed passport.
+    if (provisional) {
+      const declaredName = (application?.name ?? "").trim();
+      return (
+        <div style={{ marginTop: 16 }} data-testid="passport-provisional">
+          <h1 style={{ marginTop: 8 }}>Your passport — {provisional.label.toLowerCase()}</h1>
+          <div
+            data-testid="passport-provisional-status"
+            role="status"
+            style={{
+              display: "inline-block",
+              marginTop: 10,
+              padding: "4px 12px",
+              border: "1px solid var(--gold)",
+              background: "rgba(200, 169, 106, 0.15)",
+              color: "var(--navy)",
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+            }}
+          >
+            {provisional.label} · NOT YET ON CHAIN
+          </div>
+          <p style={{ color: "var(--muted)", marginTop: 12, maxWidth: 560, fontSize: 14 }}>
+            {provisional.sublabel} This is a provisional preview from your application — it becomes
+            your real, non-transferable passport only once it is sealed on chain.
+          </p>
+          <div style={{ maxWidth: 360, marginTop: 20, opacity: 0.9 }}>
+            <PassportPreview
+              no={NEUTRAL}
+              name={declaredName ? declaredName.toUpperCase() : "PENDING CITIZEN"}
+              domicile={(application?.domicileCity ?? "").trim() || NEUTRAL}
+              motto={(application?.motto ?? "").trim() || undefined}
+              issued={provisional.label}
+            />
+          </div>
+          <div style={{ marginTop: 20 }}>
+            <Button as="a" variant="primary" href="/dashboard/mint">
+              {provisional.cta}
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div style={{ marginTop: 16, maxWidth: 560 }}>
         <h1 style={{ marginTop: 8 }}>You are not yet a citizen.</h1>
