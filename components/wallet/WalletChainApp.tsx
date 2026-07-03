@@ -21,6 +21,7 @@ import { ExternalWalletPanel } from "./ExternalWalletPanel";
 import { WatchOnlySetup } from "./WatchOnlySetup";
 import { WatchOnlyBadge } from "./WatchOnlyBadge";
 import { VerifyWalletCard } from "./VerifyWalletCard";
+import { AirgappedSendModal } from "./AirgappedSendModal";
 import { loadPortfolio, type Portfolio } from "@/lib/wallet/services/portfolio";
 import { readChainStats, type ChainStats } from "@/lib/wallet/services/chainStats";
 import {
@@ -170,8 +171,8 @@ export function WalletChainApp() {
 
   /** Re-run all reads (e.g. after a write). */
   const refresh = useCallback(() => {
-    if (evmAddress) loadAll(evmAddress as `0x${string}`, () => true);
-  }, [evmAddress, loadAll]);
+    if (readAddress) loadAll(readAddress as `0x${string}`, () => true);
+  }, [readAddress, loadAll]);
 
   /** Unlock gate for writes: true when unlocked; opens the unlock modal otherwise. */
   const requireUnlock = useCallback((): boolean => {
@@ -280,8 +281,7 @@ export function WalletChainApp() {
               className="btn btn-primary"
               type="button"
               data-testid="airgapped-send-open"
-              disabled
-              title="Air-gapped QR signing lands later in this wave"
+              onClick={() => setModal("send")}
             >
               Air-gapped send (QR)
             </button>
@@ -311,6 +311,17 @@ export function WalletChainApp() {
             <ChainStatsPanel stats={stats} />
           </aside>
         </div>
+
+        {modal === "send" && (
+          <AirgappedSendModal
+            chainId={chainId}
+            from={watchAddress}
+            onClose={() => {
+              setModal(null);
+              refresh();
+            }}
+          />
+        )}
       </div>
     );
   }
