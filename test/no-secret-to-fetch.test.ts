@@ -21,6 +21,7 @@ import { buildUnsignedTx } from "@/lib/wallet/airgapped/build";
 import { broadcastSignedRaw } from "@/lib/wallet/airgapped/broadcast";
 import { signUnsignedEnvelope } from "@/lib/wallet/airgapped/sign";
 import { encodeUnsigned, encodeUnsignedToQr, encodeSigned } from "@/lib/wallet/airgapped/codec";
+import { encodeQrLogin, encodeQrLoginToDataUrl } from "@/lib/auth/qrLogin/codec";
 
 /**
  * AUTHORITATIVE runtime secret-leak guard. Spies on global.fetch across the FULL
@@ -170,5 +171,36 @@ describe("no secret reaches the network (create -> unlock -> sendEvm -> reveal)"
     for (const forbidden of ["eth_sendTransaction", "personal_sign", "eth_sign", "eth_accounts"]) {
       expect(captured.some((b) => b.includes(`"${forbidden}"`))).toBe(false);
     }
+  });
+
+  it("Wave 13: the wallet-QR LOGIN envelope (QR payload) carries no secret — public data only", async () => {
+    const seed = await mnemonicToSeed(M);
+    const entropyHex = bytesToHex(mnemonicToEntropy(M)).slice(2).toLowerCase();
+    const privHex = evmPrivateKeyHex(seed).slice(2).toLowerCase();
+    const secrets = [M, entropyHex, privHex, `0x${privHex}`];
+    const evmAddress = deriveEvm(seed).address.toLowerCase();
+
+    // A representative login envelope — the SAME shape the /start route emits and
+    // the device-A QR encodes. It carries ONLY public relay fields.
+    const envelope = {
+      v: 1 as const,
+      t: "cr-wallet-login" as const,
+      challengeId: "clfixedchallenge0001",
+      nonce: "deadbeefdeadbeefdeadbeefdeadbeef",
+      matchCode: "ABC234",
+      domain: "cryptrepublic.com",
+      uri: "https://cryptrepublic.com",
+      chainId: 84532,
+    };
+    const text = encodeQrLogin(envelope);
+    const qr = await encodeQrLoginToDataUrl(envelope);
+
+    for (const hay of [text.toLowerCase(), qr.toLowerCase()]) {
+      for (const s of secrets) expect(hay.includes(s)).toBe(false);
+    }
+    // Invariant: the envelope is minimal — it doesn't even carry the wallet
+    // address, let alone any key material.
+    expect(text).toContain("cr-wallet-login");
+    expect(text.toLowerCase().includes(evmAddress)).toBe(false);
   });
 });

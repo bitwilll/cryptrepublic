@@ -135,8 +135,8 @@ export function QrLoginPanel() {
             </div>
           </div>
           <p style={{ color: "var(--muted)", fontSize: 12, maxWidth: 340, textAlign: "center" }}>
-            On a device where your wallet is unlocked, open <b>Wallet → Approve a sign-in</b> and scan
-            this code. Approve only if the code there matches <b>{matchCode}</b>.
+            On a device where your wallet is unlocked, open <b>Wallet → Approve a sign-in</b> and
+            scan this code. Approve only if the code there matches <b>{matchCode}</b>.
           </p>
         </div>
       )}
@@ -148,9 +148,7 @@ export function QrLoginPanel() {
       {(phase === "expired" || phase === "error") && (
         <div style={{ textAlign: "center" }}>
           <p data-testid="qr-login-expired" style={{ color: "var(--muted)", fontSize: 13 }}>
-            {phase === "expired"
-              ? "This sign-in code expired."
-              : "Couldn’t start a QR sign-in."}
+            {phase === "expired" ? "This sign-in code expired." : "Couldn’t start a QR sign-in."}
           </p>
           <button
             className="btn btn-primary"

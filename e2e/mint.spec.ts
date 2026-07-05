@@ -88,10 +88,17 @@ test("mint UI: 4-step flow gating (Attest → Oath → Witness)", async ({ page 
   await expect(page.getByRole("link", { name: /mint your passport/i })).toHaveCount(0);
 });
 
-test("Your Passport shows the not-yet-citizen state with a mint CTA", async ({ page }) => {
+test("Your Passport shows the provisional pending card before minting", async ({ page }) => {
   await register(page);
   await page.goto("/dashboard/passport");
-  // No wallet / not a citizen yet → CTA to mint.
-  await expect(page.getByRole("heading", { name: /not yet a citizen/i })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Mint Your Passport/i })).toBeVisible();
+  // A freshly-registered user has a DRAFT application → a clearly-labeled
+  // PROVISIONAL passport card (pending · to be verified · NOT YET ON CHAIN) with
+  // a CTA into the mint flow. Chain-truth is intact: the real sealed passport
+  // only renders when the chain says citizen (anvil-proven in integration).
+  await expect(page.getByTestId("passport-provisional")).toBeVisible();
+  await expect(page.getByTestId("passport-provisional-status")).toContainText(/not yet on chain/i);
+  await expect(page.getByRole("link", { name: /continue your application/i })).toHaveAttribute(
+    "href",
+    "/dashboard/mint",
+  );
 });

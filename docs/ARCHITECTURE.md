@@ -485,3 +485,58 @@ byte-identically in both prisma schemas (drift-guarded); a sqlite migration + a
 hand-authored postgres migration share the same timestamp dir, additive and
 prod-safe. New tables added after the postgres init snapshot live in incremental
 migrations (the deploy-scripts guard now scans the union of all migrations).
+
+## 14. Wallet-QR login (Wave 13 — One Portal identity, slice 1)
+
+Cross-device **passwordless** sign-in layered over the existing SIWE + session +
+QR machinery. It is the first slice of "One Portal identity": authenticate on
+one device (A) by scanning a QR with a device (B) that holds your wallet.
+Non-custodial throughout — the app never sees a key, the QR carries only public
+relay data, and the session is issued only on device A's own poll.
+
+**The flow.** (1) Device A (unauthenticated) `POST /api/auth/qr/start` →
+`createChallenge()` issues a real single-use `SiweNonce` and a
+`WalletLoginChallenge {nonce, matchCode, status:"pending", expiresAt:+120s}`,
+returning `{challengeId, nonce, matchCode, domain, uri, chainId}`. Device A
+renders a QR of the PUBLIC envelope `{v:1, t:"cr-wallet-login", …}` (`lib/auth/
+qrLogin/codec.ts`) + the matchCode. (2) Device B scans/pastes (the Wave-11
+`QrScanner`), decodes, shows the matchCode + domain, and — on confirm — signs a
+SIWE message binding `{domain, uri, chainId, nonce}` LOCALLY (`withEvmSigner`;
+the key never leaves the device) and `POST /api/auth/qr/approve`. (3) The approve
+route runs `verifySiweSignature` (the SAME core the SIWE login uses — consumes
+the single-use nonce, binds domain/uri/chain), asserts `siwe.nonce ===
+challenge.nonce` (binds the signature to THIS challenge), resolves the recovered
+address to an EXISTING verified-wallet `User` (`resolveUserByWalletAddress` — QR
+login NEVER creates an account), rejects a suspended user opaquely, and
+atomically flips the challenge `pending → approved` + binds `userId`. (4) Device
+A `GET /api/auth/qr/status` polls: opaque `pending | approved | expired`; on the
+WINNING approved poll it atomically consumes the challenge (`approved →
+consumed`), re-checks suspended, `createSession`, and sets the `cr_session`
+cookie **on this (device A's) response** — device B never receives it.
+
+**Single-use is two guards.** The bound `SiweNonce` (consumed by
+`verifySiweSignature`) AND the challenge state (`pending → approved → consumed`
+under `updateMany` count guards). A replayed approve or a second winning poll
+both fail closed. The 120s TTL + opportunistic sweep bound the table.
+
+**Anti-phishing (honest limits).** The `matchCode` is shown on BOTH devices and
+the domain is shown to the approver, so a user can confirm they are approving the
+sign-in they started. Combined with the 120s TTL, single-use, and
+existing-verified-wallet-only (no cold account minting), this reduces — but does
+not fully eliminate — the classic "approve an attacker's QR" risk. Two structural
+mitigations: only an EXISTING verified wallet can approve, and the shipped
+approve UI (`/dashboard/wallet/approve-login`) lives behind the dashboard session
+guard — so the approver is an ALREADY-AUTHENTICATED device ("approve a new device
+for my account"), the stronger posture. External-wallet approve and a fully
+device-bound challenge are documented follow-ups.
+
+**Reuse + boundaries.** `verifySiweSignature` + `SiweNonce` (Wave 11),
+`resolveUserByWalletAddress` (Wave 12), `QrScanner` + `qrcode` (Wave 11),
+`withEvmSigner` + `createSession` + `withSessionCookie` + `isAllowedOrigin` +
+`rateLimit`. No new RPC methods, no CSP change. The client-only vault import
+stays out of the `app/` route file (the surface lives in
+`components/auth/ApproveLoginSurface`). The QR envelope is public-only —
+`test/no-secret-to-fetch.test.ts` scans it for the fixed vault's
+mnemonic/entropy/private-key (found nowhere). `WalletLoginChallenge` is
+byte-identical in both prisma schemas (drift-guarded) with a clean additive
+migration in each tree.

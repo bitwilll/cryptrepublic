@@ -113,7 +113,9 @@ describe("POST /api/auth/qr/approve", () => {
 
   it("400 for an unknown challenge (rejected before the SIWE nonce is burned)", async () => {
     const { message, signature } = await siweFor(await issueNonce());
-    const res = await approvePost(approveReq({ challengeId: "does-not-exist", message, signature }));
+    const res = await approvePost(
+      approveReq({ challengeId: "does-not-exist", message, signature }),
+    );
     expect(res.status).toBe(400);
   });
 

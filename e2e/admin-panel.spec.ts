@@ -397,7 +397,11 @@ test.describe.serial("admin panel (Wave 9 D2 — zero registrations)", () => {
     await adminPage.goto("/admin/users");
     await adminPage.locator("#users-search").fill(CITIZEN_EMAIL);
     await adminPage.getByRole("button", { name: "Search", exact: true }).click();
-    await adminPage.getByRole("link", { name: CITIZEN_EMAIL }).click();
+    // `exact: true` — under parallel `pnpm e2e`, referrals.spec's concurrent
+    // user `referrals-citizen-e2e@…` is a SUPERSTRING of this email, so the
+    // substring search returns both; the exact locator targets ONLY this user
+    // (a non-exact name matches both link texts → strict-mode violation).
+    await adminPage.getByRole("link", { name: CITIZEN_EMAIL, exact: true }).click();
     await expect(adminPage).toHaveURL(new RegExp(`/admin/users/${citizenId}`));
 
     // Suspend (modal confirm) → suspended tag.

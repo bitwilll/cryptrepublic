@@ -123,6 +123,23 @@ step** (deploy + fork tests + burn-in per
 | 10   | Admin enhancements: admin-mint override + CSV report exports + responsive/clickable tiles + infographics | Delivered (2026-07-03)                 |
 | 11   | Wallet modes: embedded create/import + hardware/external + watch-only with air-gapped QR/camera signing  | Delivered (2026-07-03)                 |
 | 12   | Referral-gated attestation + admin-allocated referral tokens + hybrid trust score                        | Delivered (2026-07-04)                 |
+| 13   | Wallet-QR login: cross-device passwordless sign-in (One Portal identity, slice 1)                        | Delivered (2026-07-06)                 |
+
+## Wallet-QR login (Wave 13)
+
+Cross-device **passwordless** sign-in — the first slice of "One Portal
+identity". On `/auth`, choose **Wallet-QR sign-in**: device A shows a QR + a
+short confirmation code; on a device where your wallet is unlocked, open
+**Wallet → Approve a sign-in** (`/dashboard/wallet/approve-login`), scan it,
+confirm the code + site, and approve. Your wallet signs a SIWE message
+**locally** — the key never leaves the device — and device A is signed in on its
+own status poll. Non-custodial throughout: the QR carries only public relay
+data, the challenge is single-use with a 120s TTL, only an **existing verified
+wallet** can approve (QR login never creates an account), and device B never
+receives device A's session. Reuses the SIWE core, the Wave-11 QR scanner, and
+the Wave-12 wallet→user resolver; no new RPC methods, no CSP change. See
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) §14 (incl. the honest anti-phishing
+limits).
 
 ## Referrals & trust (Wave 12)
 

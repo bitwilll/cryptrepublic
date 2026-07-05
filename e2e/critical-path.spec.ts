@@ -259,19 +259,26 @@ test.describe.serial("@critical path — register → vault → mint UI → send
     await expect(page).toHaveURL(/\/dashboard\/mint/);
   });
 
-  test("station 2 — Your Passport not-yet-citizen view + passport mobile", async () => {
+  test("station 2 — Your Passport provisional (pending) view + passport mobile", async () => {
     // The §8.1 "see passport on Your Passport" station: without it the release
     // gate would pass with the passport screen deleted. ORDER NOTE: this runs
     // BEFORE vault creation — once an embedded vault is cached, the passport
     // screen on the unregistered default testnet chain renders its honest
-    // read-error state ("Could not read the passport contract…") instead of
-    // the not-yet-citizen view (PassportView resolves the address and the
-    // unregistered passport accessor throws). The not-yet-citizen state is the
-    // §8.1 target here; the sealed/citizen view + count increment are
-    // anvil-proven in test/integration/mint-e2e.test.ts.
+    // read-error state ("Could not read the passport contract…"). Pre-vault
+    // (no wallet), the registered user's DRAFT application surfaces the
+    // clearly-labeled PROVISIONAL "pending · to be verified · NOT YET ON CHAIN"
+    // card with a CTA into the mint flow. Chain-truth is intact: the sealed/
+    // citizen view + count increment are anvil-proven in
+    // test/integration/mint-e2e.test.ts.
     await page.goto("/dashboard/passport");
-    await expect(page.getByRole("heading", { name: /not yet a citizen/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Mint Your Passport/i })).toBeVisible();
+    await expect(page.getByTestId("passport-provisional")).toBeVisible();
+    await expect(page.getByTestId("passport-provisional-status")).toContainText(
+      /not yet on chain/i,
+    );
+    await expect(page.getByRole("link", { name: /continue your application/i })).toHaveAttribute(
+      "href",
+      "/dashboard/mint",
+    );
 
     // Passport's slice of the §8.1 mobile smoke.
     await page.setViewportSize(MOBILE);

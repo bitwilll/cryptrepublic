@@ -1,7 +1,12 @@
 // @vitest-environment node
 import { describe, it, expect, afterAll } from "vitest";
 import { prisma } from "@/lib/db";
-import { createChallenge, loadPendingChallenge, makeMatchCode, CHALLENGE_TTL_MS } from "./challenge";
+import {
+  createChallenge,
+  loadPendingChallenge,
+  makeMatchCode,
+  CHALLENGE_TTL_MS,
+} from "./challenge";
 
 const created: string[] = [];
 

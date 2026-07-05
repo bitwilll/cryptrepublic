@@ -42,7 +42,10 @@ async function expectNoCriticalOrSerious(name: string, page: Page) {
   const blocking = results.violations.filter(
     (v) => v.impact === "critical" || v.impact === "serious",
   );
-  expect(blocking.map((v) => v.id), `${name}: zero critical/serious axe`).toEqual([]);
+  expect(
+    blocking.map((v) => v.id),
+    `${name}: zero critical/serious axe`,
+  ).toEqual([]);
 }
 
 let adminId = "";

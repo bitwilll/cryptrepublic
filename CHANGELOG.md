@@ -5,6 +5,57 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 numbers on the same branch line and are recorded below as dated development
 history (dates are the real commit dates from the git trail).
 
+## [0.13.0] — 2026-07-06 (Wave 13 — Wallet-QR login · One Portal identity, slice 1)
+
+Cross-device passwordless sign-in: scan a QR with a device that holds your
+wallet to sign in on another device. Non-custodial throughout — the app never
+sees a key, the QR carries only public relay data, and the session is issued
+only on the scanning device's own poll. Full gate at this release:
+**~962 unit / 20 integration (local anvil) / 41 e2e (9 registrations,
+budget < 10) / 165 forge**, plus snapshot, coverage, `guard:secrets`, and a
+green production build.
+
+### Added
+
+- **`WalletLoginChallenge` model (A1):** a single-use, short-TTL (120s) relay
+  row carrying only public fields (`nonce` == the SIWE nonce device B signs,
+  `matchCode`, `status` pending|approved|consumed, nullable `userId`,
+  `expiresAt`, `consumedAt`) — byte-identical in both prisma schemas
+  (drift-guarded) with a clean additive migration in each tree. No key/seed ever
+  touches it; `guard:secrets` stays green.
+- **Login-envelope codec + challenge helpers (A2):** `lib/auth/qrLogin/codec.ts`
+  (client-safe encode/decode of the versioned PUBLIC envelope + a `data:` QR)
+  and `lib/auth/qrLogin/challenge.ts` (`createChallenge` issues a real
+  single-use `SiweNonce` as the challenge nonce; `makeMatchCode` uses an
+  unambiguous alphabet; opportunistic sweep of expired/consumed rows).
+- **Three endpoints (B1–B3):** `POST /api/auth/qr/start` (origin-gated,
+  rate-limited, unauthenticated → the public QR fields); `POST /api/auth/qr/approve`
+  (device B — `verifySiweSignature` the shared SIWE core, the SIWE nonce bound
+  to the challenge, `resolveUserByWalletAddress` for an EXISTING verified wallet
+  only — never creates an account, suspended rejected opaquely, atomic
+  single-use approve); `GET /api/auth/qr/status` (device A poll — opaque
+  pending|approved|expired, on the winning approved poll it consumes the
+  challenge, re-checks suspended, and sets the session cookie on THIS response).
+- **Device-A + device-B UI (C1–C2):** a "Wallet-QR sign-in" entry on `/auth`
+  (`QrLoginPanel` — QR + matchCode + poll → redirect, refresh on expiry) and an
+  approve surface at `/dashboard/wallet/approve-login` (`QrLoginApprove` — reuse
+  the Wave-11 QrScanner → confirm matchCode + domain → sign a SIWE LOCALLY with
+  the unlocked embedded wallet → approve). A discoverability link from the
+  wallet screen.
+
+### Security
+
+- **Non-custodial:** device B signs locally (`withEvmSigner`); the QR envelope is
+  public-only (`test/no-secret-to-fetch.test.ts` now scans it — no
+  mnemonic/entropy/private-key).
+- **Anti-phishing:** a `matchCode` shown on both devices + the domain shown to
+  the approver + a 120s TTL + single-use + existing-verified-wallet-only. The
+  shipped approve UI lives behind the dashboard guard (an already-authenticated
+  approver — the stronger posture). Residual QR-login-phishing risk and the
+  mitigations are documented in `docs/ARCHITECTURE.md` §14.
+- The session cookie rides device A's own poll response only — device B never
+  receives it; a replayed approve or a second winning poll both fail closed.
+
 ## [0.12.0] — 2026-07-04 (Wave 12 — Referral-gated attestation · referral tokens · hybrid trust score)
 
 Three off-chain policy layers over the on-chain 7-witness seal — none of them

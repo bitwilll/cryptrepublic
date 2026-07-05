@@ -52,7 +52,10 @@ describe("QrLoginPanel (device A)", () => {
   it("renders the QR image + matchCode after start", async () => {
     render(<QrLoginPanel />);
     await waitFor(() => expect(screen.getByTestId("qr-login-image")).toBeInTheDocument());
-    expect(screen.getByTestId("qr-login-image")).toHaveAttribute("src", "data:image/png;base64,FAKEQR");
+    expect(screen.getByTestId("qr-login-image")).toHaveAttribute(
+      "src",
+      "data:image/png;base64,FAKEQR",
+    );
     expect(screen.getByTestId("qr-login-matchcode")).toHaveTextContent("ABC234");
   });
 

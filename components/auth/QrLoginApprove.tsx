@@ -103,7 +103,9 @@ export function QrLoginApprove({ requireUnlock }: { requireUnlock: () => boolean
               </div>
             </div>
             <div>
-              <div style={{ fontSize: 11, letterSpacing: "0.1em", color: "var(--muted)" }}>SITE</div>
+              <div style={{ fontSize: 11, letterSpacing: "0.1em", color: "var(--muted)" }}>
+                SITE
+              </div>
               <div data-testid="qr-approve-domain" style={{ fontSize: 15, fontWeight: 600 }}>
                 {env.domain}
               </div>

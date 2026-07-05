@@ -162,7 +162,9 @@ d("Wave 12 D4 — referral-gated attestation on local anvil (chain-real citizen 
     const res = await submitAsWitness();
     expect(res.status).toBe(400);
     expect((await res.json()).error).toMatch(/only attest for applicants you have referred/i);
-    const app = await prisma.citizenshipApplication.findUnique({ where: { userId: applicantUserId } });
+    const app = await prisma.citizenshipApplication.findUnique({
+      where: { userId: applicantUserId },
+    });
     expect(await prisma.witnessSignature.count({ where: { applicationId: app!.id } })).toBe(0);
   }, 60_000);
 
@@ -172,7 +174,9 @@ d("Wave 12 D4 — referral-gated attestation on local anvil (chain-real citizen 
     });
     const res = await submitAsWitness();
     expect(res.status).toBe(200);
-    const app = await prisma.citizenshipApplication.findUnique({ where: { userId: applicantUserId } });
+    const app = await prisma.citizenshipApplication.findUnique({
+      where: { userId: applicantUserId },
+    });
     expect(await prisma.witnessSignature.count({ where: { applicationId: app!.id } })).toBe(1);
   }, 60_000);
 });

@@ -278,11 +278,7 @@ export function AuthForm() {
               <div data-testid="qr-login-section">
                 <QrLoginPanel />
                 <div style={{ textAlign: "center", marginTop: 10 }}>
-                  <button
-                    type="button"
-                    className={styles.swap}
-                    onClick={() => setShowQr(false)}
-                  >
+                  <button type="button" className={styles.swap} onClick={() => setShowQr(false)}>
                     ← Back to other sign-in options
                   </button>
                 </div>
