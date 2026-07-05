@@ -80,6 +80,23 @@ model SiweNonce {
   @@index([expiresAt])
 }
 
+/// A cross-device wallet-QR LOGIN challenge (Wave 13). Public relay row only —
+/// never a key/seed. `nonce` == the SIWE nonce device B signs (single-use);
+/// `matchCode` is shown on both devices (anti-phishing). Consumed once the
+/// session is issued to device A.
+model WalletLoginChallenge {
+  id         String    @id @default(cuid())
+  nonce      String    @unique
+  matchCode  String
+  status     String    @default("pending") // pending | approved | consumed
+  userId     String? // bound on approve (the wallet's verified user); no FK (relay row)
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime
+  consumedAt DateTime?
+
+  @@index([expiresAt])
+}
+
 model LinkedWallet {
   id     String @id @default(cuid())
   userId String
