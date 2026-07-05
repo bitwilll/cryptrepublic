@@ -14,7 +14,9 @@ function appUrl(): string {
   return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 }
 
-function appHost(): string {
+// The SIWE `domain` (host, no scheme) — exported so the QR-login start route
+// returns the SAME value the SIWE message must carry (a mismatch fails verify).
+export function appHost(): string {
   try {
     return new URL(appUrl()).host;
   } catch {
