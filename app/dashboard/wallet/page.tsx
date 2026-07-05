@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AppProviders } from "@/components/providers/AppProviders";
 import { WalletChainApp } from "@/components/wallet/WalletChainApp";
 
@@ -18,6 +19,15 @@ export const metadata: Metadata = {
 export default function DashboardWalletPage() {
   return (
     <AppProviders>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
+        <Link
+          className="btn btn-ghost"
+          href="/dashboard/wallet/approve-login"
+          data-testid="approve-login-link"
+        >
+          Approve a sign-in on another device →
+        </Link>
+      </div>
       <WalletChainApp />
     </AppProviders>
   );
