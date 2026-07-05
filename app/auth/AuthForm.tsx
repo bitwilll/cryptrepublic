@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SiweMessage } from "siwe";
 import { createWalletClient, custom, getAddress } from "viem";
+import { QrLoginPanel } from "@/components/auth/QrLoginPanel";
 import styles from "./auth.module.css";
 
 type Mode = "in" | "up";
@@ -31,6 +32,7 @@ export function AuthForm() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("in");
   const [busy, setBusy] = useState(false);
+  const [showQr, setShowQr] = useState(false);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -252,6 +254,42 @@ export function AuthForm() {
             </button>
           ))}
         </div>
+
+        {signin && (
+          <div style={{ marginTop: 12 }}>
+            {!showQr ? (
+              <button
+                className={styles.wallet}
+                type="button"
+                data-testid="qr-login-open"
+                onClick={() => setShowQr(true)}
+                style={{ width: "100%" }}
+              >
+                <span className={styles.glyph} style={{ background: "#0a1929" }}>
+                  QR
+                </span>
+                <span>
+                  <b>Wallet-QR sign-in</b>
+                  <span>Scan with a device where your wallet is unlocked</span>
+                </span>
+                <span className={styles.go}>SCAN →</span>
+              </button>
+            ) : (
+              <div data-testid="qr-login-section">
+                <QrLoginPanel />
+                <div style={{ textAlign: "center", marginTop: 10 }}>
+                  <button
+                    type="button"
+                    className={styles.swap}
+                    onClick={() => setShowQr(false)}
+                  >
+                    ← Back to other sign-in options
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className={styles.divider}>OR WITH E-MAIL</div>
 
