@@ -404,6 +404,7 @@ function PassportRailCard({
         </div>
         <div style={{ marginTop: 14, opacity: 0.9 }}>
           <PassportPreview
+            flippable
             no={NEUTRAL}
             name={provisionalName(application)}
             domicile={provisionalDomicile(application)}

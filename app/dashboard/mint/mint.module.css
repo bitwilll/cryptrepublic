@@ -379,3 +379,91 @@
   color: var(--gold);
   letter-spacing: 0.02em;
 }
+
+/* ── Flippable NFT-style passport (opt-in `flippable`): a 3D card flip revealing
+   a designed reverse face. The inner uses a single-cell grid so BOTH faces stack
+   in the same cell and the card sizes to the taller face — no clipping. The
+   non-flippable preview is byte-for-byte unchanged. ── */
+.passportFlip {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: inherit;
+  cursor: pointer;
+  perspective: 1400px;
+}
+.passportFlip:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 14px;
+}
+.passportFlipInner {
+  display: grid;
+  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transform-style: preserve-3d;
+}
+@media (prefers-reduced-motion: reduce) {
+  .passportFlipInner {
+    transition: none;
+  }
+}
+.passportFlipInner.flipped {
+  transform: rotateY(180deg);
+}
+.passportFace,
+.passportBack {
+  grid-area: 1 / 1; /* stack in one cell → the card is as tall as the taller face */
+  position: relative; /* anchor the flip hint */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+.passportBack {
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.passportFlipHint {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+}
+.passportSeal {
+  margin: 12px auto 4px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+}
+.passportBackMotto {
+  text-align: center;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.92);
+  min-height: 20px;
+}
+.passportBackFlag {
+  margin-top: 10px;
+  margin-bottom: 4px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+}

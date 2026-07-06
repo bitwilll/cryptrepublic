@@ -138,6 +138,7 @@ export default function PassportView(): React.ReactElement {
           </p>
           <div style={{ maxWidth: 360, marginTop: 20, opacity: 0.9 }}>
             <PassportPreview
+              flippable
               no={NEUTRAL}
               name={provisionalName(application)}
               domicile={provisionalDomicile(application)}
@@ -185,6 +186,7 @@ export default function PassportView(): React.ReactElement {
       </p>
       <div style={{ maxWidth: 360, marginTop: 20 }}>
         <PassportPreview
+          flippable
           no={tokenId}
           name={`CITIZEN №${tokenId}`}
           domicile={safeDecode(c?.domicile)}
