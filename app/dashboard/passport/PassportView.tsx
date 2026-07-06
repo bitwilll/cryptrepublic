@@ -8,61 +8,18 @@ import { getAccounts, loadPublicAccounts } from "@/lib/wallet/embedded/session";
 import { readPassportStatus, readTotalCitizens, type PassportStatus } from "@/lib/passport/client";
 import { decodeBytes32String } from "@/lib/passport/attestation";
 import { Button } from "@/components/ui/Button";
+import {
+  deriveProvisional,
+  provisionalDomicile,
+  provisionalMotto,
+  provisionalName,
+  NEUTRAL,
+  type AppInfo,
+} from "@/lib/passport/provisional";
 import { PassportPreview } from "../mint/components/PassportPreview";
 import styles from "../mint/mint.module.css";
 
 type LoadState = "loading" | "no-wallet" | "not-citizen" | "citizen" | "error";
-
-const NEUTRAL = "—"; // em dash
-
-/** The off-chain application shape surfaced by GET /api/applications. */
-interface AppInfo {
-  status: string;
-  name: string | null;
-  domicileCity: string | null;
-  motto: string | null;
-  adminApprovedAt: string | null;
-}
-
-/**
- * Derive a PROVISIONAL (not-yet-on-chain) passport state from the off-chain
- * application, for the honest look-and-feel card shown BEFORE the mint lands.
- * This is NEVER citizenship — the real passport only renders when the chain
- * says citizen. null → no application → the plain mint CTA.
- */
-function deriveProvisional(
-  app: AppInfo | null,
-): { label: string; sublabel: string; cta: string } | null {
-  if (!app) return null;
-  if (app.adminApprovedAt) {
-    return {
-      label: "TO BE MINTED",
-      sublabel:
-        "An administrator has approved your application — your passport is being issued by the Republic.",
-      cta: "Open the mint flow →",
-    };
-  }
-  if (app.status === "WITNESSED") {
-    return {
-      label: "TO BE MINTED",
-      sublabel: "Your witnesses are collected — seal your passport on chain to finish.",
-      cta: "Seal your passport →",
-    };
-  }
-  if (app.status === "SEALED") {
-    return {
-      label: "AWAITING CHAIN CONFIRMATION",
-      sublabel: "Your seal is recorded off-chain; waiting for the chain to confirm it.",
-      cta: "Open the mint flow →",
-    };
-  }
-  return {
-    label: "PENDING · TO BE VERIFIED",
-    sublabel:
-      "Your application is in progress. Finish the steps to have your passport verified and minted.",
-    cta: "Continue your application →",
-  };
-}
 
 /** Whether every char in `s` is printable ASCII/Latin (no control/replacement chars). */
 function isPrintable(s: string): boolean {
@@ -155,7 +112,6 @@ export default function PassportView(): React.ReactElement {
     // labeled NOT-YET-ON-CHAIN; the chain (readPassportStatus) remains the sole
     // source of real citizenship, so this never claims to be a sealed passport.
     if (provisional) {
-      const declaredName = (application?.name ?? "").trim();
       return (
         <div style={{ marginTop: 16 }} data-testid="passport-provisional">
           <h1 style={{ marginTop: 8 }}>Your passport — {provisional.label.toLowerCase()}</h1>
@@ -183,9 +139,9 @@ export default function PassportView(): React.ReactElement {
           <div style={{ maxWidth: 360, marginTop: 20, opacity: 0.9 }}>
             <PassportPreview
               no={NEUTRAL}
-              name={declaredName ? declaredName.toUpperCase() : "PENDING CITIZEN"}
-              domicile={(application?.domicileCity ?? "").trim() || NEUTRAL}
-              motto={(application?.motto ?? "").trim() || undefined}
+              name={provisionalName(application)}
+              domicile={provisionalDomicile(application)}
+              motto={provisionalMotto(application)}
               issued={provisional.label}
             />
           </div>

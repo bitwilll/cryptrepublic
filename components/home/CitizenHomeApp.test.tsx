@@ -14,6 +14,14 @@ import { render, screen, waitFor, within } from "@testing-library/react";
  * - a per-card fetch error renders a retry, not a blank screen
  */
 
+interface AppFixture {
+  status: string;
+  name: string | null;
+  domicileCity: string | null;
+  motto: string | null;
+  adminApprovedAt: string | null;
+}
+
 const h = vi.hoisted(() => ({
   isCitizen: true,
   tokenId: 7n as bigint | null,
@@ -22,6 +30,7 @@ const h = vi.hoisted(() => ({
   activity: [] as { kind: string; blockNumber: string; ref: string }[],
   totalCitizens: "12" as string | null,
   activityThrows: false,
+  application: null as AppFixture | null,
 }));
 
 vi.mock("@/components/shell/SessionCitizenProvider", () => ({
@@ -57,6 +66,7 @@ beforeEach(() => {
   h.activity = [];
   h.totalCitizens = "12";
   h.activityThrows = false;
+  h.application = null;
   globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
     if (url.includes("/api/citizen/obligations")) {
@@ -72,6 +82,9 @@ beforeEach(() => {
     }
     if (url.includes("/api/stats/summary")) {
       return jsonResponse({ totalCitizens: h.totalCitizens });
+    }
+    if (url.includes("/api/applications")) {
+      return jsonResponse({ application: h.application });
     }
     return jsonResponse({});
   }) as unknown as typeof fetch;
@@ -126,7 +139,7 @@ describe("CitizenHomeApp", () => {
     );
   });
 
-  it("in-flight mint (witness stage) replaces the mint CTA with the waiting state", async () => {
+  it("in-flight mint (witness stage) replaces the mint CTA with the waiting state + a provisional passport rail", async () => {
     h.isCitizen = false;
     h.tokenId = null;
     h.obligations = [
@@ -136,6 +149,13 @@ describe("CitizenHomeApp", () => {
         label: "Your passport mint is waiting for witness attestations (3 of 7 collected).",
       },
     ];
+    h.application = {
+      status: "OATH_ACCEPTED",
+      name: "Ada Applicant",
+      domicileCity: "Lisbon",
+      motto: "",
+      adminApprovedAt: null,
+    };
     render(<CitizenHomeApp />);
     const obligations = await screen.findByTestId("obligations");
     // The waiting label renders and links back to the (resuming) mint flow…
@@ -146,10 +166,13 @@ describe("CitizenHomeApp", () => {
       "href",
       "/dashboard/mint",
     );
-    // …and the "start a new mint" CTA is GONE everywhere — obligations AND the
-    // passport rail card swap to the waiting/resume state (no re-mint affordance).
+    // …the "start a new mint" CTA is GONE everywhere…
     expect(screen.queryByRole("link", { name: /mint your passport/i })).not.toBeInTheDocument();
-    expect(screen.getByTestId("passport-rail-pending")).toHaveTextContent(/mint in progress/i);
+    // …and the passport rail shows a PROVISIONAL passport (declared name), clearly
+    // labeled not-yet-on-chain — never claiming citizenship.
+    const rail = await screen.findByTestId("passport-rail-provisional");
+    expect(within(rail).getByTestId("passport-rail-status")).toHaveTextContent(/not yet on chain/i);
+    expect(rail).toHaveTextContent(/ADA APPLICANT/);
   });
 
   it("admin-approved (non-citizen) renders the pending state with the admin-approved wording (Wave 10, addendum #6)", async () => {
@@ -163,6 +186,13 @@ describe("CitizenHomeApp", () => {
           "An administrator has approved your application; your passport is being issued by the Republic.",
       },
     ];
+    h.application = {
+      status: "OATH_ACCEPTED",
+      name: "Jay Approved",
+      domicileCity: "Lisbon",
+      motto: "code is law",
+      adminApprovedAt: "2026-07-06T00:00:00.000Z",
+    };
     render(<CitizenHomeApp />);
     const obligations = await screen.findByTestId("obligations");
     // The approved wording renders in the pending grouping with a RESUME link…
@@ -175,17 +205,50 @@ describe("CitizenHomeApp", () => {
     );
     // …the "start a new mint" CTA is GONE (no silent fall-through to Mint your passport)…
     expect(screen.queryByRole("link", { name: /mint your passport/i })).not.toBeInTheDocument();
-    // …and the passport rail swaps to the pending state with the issued-by-the-Republic wording.
-    expect(screen.getByTestId("passport-rail-pending")).toHaveTextContent(/being issued/i);
+    // …and the passport rail shows the provisional passport in the "TO BE MINTED" state.
+    const rail = await screen.findByTestId("passport-rail-provisional");
+    expect(within(rail).getByTestId("passport-rail-status")).toHaveTextContent(/to be minted/i);
+    expect(rail).toHaveTextContent(/JAY APPROVED/);
   });
 
-  it("a citizen never sees the pending rail — the chain-truth citizen state wins (Wave 10)", async () => {
+  it("a citizen never sees the provisional rail — the chain-truth citizen state wins (Wave 10)", async () => {
     h.isCitizen = true;
     h.tokenId = 7n;
     h.obligations = [];
+    // Even if a stale application row exists, the on-chain citizen state wins.
+    h.application = {
+      status: "SEALED",
+      name: "Sealed Citizen",
+      domicileCity: "Lisbon",
+      motto: "",
+      adminApprovedAt: null,
+    };
     render(<CitizenHomeApp />);
     await waitFor(() => expect(screen.getByTestId("salutation")).toHaveTextContent(/citizen/i));
-    expect(screen.queryByTestId("passport-rail-pending")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("passport-rail-provisional")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /view credential/i })).toBeInTheDocument();
+  });
+
+  it("a fresh applicant (DRAFT) sees a provisional passport with their declared name in the rail", async () => {
+    h.isCitizen = false;
+    h.tokenId = null;
+    h.obligations = [];
+    h.application = {
+      status: "DRAFT",
+      name: "Nova Applicant",
+      domicileCity: "",
+      motto: "",
+      adminApprovedAt: null,
+    };
+    render(<CitizenHomeApp />);
+    const rail = await screen.findByTestId("passport-rail-provisional");
+    expect(within(rail).getByTestId("passport-rail-status")).toHaveTextContent(
+      /pending|to be verified/i,
+    );
+    expect(within(rail).getByTestId("passport-rail-status")).toHaveTextContent(/not yet on chain/i);
+    expect(rail).toHaveTextContent(/NOVA APPLICANT/);
+    // It is a provisional preview — never a claim of citizenship.
+    expect(rail).not.toHaveTextContent(/sealed on chain/i);
   });
 
   it("renders a per-card retry (not a blank screen) when the activity fetch errors", async () => {

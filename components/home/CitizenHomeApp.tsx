@@ -4,6 +4,15 @@ import Link from "next/link";
 import { useCitizen } from "@/components/shell/SessionCitizenProvider";
 import { useChainInfo } from "@/lib/hooks/useChainInfo";
 import { Ledger } from "@/components/ui/Ledger";
+import { PassportPreview } from "@/app/dashboard/mint/components/PassportPreview";
+import {
+  deriveProvisional,
+  provisionalDomicile,
+  provisionalMotto,
+  provisionalName,
+  NEUTRAL,
+  type AppInfo,
+} from "@/lib/passport/provisional";
 
 /**
  * Citizen home (§7.5) client island. Every figure is REAL or honestly empty:
@@ -34,6 +43,9 @@ export function CitizenHomeApp() {
   const [obligations, setObligations] = useState<Load<Obligation[]>>({ status: "loading" });
   const [activity, setActivity] = useState<Load<Activity[]>>({ status: "loading" });
   const [totalCitizens, setTotalCitizens] = useState<number | null>(null);
+  // The off-chain application (declared name/domicile/motto + status) — drives
+  // the provisional passport shown in the rail once a user has applied.
+  const [application, setApplication] = useState<AppInfo | null>(null);
 
   const loadObligations = useCallback(() => {
     setObligations({ status: "loading" });
@@ -64,6 +76,10 @@ export function CitizenHomeApp() {
         setTotalCitizens(d.totalCitizens != null ? Number(d.totalCitizens) : null),
       )
       .catch(() => setTotalCitizens(null));
+    fetch("/api/applications", { credentials: "same-origin" })
+      .then((r) => (r.ok ? r.json() : { application: null }))
+      .then((d: { application: AppInfo | null }) => setApplication(d.application))
+      .catch(() => setApplication(null));
   }, [loadObligations, loadActivity]);
 
   const blockLabel = chain.blockNumber != null ? chain.blockNumber.toString() : "—";
@@ -105,17 +121,7 @@ export function CitizenHomeApp() {
         </div>
 
         <aside style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <PassportRailCard
-            isCitizen={isCitizen}
-            pendingKind={
-              obligations.status === "ok"
-                ? // The admin-approved state wins over the witness path (Wave 10 A5).
-                  (obligations.data.find((o) => o.kind === "admin-approved")?.kind ??
-                  obligations.data.find((o) => o.kind === "witness")?.kind ??
-                  null)
-                : null
-            }
-          />
+          <PassportRailCard isCitizen={isCitizen} application={application} />
           <CensusTickerCard total={totalCitizens} />
         </aside>
       </div>
@@ -337,69 +343,99 @@ function RepublicLedger({
   );
 }
 
+const RAIL_LABEL: React.CSSProperties = {
+  fontSize: 10,
+  color: "var(--muted)",
+  letterSpacing: "0.12em",
+  fontWeight: 700,
+};
+
 function PassportRailCard({
   isCitizen,
-  pendingKind,
+  application,
 }: {
   isCitizen: boolean;
-  pendingKind: string | null;
+  application: AppInfo | null;
 }) {
-  if (!isCitizen && pendingKind) {
-    // In-flight mint (witness/seal stage OR admin-approved) — no "start a new
-    // mint" wording. The admin-approved copy is chain-truth honest: approved,
-    // being issued — never "citizen" until the chain confirms.
+  // Citizen — chain-truth wins. The home doesn't read the on-chain passport, so
+  // it links to the panel where the REAL sealed credential renders.
+  if (isCitizen) {
     return (
-      <article className="pillar" style={{ padding: 20 }} data-testid="passport-rail-pending">
-        <div
-          style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.12em", fontWeight: 700 }}
-        >
-          YOUR PASSPORT
-        </div>
+      <article className="pillar" style={{ padding: 20 }}>
+        <div style={RAIL_LABEL}>YOUR PASSPORT</div>
         <p style={{ color: "var(--muted)", marginTop: 12, fontSize: 13 }}>
-          {pendingKind === "admin-approved"
-            ? "Approved by an administrator — your passport is being issued by the Republic."
-            : "Passport mint in progress — waiting for witness attestations."}
+          Your soulbound credential is sealed on chain.
         </p>
-        <Link className="btn" href="/dashboard/mint" style={{ marginTop: 14, width: "100%" }}>
-          RESUME →
+        <Link
+          className="btn btn-primary"
+          href="/dashboard/passport"
+          style={{ marginTop: 14, width: "100%" }}
+        >
+          View credential →
         </Link>
       </article>
     );
   }
+
+  // Applied but not yet on chain → a PROVISIONAL passport preview (declared
+  // name/domicile/motto) with a clearly-labeled pending status. This is NEVER
+  // citizenship — only the chain (readPassportStatus on the panel) is that.
+  const provisional = deriveProvisional(application);
+  if (provisional) {
+    return (
+      <article className="pillar" style={{ padding: 20 }} data-testid="passport-rail-provisional">
+        <div style={RAIL_LABEL}>YOUR PASSPORT</div>
+        <div
+          data-testid="passport-rail-status"
+          role="status"
+          style={{
+            display: "inline-block",
+            marginTop: 10,
+            padding: "3px 10px",
+            border: "1px solid var(--gold)",
+            background: "rgba(200, 169, 106, 0.15)",
+            color: "var(--navy)",
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+          }}
+        >
+          {provisional.label} · NOT YET ON CHAIN
+        </div>
+        <div style={{ marginTop: 14, opacity: 0.9 }}>
+          <PassportPreview
+            no={NEUTRAL}
+            name={provisionalName(application)}
+            domicile={provisionalDomicile(application)}
+            motto={provisionalMotto(application)}
+            issued={provisional.label}
+          />
+        </div>
+        <Link
+          className="btn btn-primary"
+          href="/dashboard/mint"
+          style={{ marginTop: 14, width: "100%" }}
+        >
+          {provisional.cta}
+        </Link>
+      </article>
+    );
+  }
+
+  // No application on record (edge) — the plain mint CTA.
   return (
     <article className="pillar" style={{ padding: 20 }}>
-      <div
-        style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.12em", fontWeight: 700 }}
+      <div style={RAIL_LABEL}>YOUR PASSPORT</div>
+      <p style={{ color: "var(--muted)", marginTop: 12, fontSize: 13 }}>
+        You have not minted a passport yet.
+      </p>
+      <Link
+        className="btn btn-primary"
+        href="/dashboard/mint"
+        style={{ marginTop: 14, width: "100%" }}
       >
-        YOUR PASSPORT
-      </div>
-      {isCitizen ? (
-        <>
-          <p style={{ color: "var(--muted)", marginTop: 12, fontSize: 13 }}>
-            Your soulbound credential is sealed on chain.
-          </p>
-          <Link
-            className="btn btn-primary"
-            href="/dashboard/passport"
-            style={{ marginTop: 14, width: "100%" }}
-          >
-            View credential →
-          </Link>
-        </>
-      ) : (
-        <>
-          <p style={{ color: "var(--muted)", marginTop: 12, fontSize: 13 }}>
-            You have not minted a passport yet.
-          </p>
-          <Link
-            className="btn btn-primary"
-            href="/dashboard/mint"
-            style={{ marginTop: 14, width: "100%" }}
-          >
-            Mint your passport →
-          </Link>
-        </>
-      )}
+        Mint your passport →
+      </Link>
     </article>
   );
 }
