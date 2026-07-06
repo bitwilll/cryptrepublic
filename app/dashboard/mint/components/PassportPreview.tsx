@@ -1,5 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import QRCode from "qrcode";
+import { identicon, fingerprint, passportSeed } from "@/lib/passport/identity";
 import styles from "../mint.module.css";
 
 export interface PassportPreviewProps {
@@ -14,10 +16,12 @@ export interface PassportPreviewProps {
   /** Issued marker (block / "AWAITING SEAL" / a provisional status). */
   issued: string;
   /**
-   * When true, the card becomes an NFT-style FLIPPABLE passport: click / Enter /
-   * Space flips between the data page and an engraved reverse. Default false
-   * keeps the static preview (mint draft).
+   * The holder's stable identity (their verified wallet address when known) —
+   * seeds the UNIQUE front QR code and the UNIQUE generative NFT on the reverse.
+   * Absent → a name-derived fallback so the art still renders.
    */
+  identity?: string;
+  /** When true, the card becomes an NFT-style FLIPPABLE passport (data page ⇄ reverse). */
   flippable?: boolean;
 }
 
@@ -55,15 +59,45 @@ function Field({
   );
 }
 
-/** The passport DATA PAGE (front). */
+/** The UNIQUE generative NFT artwork — a symmetric identicon, stable per seed. */
+function IdenticonArt({ seed }: { seed: string }): React.ReactElement {
+  const { cells, color, size } = identicon(seed, 7);
+  const dim = 100;
+  const c = dim / size;
+  return (
+    <svg viewBox={`0 0 ${dim} ${dim}`} data-testid="passport-nft" aria-hidden="true">
+      {cells.flatMap((row, y) =>
+        row.map((on, x) =>
+          on ? (
+            <rect
+              key={`${x}-${y}`}
+              x={x * c}
+              y={y * c}
+              width={c + 0.4}
+              height={c + 0.4}
+              rx={1}
+              fill={color}
+            />
+          ) : null,
+        ),
+      )}
+    </svg>
+  );
+}
+
+/** The passport DATA PAGE (front) — with the unique QR in the portrait column. */
 function PassportFace({
   no,
   name,
   domicile,
   motto,
   issued,
+  qrUrl,
   hint,
-}: PassportPreviewProps & { hint?: boolean }): React.ReactElement {
+}: Omit<PassportPreviewProps, "identity" | "flippable"> & {
+  qrUrl: string | null;
+  hint?: boolean;
+}): React.ReactElement {
   const [mrz1, mrz2] = mrzLines(name, no);
   return (
     <div className={`${styles.passport} ${styles.passportFace}`}>
@@ -87,10 +121,28 @@ function PassportFace({
       </div>
 
       <div className={styles.passportBody}>
-        <div className={styles.passportPortrait} aria-hidden="true">
-          <div className={styles.passportSeal}>CR</div>
-          <div className={styles.passportChip}>⬢</div>
-          <div className={styles.passportSbt}>SOULBOUND</div>
+        <div className={styles.passportPortrait}>
+          <div className={styles.passportSeal} aria-hidden="true">
+            CR
+          </div>
+          {qrUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- data: URL QR, not a remote asset
+            <img
+              className={styles.passportQr}
+              src={qrUrl}
+              alt="Passport verification QR"
+              data-testid="passport-qr"
+            />
+          ) : (
+            <div
+              className={styles.passportQrPlaceholder}
+              data-testid="passport-qr"
+              aria-hidden="true"
+            />
+          )}
+          <div className={styles.passportSbt} aria-hidden="true">
+            SOULBOUND
+          </div>
         </div>
         <div className={styles.passportFields}>
           <div className={styles.passportFieldLabel}>Surname / Given names</div>
@@ -120,12 +172,15 @@ function PassportFace({
   );
 }
 
-/** The engraved REVERSE — seal, motto, the soulbound covenant, and a security strip. */
+/** The engraved REVERSE — the unique sovereign NFT, the covenant, and NFT identity. */
 function PassportBack({
   no,
   motto,
   issued,
-}: Pick<PassportPreviewProps, "no" | "motto" | "issued">): React.ReactElement {
+  seed,
+}: Pick<PassportPreviewProps, "no" | "motto" | "issued"> & {
+  seed: string;
+}): React.ReactElement {
   return (
     <div className={`${styles.passport} ${styles.passportBack}`}>
       <div className={styles.passportGuilloche} aria-hidden="true" />
@@ -135,24 +190,25 @@ function PassportBack({
         </span>
         <div className={styles.passportTitle}>
           <b>CRYPTREPUBLIC</b>
-          <span>OFFICIAL REVERSE · CRPASS</span>
+          <span>SOVEREIGN CREDENTIAL · CRPASS</span>
         </div>
       </div>
       <div className={styles.passportBackBody}>
-        <div className={styles.passportSealLg} aria-hidden="true">
-          CR
+        <div className={styles.passportNft}>
+          <IdenticonArt seed={seed} />
         </div>
+        <div className={styles.passportNftLabel}>SOVEREIGN NFT · ONE OF ONE</div>
         <div className={styles.passportBackMotto}>{motto || "Civis Cryptrepublicae"}</div>
         <div className={styles.passportBackFlag}>◆ SOULBOUND · NON-TRANSFERABLE ◆</div>
-        <p className={styles.passportBackNote}>
-          This credential is bound to its holder and to the chain. It cannot be sold, sent, or
-          transferred.
-        </p>
         <div className={styles.passportFieldGrid}>
-          <Field label="Issuing authority" value="THE REPUBLIC" />
-          <Field label="Issued" value={issued} />
+          <Field label="Standard" value="SBT · ERC-721" />
+          <Field label="Token №" value={no} no />
           <Field label="Chain" value="BASE" />
-          <Field label="Passport №" value={no} no />
+          <Field label="Issued" value={issued} />
+        </div>
+        <div>
+          <div className={styles.passportFieldLabel}>Fingerprint</div>
+          <div className={styles.passportFinger}>{fingerprint(seed)}</div>
         </div>
         <div className={styles.passportBarcode} aria-hidden="true" />
       </div>
@@ -164,16 +220,39 @@ function PassportBack({
 }
 
 /**
- * The CryptRepublic digital passport preview. Used in the mint flow (draft,
- * updates live), on "Your Passport" (sealed), and as the provisional pre-mint
- * card. With `flippable`, it becomes an NFT-style flip card (data page ⇄
- * engraved reverse).
+ * The CryptRepublic digital passport preview. A secure data page with a unique
+ * QR, and (flippable) an engraved reverse bearing the holder's unique sovereign
+ * NFT. Used in the mint flow (draft), on "Your Passport" (sealed), and as the
+ * provisional pre-mint card.
  */
 export function PassportPreview(props: PassportPreviewProps): React.ReactElement {
-  const { flippable, ...face } = props;
+  const { flippable, identity, ...face } = props;
   const [flipped, setFlipped] = useState(false);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
 
-  if (!flippable) return <PassportFace {...face} />;
+  const seed = passportSeed(identity, face.name);
+  const qrValue = (identity ?? "").trim() || seed;
+
+  useEffect(() => {
+    let mounted = true;
+    QRCode.toDataURL(qrValue, {
+      margin: 1,
+      width: 132,
+      errorCorrectionLevel: "M",
+      color: { dark: "#0b0f16", light: "#eaddbf" },
+    })
+      .then((url) => {
+        if (mounted) setQrUrl(url);
+      })
+      .catch(() => {
+        if (mounted) setQrUrl(null);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [qrValue]);
+
+  if (!flippable) return <PassportFace {...face} qrUrl={qrUrl} />;
 
   return (
     <button
@@ -187,8 +266,8 @@ export function PassportPreview(props: PassportPreviewProps): React.ReactElement
       onClick={() => setFlipped((f) => !f)}
     >
       <div className={`${styles.passportFlipInner} ${flipped ? styles.flipped : ""}`}>
-        <PassportFace {...face} hint />
-        <PassportBack no={face.no} motto={face.motto} issued={face.issued} />
+        <PassportFace {...face} qrUrl={qrUrl} hint />
+        <PassportBack no={face.no} motto={face.motto} issued={face.issued} seed={seed} />
       </div>
     </button>
   );

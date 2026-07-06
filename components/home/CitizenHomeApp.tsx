@@ -37,7 +37,7 @@ interface Activity extends Record<string, unknown> {
 type Load<T> = { status: "loading" } | { status: "ok"; data: T } | { status: "error" };
 
 export function CitizenHomeApp() {
-  const { isCitizen } = useCitizen();
+  const { isCitizen, address } = useCitizen();
   const chain = useChainInfo();
 
   const [obligations, setObligations] = useState<Load<Obligation[]>>({ status: "loading" });
@@ -121,7 +121,7 @@ export function CitizenHomeApp() {
         </div>
 
         <aside style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <PassportRailCard isCitizen={isCitizen} application={application} />
+          <PassportRailCard isCitizen={isCitizen} application={application} identity={address} />
           <CensusTickerCard total={totalCitizens} />
         </aside>
       </div>
@@ -353,9 +353,11 @@ const RAIL_LABEL: React.CSSProperties = {
 function PassportRailCard({
   isCitizen,
   application,
+  identity,
 }: {
   isCitizen: boolean;
   application: AppInfo | null;
+  identity?: string | null;
 }) {
   // Citizen — chain-truth wins. The home doesn't read the on-chain passport, so
   // it links to the panel where the REAL sealed credential renders.
@@ -405,6 +407,7 @@ function PassportRailCard({
         <div style={{ marginTop: 14, opacity: 0.9 }}>
           <PassportPreview
             flippable
+            identity={identity ?? undefined}
             no={NEUTRAL}
             name={provisionalName(application)}
             domicile={provisionalDomicile(application)}

@@ -4,11 +4,23 @@ import { render, screen, fireEvent, within } from "@testing-library/react";
 import { PassportPreview } from "./PassportPreview";
 
 describe("PassportPreview", () => {
-  it("static (default) renders the face with no flip control", () => {
+  it("static (default) renders the face with a QR and no flip control", () => {
     render(<PassportPreview no="7" name="CITIZEN №7" domicile="Lisbon" issued="BLK 100" />);
     expect(screen.getByText("CITIZEN №7")).toBeInTheDocument();
     expect(screen.getByText("Lisbon")).toBeInTheDocument();
+    expect(screen.getByTestId("passport-qr")).toBeInTheDocument(); // unique QR on the face
     expect(screen.queryByTestId("passport-flip")).not.toBeInTheDocument();
+  });
+
+  it("the reverse carries a UNIQUE generative NFT (deterministic per identity)", () => {
+    const { unmount } = render(
+      <PassportPreview flippable identity="0xAAA" no="—" name="A" issued="PENDING" />,
+    );
+    const artA = screen.getByTestId("passport-nft").innerHTML;
+    unmount();
+    render(<PassportPreview flippable identity="0xBBB" no="—" name="B" issued="PENDING" />);
+    const artB = screen.getByTestId("passport-nft").innerHTML;
+    expect(artA).not.toBe(artB); // different holders → different NFT art
   });
 
   it("flippable exposes an accessible flip button whose aria-pressed toggles on click", () => {

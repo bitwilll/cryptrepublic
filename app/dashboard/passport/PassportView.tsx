@@ -50,6 +50,8 @@ export default function PassportView(): React.ReactElement {
   const [status, setStatus] = useState<PassportStatus | null>(null);
   const [total, setTotal] = useState<bigint | null>(null);
   const [application, setApplication] = useState<AppInfo | null>(null);
+  // The resolved holder address — seeds the unique passport QR + sovereign NFT.
+  const [address, setAddress] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -66,6 +68,7 @@ export default function PassportView(): React.ReactElement {
       const embedded = getAccounts() ?? (await loadPublicAccounts());
       if (embedded?.evm) addr = getAddress(embedded.evm) as Address;
       else if (wagmiAddress) addr = getAddress(wagmiAddress) as Address;
+      if (mounted) setAddress(addr);
 
       if (!addr) {
         const app = await appPromise;
@@ -145,6 +148,7 @@ export default function PassportView(): React.ReactElement {
           <div style={{ maxWidth: 360, marginTop: 20, opacity: 0.9 }}>
             <PassportPreview
               flippable
+              identity={address ?? undefined}
               no={NEUTRAL}
               name={provisionalName(application)}
               domicile={provisionalDomicile(application)}
@@ -203,6 +207,7 @@ export default function PassportView(): React.ReactElement {
       <div style={{ maxWidth: 360, marginTop: 20 }}>
         <PassportPreview
           flippable
+          identity={address ?? undefined}
           no={tokenId}
           name={`CITIZEN №${tokenId}`}
           domicile={safeDecode(c?.domicile)}
