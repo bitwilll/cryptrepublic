@@ -12,7 +12,6 @@ export function HeroPassport() {
   return (
     <section className="hero" id="top" data-screen-label="Hero">
       <div className="wrap">
-        <Crest tone="dark" className="hero-watermark" alt="" />
         <div className="hero-grid">
           <div>
             <div className="hero-emblem">

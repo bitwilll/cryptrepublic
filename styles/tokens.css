@@ -1543,17 +1543,18 @@ svg text {
 .hero-emblem {
   margin-bottom: 18px;
 }
-.hero-watermark {
-  position: absolute;
-  right: -70px;
+/* Full-page crest watermark — a faint brand backdrop spanning the whole viewport
+   behind the content (a light wash; pointer-events none, never intercepts). */
+.page-watermark {
+  position: fixed;
+  left: 50%;
   top: 50%;
-  width: 720px;
-  max-width: 56%;
+  transform: translate(-50%, -50%);
+  width: min(96vw, 1240px);
   height: auto;
-  transform: translateY(-50%);
-  opacity: 0.05;
+  opacity: 0.09;
   pointer-events: none;
-  z-index: 0;
+  z-index: 2;
 }
 .hero-grid {
   position: relative;
@@ -1573,4 +1574,17 @@ svg text {
 .pb-inside > *:not(.dp-watermark) {
   position: relative;
   z-index: 1;
+}
+
+/* Scoped page crest watermark (e.g. the passport page) — behind the section content. */
+.page-crest {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  width: min(88%, 820px);
+  height: auto;
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 0;
 }

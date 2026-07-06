@@ -1,3 +1,4 @@
+import { Crest } from "@/components/brand/Crest";
 import { GovStrip } from "@/components/marketing/GovStrip";
 import { SiteHeader } from "@/components/marketing/SiteHeader";
 import { Reveal } from "@/components/marketing/Reveal";
@@ -15,6 +16,7 @@ import { SiteFooter } from "@/components/marketing/SiteFooter";
 export default function HomePage() {
   return (
     <>
+      <Crest tone="dark" className="page-watermark" alt="" />
       <GovStrip />
       <SiteHeader />
       <Reveal />
