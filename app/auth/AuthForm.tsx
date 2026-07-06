@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SiweMessage } from "siwe";
 import { createWalletClient, custom, getAddress } from "viem";
+import { startAuthentication } from "@simplewebauthn/browser";
 import { QrLoginPanel } from "@/components/auth/QrLoginPanel";
 import styles from "./auth.module.css";
 
@@ -33,6 +34,7 @@ export function AuthForm() {
   const [mode, setMode] = useState<Mode>("in");
   const [busy, setBusy] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const [twoFactorPending, setTwoFactorPending] = useState(false);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -92,13 +94,29 @@ export function AuthForm() {
         credentials: "same-origin",
         body: JSON.stringify(body),
       });
-      const data = (await res.json().catch(() => ({}))) as { next?: string; error?: string };
+      const data = (await res.json().catch(() => ({}))) as {
+        next?: string;
+        error?: string;
+        twoFactor?: boolean;
+      };
       if (!res.ok) {
         log([
           { text: `> ${data.error ?? "request failed"}`, tone: "dim" },
           { text: "> authentication rejected", tone: "dim" },
         ]);
         setBusy(false);
+        return;
+      }
+      // Wave 14 — require-passkey step-up: a correct password did NOT issue a
+      // session; the account requires a passkey to finish. Prompt the ceremony
+      // (a fresh user gesture keeps the WebAuthn call reliable across browsers).
+      if (data.twoFactor) {
+        setTwoFactorPending(true);
+        setBusy(false);
+        log([
+          { text: "> password verified · passkey required", tone: "gold" },
+          { text: "> finish with your passkey below", tone: "dim" },
+        ]);
         return;
       }
       log([
@@ -192,6 +210,46 @@ export function AuthForm() {
     }
   }
 
+  // Passkey (WebAuthn) sign-in — both the standalone passwordless path and the
+  // completion of a require-passkey step-up. Usernameless: the browser offers
+  // the account's discoverable passkeys; identity comes from the credential.
+  async function passkeyLogin() {
+    if (busy) return;
+    setBusy(true);
+    log([{ text: "> requesting passkey…", tone: "dim" }]);
+    try {
+      const optRes = await fetch("/api/auth/webauthn/login/options", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        body: "{}",
+      });
+      if (!optRes.ok) throw new Error("Could not start a passkey sign-in.");
+      const { options } = (await optRes.json()) as { options: Record<string, unknown> };
+      const assertion = await startAuthentication({
+        optionsJSON: options as Parameters<typeof startAuthentication>[0]["optionsJSON"],
+      });
+      const verRes = await fetch("/api/auth/webauthn/login/verify", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ response: assertion }),
+      });
+      const data = (await verRes.json().catch(() => ({}))) as { next?: string; error?: string };
+      if (!verRes.ok) throw new Error(data.error ?? "Passkey sign-in failed.");
+      log([
+        { text: "> passkey verified · session sealed ✓", tone: "gold" },
+        { text: "> redirecting…", tone: "dim" },
+      ]);
+      router.push(data.next ?? "/dashboard");
+    } catch (e) {
+      log([
+        { text: `> ${e instanceof Error ? e.message : "passkey sign-in cancelled"}`, tone: "dim" },
+      ]);
+      setBusy(false);
+    }
+  }
+
   return (
     <div className={styles.formCard}>
       <div className={styles.fcHead}>
@@ -257,24 +315,30 @@ export function AuthForm() {
 
         {signin && (
           <div style={{ marginTop: 12 }}>
-            {!showQr ? (
-              <button
-                className={styles.wallet}
-                type="button"
-                data-testid="qr-login-open"
-                onClick={() => setShowQr(true)}
-                style={{ width: "100%" }}
-              >
-                <span className={styles.glyph} style={{ background: "#0a1929" }}>
-                  QR
-                </span>
-                <span>
-                  <b>Wallet-QR sign-in</b>
-                  <span>Scan with a device where your wallet is unlocked</span>
-                </span>
-                <span className={styles.go}>SCAN →</span>
-              </button>
-            ) : (
+            {twoFactorPending ? (
+              <div data-testid="passkey-2fa-section">
+                <button
+                  className={styles.wallet}
+                  type="button"
+                  data-testid="passkey-2fa-complete"
+                  onClick={passkeyLogin}
+                  disabled={busy}
+                  style={{ width: "100%" }}
+                >
+                  <span
+                    className={styles.glyph}
+                    style={{ background: "#0a1929", color: "var(--ink)" }}
+                  >
+                    ⚿
+                  </span>
+                  <span>
+                    <b>Finish with your passkey</b>
+                    <span>This account requires a passkey to complete sign-in</span>
+                  </span>
+                  <span className={styles.go}>UNLOCK →</span>
+                </button>
+              </div>
+            ) : showQr ? (
               <div data-testid="qr-login-section">
                 <QrLoginPanel />
                 <div style={{ textAlign: "center", marginTop: 10 }}>
@@ -283,6 +347,45 @@ export function AuthForm() {
                   </button>
                 </div>
               </div>
+            ) : (
+              <>
+                <button
+                  className={styles.wallet}
+                  type="button"
+                  data-testid="passkey-login-open"
+                  onClick={passkeyLogin}
+                  disabled={busy}
+                  style={{ width: "100%" }}
+                >
+                  <span
+                    className={styles.glyph}
+                    style={{ background: "#0a1929", color: "var(--ink)" }}
+                  >
+                    ⚿
+                  </span>
+                  <span>
+                    <b>Sign in with a passkey</b>
+                    <span>Touch ID, Face ID, or a security key — no password</span>
+                  </span>
+                  <span className={styles.go}>USE →</span>
+                </button>
+                <button
+                  className={styles.wallet}
+                  type="button"
+                  data-testid="qr-login-open"
+                  onClick={() => setShowQr(true)}
+                  style={{ width: "100%", marginTop: 8 }}
+                >
+                  <span className={styles.glyph} style={{ background: "#0a1929" }}>
+                    QR
+                  </span>
+                  <span>
+                    <b>Wallet-QR sign-in</b>
+                    <span>Scan with a device where your wallet is unlocked</span>
+                  </span>
+                  <span className={styles.go}>SCAN →</span>
+                </button>
+              </>
             )}
           </div>
         )}
