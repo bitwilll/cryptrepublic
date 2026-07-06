@@ -124,6 +124,21 @@ step** (deploy + fork tests + burn-in per
 | 11   | Wallet modes: embedded create/import + hardware/external + watch-only with air-gapped QR/camera signing  | Delivered (2026-07-03)                 |
 | 12   | Referral-gated attestation + admin-allocated referral tokens + hybrid trust score                        | Delivered (2026-07-04)                 |
 | 13   | Wallet-QR login: cross-device passwordless sign-in (One Portal identity, slice 1)                        | Delivered (2026-07-06)                 |
+| 14   | Passkeys / WebAuthn: passwordless sign-in + require-passkey step-up (One Portal identity, slice 2)       | Delivered (2026-07-06)                 |
+
+## Passkeys / WebAuthn (Wave 14)
+
+Passwordless, phishing-resistant sign-in with **passkeys** (Touch ID / Face ID /
+security keys), plus an optional **require-passkey** step-up on password login.
+Add and manage passkeys at **Wallet → Passkeys & security**
+(`/dashboard/wallet/security`); sign in with one from **/auth → "Sign in with a
+passkey"**. Chosen over TOTP on purpose: TOTP would force the server to store a
+recoverable shared secret, breaking the no-secret-columns invariant — passkeys
+store only the credential&rsquo;s **public** key, so `guard:secrets` stays green
+and the server can never sign as you. No lockout by construction (enabling
+require-passkey needs a passkey; removing your last passkey turns it off). The
+real cryptographic flow is proven in `e2e/passkeys.spec.ts` via Chrome&rsquo;s
+CDP virtual authenticator. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) §15.
 
 ## Wallet-QR login (Wave 13)
 

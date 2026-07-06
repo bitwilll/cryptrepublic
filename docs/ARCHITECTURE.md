@@ -540,3 +540,58 @@ stays out of the `app/` route file (the surface lives in
 mnemonic/entropy/private-key (found nowhere). `WalletLoginChallenge` is
 byte-identical in both prisma schemas (drift-guarded) with a clean additive
 migration in each tree.
+
+## 15. Passkeys / WebAuthn (Wave 14 — One Portal identity, slice 2)
+
+Passwordless, phishing-resistant sign-in with passkeys (Touch ID / Face ID /
+security keys), plus an optional require-passkey step-up on password login.
+Chosen over TOTP for a concrete reason: **TOTP requires the server to store the
+shared secret in recoverable form** (verification needs it) — that would breach
+the "no secret columns" invariant. Passkeys store only the credential's **public
+key** + counter + metadata, so `guard:secrets` stays green with zero exceptions,
+and the server can never sign as the user (the private half never leaves the
+authenticator). Built on `@simplewebauthn` v13.
+
+**Data.** `WebAuthnCredential {credentialId @unique, publicKey (base64url COSE),
+counter (BigInt, clone detection), transports, deviceType, backedUp, label,
+lastUsedAt}` (cascade User relation). `WebAuthnChallenge` — a SiweNonce-style
+single-use, 5-min-TTL ceremony row (userId bound for registration, null for
+login). `User.passkey2faEnabled` — the require-passkey flag.
+
+**Enroll (logged in).** `POST /register/options` (requireSession) issues
+discoverable-credential options (`residentKey:"required"`, excluding already
+enrolled) with a user-bound challenge; `POST /register/verify` consumes the
+challenge taken from the response's own `clientDataJSON` (binding verify to
+exactly the issued ceremony), runs `verifyRegistrationResponse`, and stores the
+public credential.
+
+**Passkey login (unauthenticated).** `POST /login/options` issues discoverable
+options (empty `allowCredentials`) with an unbound challenge; `POST /login/verify`
+resolves the credential by the id the authenticator returned, runs
+`verifyAuthenticationResponse` against the STORED PUBLIC KEY, rejects suspended,
+persists the new counter + `lastUsedAt`, and issues the session — the same
+success tail as password login. Every failure (unknown credential / failed
+verify / suspended / stale challenge) returns ONE generic 401 — no enumeration
+oracle.
+
+**Require-passkey step-up.** After a correct password, if `passkey2faEnabled`
+AND the account still has a passkey, the login route returns `{ok:true,
+twoFactor:true}` WITHOUT a session; the client finishes with the standard passkey
+ceremony, which issues the session. It fires only after a correct password, so
+it leaks nothing to enumeration. **No lockout by construction:** enabling
+requires a passkey, and deleting the LAST passkey auto-disables the flag in the
+SAME transaction — an account can never be locked into a factor it no longer
+has. (Rationale: a UV-gated passkey is already multi-factor — possession +
+biometric/PIN — so the flag means "password alone is never sufficient".)
+
+**Boundaries + proof.** All routes: origin-gated + rate-limited + strict Zod;
+they live under `app/api/auth/webauthn/` (outside the admin-signing-scanned
+dirs). No CSP change (WebAuthn is a browser API; ceremony traffic is `/api/*`
+under `connect-src 'self'`). The client vault boundary is respected — the manage
+UI is a `components/` island (`PasskeysSurface`), the `app/` route shell imports
+nothing client-only. Unit tests mock only the attestation/assertion verifier
+(the boundary is our route logic); the REAL cryptographic path — enroll →
+passwordless sign-in → require-passkey step-up — is proven over the wire in
+`e2e/passkeys.spec.ts` via Chrome's CDP virtual authenticator. Both new models
+are byte-identical across the prisma schemas (drift-guarded) with a clean
+additive migration in each tree.

@@ -5,6 +5,54 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 numbers on the same branch line and are recorded below as dated development
 history (dates are the real commit dates from the git trail).
 
+## [0.14.0] — 2026-07-06 (Wave 14 — Passkeys / WebAuthn · One Portal identity, slice 2)
+
+Passwordless, phishing-resistant sign-in with passkeys (Touch ID / Face ID /
+security keys) — plus an optional "require a passkey" step-up on password login.
+Chosen over TOTP specifically because it PRESERVES the no-secret-columns
+invariant: the server stores only the credential's PUBLIC key + signature
+counter + public metadata. `guard:secrets` stays green with zero exceptions.
+Full gate at this release: **~1002 unit / 20 integration (local anvil) / 44 e2e
+(9 registrations, budget < 10) / 165 forge**, plus snapshot, coverage,
+`guard:secrets`, and a green production build.
+
+### Added
+
+- **`WebAuthnCredential` + `WebAuthnChallenge` models + `User.passkey2faEnabled`
+  (A1):** credential rows hold only public data (base64url COSE public key,
+  BigInt counter, transports, deviceType, backedUp, label); challenges are
+  SiweNonce-style single-use, 5-min-TTL ceremony rows (user-bound for
+  registration, unbound for login). Byte-identical in both prisma schemas
+  (drift-guarded) with a clean additive migration in each tree. deps:
+  `@simplewebauthn/server` + `@simplewebauthn/browser` v13.
+- **WebAuthn core (A2):** `rpId()` (registrable host), `expectedOrigins()`
+  (origin + www twin), single-use `storeChallenge`/`consumeChallenge`,
+  `challengeFromClientData`, and base64url codecs.
+- **Six routes (B1–B3):** register `options`+`verify` (requireSession, discoverable
+  residentKey, user-bound challenge, store public-only), login `options`+`verify`
+  (unauthenticated, discoverable, one generic 401 for every failure — no
+  enumeration, counter + suspended checks, session on success), and manage
+  (`GET /credentials`, `POST /credentials/delete`, `POST /2fa`).
+- **Require-passkey step-up:** after a correct password, if enabled AND a passkey
+  exists, login returns `{ok:true, twoFactor:true}` WITHOUT a session; the client
+  finishes with the passkey ceremony (which issues the session). No lockout:
+  enabling requires a passkey, and deleting the last passkey auto-disables the
+  flag in the same transaction.
+- **UI (C1–C2):** a "Sign in with a passkey" entry on `/auth` (usernameless
+  ceremony) + the step-up "Finish with your passkey" prompt; a passkeys manage
+  surface at `/dashboard/wallet/security` (list / enroll / delete + the
+  require-passkey toggle) with a discovery link on the wallet screen.
+
+### Security
+
+- **No secrets stored:** only credential PUBLIC keys — the invariant TOTP would
+  have broken. `guard:secrets` green; the private half never leaves the
+  authenticator, so the server can never sign as the user.
+- **Phishing-resistant + enumeration-resistant:** WebAuthn binds the ceremony to
+  the origin/rpID; every passkey-login failure returns one generic 401; the
+  step-up fires only after a correct password. Real cryptographic proof in
+  `e2e/passkeys.spec.ts` via Chrome's CDP virtual authenticator.
+
 ## [0.13.0] — 2026-07-06 (Wave 13 — Wallet-QR login · One Portal identity, slice 1)
 
 Cross-device passwordless sign-in: scan a QR with a device that holds your

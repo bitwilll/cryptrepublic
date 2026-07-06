@@ -88,9 +88,7 @@ describe("webauthn core", () => {
     ).toString("base64url");
     expect(challengeFromClientData(clientData)).toBe("aBc123_-");
     expect(challengeFromClientData("!!!not-base64url-json!!!")).toBeNull();
-    expect(
-      challengeFromClientData(Buffer.from("{}", "utf8").toString("base64url")),
-    ).toBeNull();
+    expect(challengeFromClientData(Buffer.from("{}", "utf8").toString("base64url"))).toBeNull();
   });
 
   it("publicKey and transports round-trip their storage encodings", () => {
