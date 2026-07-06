@@ -63,6 +63,19 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   await resetFailedLogins(user.id);
+
+  // Wave 14 — require-passkey step-up: when enabled (and the account still has
+  // a passkey — never lock out an account whose last passkey was removed), a
+  // correct password DOES NOT issue a session. The client is told to finish
+  // with the standard passkey ceremony, which issues the session itself. This
+  // fires only AFTER a correct password, so it leaks nothing to enumeration.
+  if (user.passkey2faEnabled) {
+    const passkeys = await prisma.webAuthnCredential.count({ where: { userId: user.id } });
+    if (passkeys > 0) {
+      return json({ ok: true, twoFactor: true });
+    }
+  }
+
   const { token } = await createSession(user.id, {
     userAgent: req.headers.get("user-agent") ?? undefined,
   });
