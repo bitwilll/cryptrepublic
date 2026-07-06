@@ -34,6 +34,27 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  /* Own stacking context so the crest watermark (z-index:-1) sits behind the
+     page content but above the shell's --paper background. */
+  position: relative;
+  z-index: 0;
+}
+
+/* Faint brand crest, fixed and centered within the CONTENT column (offset right
+   by half the 260px sidebar on desktop, plain-centered once the sidebar becomes
+   a drawer ≤1024px). z-index:-1 keeps it behind cards/tables but visible in the
+   paper gaps; pointer-events:none so it never intercepts. */
+.shellCrest {
+  position: fixed;
+  top: 50%;
+  left: calc(50% + 130px);
+  transform: translate(-50%, -50%);
+  width: min(56vw, 660px);
+  height: auto;
+  opacity: 0.06;
+  pointer-events: none;
+  user-select: none;
+  z-index: -1;
 }
 
 .topbar {
@@ -65,6 +86,10 @@
 @media (max-width: 1024px) {
   .app {
     display: block;
+  }
+  /* Sidebar is now an off-canvas drawer — center the crest in the full width. */
+  .shellCrest {
+    left: 50%;
   }
   .burger {
     display: inline-flex;

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Crest } from "@/components/brand/Crest";
 import { AppProviders } from "@/components/providers/AppProviders";
 import PassportView from "./PassportView";
 
@@ -15,9 +14,8 @@ export const metadata: Metadata = {
  */
 export default function PassportPage() {
   return (
-    <section className="block" style={{ position: "relative", overflow: "hidden" }}>
-      <Crest tone="dark" className="page-crest" alt="" />
-      <div className="wrap" style={{ position: "relative", zIndex: 1 }}>
+    <section className="block">
+      <div className="wrap">
         <div className="kicker">CITIZEN PASSPORT</div>
         <AppProviders>
           <PassportView />
