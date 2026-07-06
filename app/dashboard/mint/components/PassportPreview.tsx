@@ -40,6 +40,20 @@ function mrzLines(name: string, no: string): [string, string] {
   return [line1, line2];
 }
 
+/** The CryptRepublic crest engraving (light variant) — decorative on the passport. */
+function CrestImg({ className }: { className: string }): React.ReactElement {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- local transparent brand asset
+    <img
+      src="/brand/crest-light.png"
+      alt=""
+      aria-hidden="true"
+      className={className}
+      draggable={false}
+    />
+  );
+}
+
 function Field({
   label,
   value,
@@ -102,14 +116,10 @@ function PassportFace({
   return (
     <div className={`${styles.passport} ${styles.passportFace}`}>
       <div className={styles.passportGuilloche} aria-hidden="true" />
-      <div className={styles.passportWatermark} aria-hidden="true">
-        CR
-      </div>
+      <CrestImg className={styles.passportWatermark} />
 
       <div className={styles.passportHeader}>
-        <span className={styles.passportEmblem} aria-hidden="true">
-          ◈
-        </span>
+        <CrestImg className={styles.passportEmblem} />
         <div className={styles.passportTitle}>
           <b>CRYPTREPUBLIC</b>
           <span>DIGITAL PASSPORT · THE NETWORK STATE</span>
@@ -123,7 +133,7 @@ function PassportFace({
       <div className={styles.passportBody}>
         <div className={styles.passportPortrait}>
           <div className={styles.passportSeal} aria-hidden="true">
-            CR
+            <CrestImg className={styles.passportSealCrest} />
           </div>
           {qrUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- data: URL QR, not a remote asset
@@ -184,10 +194,9 @@ function PassportBack({
   return (
     <div className={`${styles.passport} ${styles.passportBack}`}>
       <div className={styles.passportGuilloche} aria-hidden="true" />
+      <CrestImg className={styles.passportWatermark} />
       <div className={styles.passportHeader}>
-        <span className={styles.passportEmblem} aria-hidden="true">
-          ◈
-        </span>
+        <CrestImg className={styles.passportEmblem} />
         <div className={styles.passportTitle}>
           <b>CRYPTREPUBLIC</b>
           <span>SOVEREIGN CREDENTIAL · CRPASS</span>

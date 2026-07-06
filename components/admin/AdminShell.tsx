@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Seal } from "@/components/ui/Seal";
+import { Crest } from "@/components/brand/Crest";
 import { NavIcon } from "@/components/shell/NavIcon";
 import { MobileNavDrawer } from "@/components/shell/MobileNavDrawer";
 import { ADMIN_NAV_ITEMS, isAdminActive } from "./adminNavItems";
@@ -54,8 +54,8 @@ function AdminSidebar({
   return (
     <aside className={styles.sidebar + (open ? " " + styles.open : "")}>
       <div style={{ padding: "0 8px 14px", borderBottom: "1px solid rgba(255,255,255,0.10)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Seal size={32} color="#fff" />
+        <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+          <Crest tone="light" height={30} />
           <div style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.01em", color: "#fff" }}>
             CryptRepublic
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Crest } from "@/components/brand/Crest";
 
 export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -13,9 +14,15 @@ export function SiteHeader() {
           <a
             className="brand"
             href="#top"
-            style={{ width: "360px", gap: "16px", fontSize: "12px" }}
+            style={{ gap: "12px", display: "flex", alignItems: "center" }}
           >
-            CR Crypt Republic NETWORK STATE №001
+            <Crest tone="dark" height={34} />
+            <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.12 }}>
+              <b style={{ fontSize: "15px", letterSpacing: "0.02em" }}>CRYPTREPUBLIC</b>
+              <span style={{ fontSize: "9.5px", letterSpacing: "0.16em", opacity: 0.65 }}>
+                NETWORK STATE №001
+              </span>
+            </span>
           </a>
           <div className="nav-links">
             <a href="#why">Why</a>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { Crest } from "@/components/brand/Crest";
 import { AuthForm } from "./AuthForm";
 import styles from "./auth.module.css";
 
@@ -25,24 +26,7 @@ export default function AuthPage() {
         {/* LEFT — state pane */}
         <aside className={styles.pane}>
           <Link className={styles.brand} href="/">
-            <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
-              <polygon
-                points="15,1 25,5 29,15 25,25 15,29 5,25 1,15 5,5"
-                stroke="#c8a96a"
-                strokeWidth="1.8"
-                fill="none"
-              />
-              <text
-                x="15"
-                y="19.5"
-                textAnchor="middle"
-                fontFamily="IBM Plex Mono,monospace"
-                fontSize="10"
-                fill="#c8a96a"
-              >
-                CR
-              </text>
-            </svg>
+            <Crest tone="light" height={30} />
             CryptRepublic
           </Link>
 
