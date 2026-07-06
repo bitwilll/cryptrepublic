@@ -53,6 +53,9 @@ model User {
 
   referralsMade     Referral[] @relation("ReferralsMade")
   referralsReceived Referral[] @relation("ReferralsReceived")
+
+  passkey2faEnabled   Boolean              @default(false) // Wave 14 — require a passkey to complete password sign-in
+  webauthnCredentials WebAuthnCredential[]
 }
 
 model Session {
@@ -93,6 +96,41 @@ model WalletLoginChallenge {
   createdAt  DateTime  @default(now())
   expiresAt  DateTime
   consumedAt DateTime?
+
+  @@index([expiresAt])
+}
+
+/// A WebAuthn passkey credential (Wave 14). PUBLIC data only — the credential's
+/// public key, signature counter, and metadata. The private half never leaves
+/// the user's authenticator; the server can never sign as the user.
+model WebAuthnCredential {
+  id           String    @id @default(cuid())
+  credentialId String    @unique // base64url credential ID from the authenticator
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  publicKey    String // base64url COSE public key (public by definition)
+  counter      BigInt    @default(0) // uint32 signature counter (clone detection)
+  transports   String? // comma-joined AuthenticatorTransport hints
+  deviceType   String // singleDevice | multiDevice
+  backedUp     Boolean   @default(false)
+  label        String? // user-chosen display name
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+
+  @@index([userId])
+}
+
+/// A single-use WebAuthn ceremony challenge (Wave 14). Mirrors SiweNonce:
+/// short-TTL, consumed exactly once; `userId` is set for registration
+/// ceremonies (bound to the enrolling session) and null for login ceremonies.
+model WebAuthnChallenge {
+  id        String    @id @default(cuid())
+  challenge String    @unique // base64url challenge issued to the browser
+  type      String // registration | authentication
+  userId    String?
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
 
   @@index([expiresAt])
 }
