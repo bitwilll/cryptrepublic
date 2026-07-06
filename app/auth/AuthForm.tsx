@@ -225,10 +225,10 @@ export function AuthForm() {
         body: "{}",
       });
       if (!optRes.ok) throw new Error("Could not start a passkey sign-in.");
-      const { options } = (await optRes.json()) as { options: Record<string, unknown> };
-      const assertion = await startAuthentication({
-        optionsJSON: options as Parameters<typeof startAuthentication>[0]["optionsJSON"],
-      });
+      const { options } = (await optRes.json()) as {
+        options: Parameters<typeof startAuthentication>[0]["optionsJSON"];
+      };
+      const assertion = await startAuthentication({ optionsJSON: options });
       const verRes = await fetch("/api/auth/webauthn/login/verify", {
         method: "POST",
         headers: { "content-type": "application/json" },

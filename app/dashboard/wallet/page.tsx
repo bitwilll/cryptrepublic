@@ -19,7 +19,22 @@ export const metadata: Metadata = {
 export default function DashboardWalletPage() {
   return (
     <AppProviders>
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: 8,
+          flexWrap: "wrap",
+          marginBottom: 4,
+        }}
+      >
+        <Link
+          className="btn btn-ghost"
+          href="/dashboard/wallet/security"
+          data-testid="passkeys-link"
+        >
+          Passkeys &amp; security →
+        </Link>
         <Link
           className="btn btn-ghost"
           href="/dashboard/wallet/approve-login"
