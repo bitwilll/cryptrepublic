@@ -106,7 +106,7 @@ export function Sidebar({ open, onNavigate }: { open: boolean; onNavigate?: () =
                 gap: 12,
                 padding: "11px 12px",
                 paddingLeft: active ? 10 : 12,
-                background: active ? "rgba(255,255,255,0.08)" : "transparent",
+                background: active ? "rgba(255,255,255,0.14)" : "transparent",
                 color: "#fff",
                 textDecoration: "none",
                 fontSize: 14,

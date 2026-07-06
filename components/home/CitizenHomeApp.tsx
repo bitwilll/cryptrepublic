@@ -475,11 +475,7 @@ function Skeleton({ lines }: { lines: number }) {
   return (
     <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 10 }}>
       {Array.from({ length: lines }).map((_, i) => (
-        <div
-          key={i}
-          data-testid="skeleton-line"
-          style={{ height: 14, background: "var(--paper)", border: "1px solid var(--line)" }}
-        />
+        <div key={i} data-testid="skeleton-line" className="skeleton-line" />
       ))}
     </div>
   );

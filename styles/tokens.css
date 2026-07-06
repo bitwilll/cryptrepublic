@@ -135,6 +135,16 @@ h3 {
   outline: 2px solid var(--blue);
   outline-offset: 2px;
 }
+/* Dark-section focus ring (WCAG 2.2 SC 1.4.11): the --blue ring only reaches
+   ~2.8:1 on the navy .holdings/.gov-strip/.cta backgrounds — below 3:1. Use the
+   --gold token instead (~7.9:1 vs navy) so keyboard focus on these CTAs is
+   clearly visible. Scoped selector (0,2,0) outranks the global :focus-visible;
+   width/offset are inherited, so the squared retheme is unaffected. */
+.holdings :focus-visible,
+.gov-strip :focus-visible,
+.cta :focus-visible {
+  outline-color: var(--gold);
+}
 
 /* reveal on scroll */
 .reveal {
@@ -156,6 +166,30 @@ h3 {
   }
   * {
     animation: none !important;
+  }
+}
+
+/* loading skeleton */
+.skeleton-line {
+  height: 14px;
+  background: linear-gradient(
+    90deg,
+    var(--paper) 0%,
+    var(--line) 20%,
+    #d4dbe4 50%,
+    var(--line) 80%,
+    var(--paper) 100%
+  );
+  background-size: 200% 100%;
+  border: 1px solid var(--line);
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
   }
 }
 
@@ -483,6 +517,7 @@ section.block {
 .sec-head p {
   color: var(--muted);
   font-size: 17px;
+  line-height: 1.62;
   margin: 16px 0 0;
   max-width: 620px;
 }

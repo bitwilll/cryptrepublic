@@ -70,6 +70,7 @@ export function Modal({
         style={{
           background: "#fff",
           border: "1px solid var(--line)",
+          boxShadow: "0 24px 48px -18px rgba(10, 37, 64, 0.35)",
           padding: 24,
           width: "min(460px, 92vw)",
           maxHeight: "90vh",

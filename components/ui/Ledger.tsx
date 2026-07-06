@@ -52,8 +52,8 @@ export function Ledger<Row extends Record<string, unknown>>({
                 key={c.key}
                 style={{
                   textAlign: c.align ?? "left",
-                  padding: "8px 10px",
-                  borderBottom: "1px solid var(--line)",
+                  padding: "10px 10px",
+                  borderBottom: "2px solid var(--ink)",
                   fontFamily: "var(--mono)",
                   fontSize: 10,
                   letterSpacing: "0.08em",
