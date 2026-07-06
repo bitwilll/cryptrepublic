@@ -45,7 +45,7 @@ function CrestImg({ className }: { className: string }): React.ReactElement {
   return (
     // eslint-disable-next-line @next/next/no-img-element -- local transparent brand asset
     <img
-      src="/brand/crest-light.png"
+      src="/brand/crest-dark.png"
       alt=""
       aria-hidden="true"
       className={className}
@@ -248,7 +248,7 @@ export function PassportPreview(props: PassportPreviewProps): React.ReactElement
       margin: 1,
       width: 132,
       errorCorrectionLevel: "M",
-      color: { dark: "#0b0f16", light: "#eaddbf" },
+      color: { dark: "#0f1f33", light: "#ffffff" },
     })
       .then((url) => {
         if (mounted) setQrUrl(url);

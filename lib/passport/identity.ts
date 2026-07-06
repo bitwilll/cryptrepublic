@@ -36,8 +36,9 @@ function seededRng(seed: string): () => number {
   };
 }
 
-// On-brand palette (gold / bronze / copper / muted teal) — one tone per identicon.
-const PALETTE = ["#c8a96a", "#d8b56e", "#b98e4e", "#7fb0a3", "#c97e54", "#a9884f"] as const;
+// On-brand palette (Republic blues + indigo) — one tone per identicon, sitting on
+// the passport's light-blue reverse. Matches the website's blue accent.
+const PALETTE = ["#1957d3", "#3b73de", "#0e3a9b", "#2b6cb0", "#5a86e0", "#1f4fb0"] as const;
 
 export interface Identicon {
   /** A `size`×`size` symmetric on/off grid (mirrored across the vertical axis). */

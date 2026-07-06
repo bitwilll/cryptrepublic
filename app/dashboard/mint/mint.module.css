@@ -347,18 +347,23 @@
    reverse. Rendered static (mint draft / sealed) or flippable (NFT-style).
    ══════════════════════════════════════════════════════════════════════════ */
 .passport {
-  --pp-gold: #c8a96a;
-  --pp-ink: #0b0f16;
+  --pp-blue: #1957d3;
+  --pp-blue-d: #0e3a9b;
+  --pp-ink: #0f1f33;
+  --pp-muted: #5a6a7d;
+  --pp-tint: #eaf1fc;
+  --pp-tint2: #dae8fb;
+  --pp-line: #cddef7;
   position: relative;
   overflow: hidden;
   padding: 0;
   border-radius: 14px;
-  background: var(--pp-ink);
-  color: #f3f0e8;
-  border: 1px solid rgba(200, 169, 106, 0.38);
+  background: #ffffff;
+  color: var(--pp-ink);
+  border: 1px solid var(--pp-line);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 20px 44px -26px rgba(0, 0, 0, 0.75);
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 20px 44px -26px rgba(15, 31, 51, 0.3);
   font-family: var(--mono);
 }
 /* guilloché security texture — interfering fine-line fields ("secure paper"). */
@@ -366,18 +371,18 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.6;
+  opacity: 0.7;
   background-image: repeating-radial-gradient(
       circle at 16% -4%,
-      rgba(200, 169, 106, 0.07) 0 1px,
+      rgba(25, 87, 211, 0.055) 0 1px,
       transparent 1px 8px
     ),
     repeating-radial-gradient(
       circle at 94% 92%,
-      rgba(200, 169, 106, 0.055) 0 1px,
+      rgba(25, 87, 211, 0.045) 0 1px,
       transparent 1px 10px
     ),
-    repeating-linear-gradient(37deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 7px);
+    repeating-linear-gradient(37deg, rgba(15, 31, 51, 0.02) 0 1px, transparent 1px 7px);
 }
 .passportWatermark {
   position: absolute;
@@ -386,7 +391,7 @@
   width: 68%;
   height: auto;
   transform: translate(-50%, -50%);
-  opacity: 0.055;
+  opacity: 0.05;
   pointer-events: none;
   user-select: none;
 }
@@ -396,8 +401,8 @@
   align-items: center;
   gap: 10px;
   padding: 11px 15px 9px;
-  border-bottom: 1px solid rgba(200, 169, 106, 0.32);
-  background: linear-gradient(180deg, rgba(200, 169, 106, 0.13), rgba(200, 169, 106, 0));
+  border-bottom: 1px solid var(--pp-line);
+  background: linear-gradient(180deg, var(--pp-tint), rgba(234, 241, 252, 0));
 }
 .passportEmblem {
   flex: none;
@@ -416,25 +421,25 @@
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: #f6f2e8;
+  color: var(--pp-ink);
 }
 .passportTitle span {
   font-size: 8px;
   letter-spacing: 0.16em;
-  color: rgba(200, 169, 106, 0.85);
+  color: var(--pp-blue);
 }
 .passportType {
   flex: none;
   text-align: right;
   font-size: 7.5px;
   letter-spacing: 0.14em;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--pp-muted);
 }
 .passportType b {
   display: block;
   font-size: 13px;
   letter-spacing: 0.08em;
-  color: var(--pp-gold);
+  color: var(--pp-blue);
 }
 .passportBody {
   position: relative;
@@ -454,13 +459,13 @@
   width: 66px;
   height: 66px;
   border-radius: 8px;
-  border: 1px solid rgba(200, 169, 106, 0.5);
+  border: 1px solid var(--pp-line);
   background: repeating-radial-gradient(
       circle at 50% 50%,
-      rgba(200, 169, 106, 0.14) 0 1px,
+      rgba(25, 87, 211, 0.08) 0 1px,
       transparent 1px 5px
     ),
-    rgba(200, 169, 106, 0.06);
+    var(--pp-tint);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -475,18 +480,18 @@
   width: 26px;
   height: 20px;
   border-radius: 4px;
-  border: 1px solid rgba(200, 169, 106, 0.65);
-  background: linear-gradient(135deg, rgba(200, 169, 106, 0.45), rgba(200, 169, 106, 0.12));
+  border: 1px solid rgba(25, 87, 211, 0.4);
+  background: linear-gradient(135deg, var(--pp-blue), #4a86ec);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  color: #0b0f16;
+  color: #ffffff;
 }
 .passportSbt {
   font-size: 7px;
   letter-spacing: 0.12em;
-  color: var(--pp-gold);
+  color: var(--pp-blue);
 }
 .passportFields {
   flex: 1;
@@ -496,11 +501,11 @@
   font-size: 7.5px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: rgba(200, 169, 106, 0.8);
+  color: var(--pp-muted);
 }
 .passportFieldValue {
   font-size: 12px;
-  color: #f3f0e8;
+  color: var(--pp-ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -508,7 +513,7 @@
 .passportFieldNo {
   font-size: 15px;
   font-weight: 700;
-  color: var(--pp-gold);
+  color: var(--pp-blue);
 }
 .passportFieldName {
   font-family: var(--serif);
@@ -537,12 +542,12 @@
   position: relative;
   margin-top: auto; /* push the MRZ to the bottom edge on the (taller) flip card */
   padding: 8px 15px 11px;
-  border-top: 1px dashed rgba(200, 169, 106, 0.3);
-  background: rgba(255, 255, 255, 0.03);
+  border-top: 1px dashed var(--pp-line);
+  background: var(--pp-tint);
   font-size: 9.5px;
   letter-spacing: 0.1em;
   line-height: 1.55;
-  color: rgba(243, 240, 232, 0.85);
+  color: var(--pp-ink);
   white-space: nowrap;
   overflow: hidden;
 }
@@ -560,7 +565,7 @@
   perspective: 1600px;
 }
 .passportFlip:focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--blue);
   outline-offset: 3px;
   border-radius: 14px;
 }
@@ -604,10 +609,10 @@
   height: 62px;
   margin: 0 auto;
   border-radius: 50%;
-  border: 2px solid var(--pp-gold);
+  border: 2px solid var(--pp-blue);
   background: repeating-radial-gradient(
     circle at 50% 50%,
-    rgba(200, 169, 106, 0.16) 0 1px,
+    rgba(25, 87, 211, 0.09) 0 1px,
     transparent 1px 5px
   );
   display: flex;
@@ -616,42 +621,42 @@
   font-family: var(--serif);
   font-size: 22px;
   font-weight: 700;
-  color: var(--pp-gold);
+  color: var(--pp-blue);
 }
 .passportBackMotto {
   text-align: center;
   font-family: var(--serif);
   font-style: italic;
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--pp-ink);
   min-height: 20px;
 }
 .passportBackFlag {
   text-align: center;
   font-size: 9.5px;
   letter-spacing: 0.14em;
-  color: var(--pp-gold);
+  color: var(--pp-blue);
 }
 .passportBackNote {
   margin: 0;
   text-align: center;
   font-size: 9.5px;
   line-height: 1.5;
-  color: rgba(243, 240, 232, 0.6);
+  color: var(--pp-muted);
 }
 .passportBarcode {
   height: 22px;
   border-radius: 3px;
-  opacity: 0.75;
+  opacity: 0.85;
   background-image: repeating-linear-gradient(
     90deg,
-    var(--pp-gold) 0 1px,
+    var(--pp-blue) 0 1px,
     transparent 1px 3px,
-    var(--pp-gold) 3px 5px,
+    var(--pp-blue) 3px 5px,
     transparent 5px 6px,
-    var(--pp-gold) 6px 7px,
+    var(--pp-blue) 6px 7px,
     transparent 7px 11px,
-    var(--pp-gold) 11px 14px,
+    var(--pp-blue) 11px 14px,
     transparent 14px 16px
   );
 }
@@ -663,7 +668,7 @@
   font-family: var(--mono);
   font-size: 8.5px;
   letter-spacing: 0.14em;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--pp-muted);
   pointer-events: none;
 }
 
@@ -673,8 +678,8 @@
   height: 62px;
   border-radius: 5px;
   padding: 3px;
-  background: #eaddbf;
-  border: 1px solid rgba(200, 169, 106, 0.55);
+  background: #ffffff;
+  border: 1px solid var(--pp-line);
   display: block;
   object-fit: contain;
 }
@@ -682,12 +687,8 @@
   width: 62px;
   height: 62px;
   border-radius: 5px;
-  background: repeating-linear-gradient(
-    45deg,
-    rgba(200, 169, 106, 0.18) 0 3px,
-    transparent 3px 6px
-  );
-  border: 1px solid rgba(200, 169, 106, 0.4);
+  background: repeating-linear-gradient(45deg, rgba(25, 87, 211, 0.14) 0 3px, transparent 3px 6px);
+  border: 1px solid var(--pp-line);
 }
 
 /* ── Reverse "sovereign NFT" — the unique generative identicon + NFT identity. ── */
@@ -697,10 +698,9 @@
   margin: 0 auto;
   padding: 7px;
   border-radius: 10px;
-  border: 1px solid rgba(200, 169, 106, 0.5);
-  background: repeating-linear-gradient(0deg, rgba(200, 169, 106, 0.06) 0 1px, transparent 1px 6px),
-    #0f141c;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--pp-line);
+  background: repeating-linear-gradient(0deg, rgba(25, 87, 211, 0.05) 0 1px, transparent 1px 6px),
+    var(--pp-tint);
 }
 .passportNft svg {
   display: block;
@@ -711,13 +711,13 @@
   text-align: center;
   font-size: 8px;
   letter-spacing: 0.2em;
-  color: rgba(200, 169, 106, 0.85);
+  color: var(--pp-blue);
 }
 .passportFinger {
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 0.08em;
-  color: var(--pp-gold);
+  color: var(--pp-blue);
   overflow: hidden;
   text-overflow: ellipsis;
 }
