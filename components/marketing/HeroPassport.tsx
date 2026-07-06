@@ -1,5 +1,6 @@
 "use client";
 
+import { Crest } from "@/components/brand/Crest";
 import { LiveNumber } from "@/components/ui/LiveNumber";
 import { usePassportBook } from "@/lib/hooks/usePassportBook";
 import { useGenerativeArt } from "@/lib/hooks/useGenerativeArt";
@@ -11,8 +12,12 @@ export function HeroPassport() {
   return (
     <section className="hero" id="top" data-screen-label="Hero">
       <div className="wrap">
+        <Crest tone="dark" className="hero-watermark" alt="" />
         <div className="hero-grid">
           <div>
+            <div className="hero-emblem">
+              <Crest tone="dark" height={52} alt="CryptRepublic" />
+            </div>
             <span className="badge" style={{ fontSize: "14px" }}>
               <span className="dot"></span> Ratified by the Cabinet · 48,392 citizens &amp; counting
             </span>
@@ -65,6 +70,7 @@ export function HeroPassport() {
               >
                 {/* bio-data page (revealed when the cover opens) */}
                 <div className="pb-inside">
+                  <Crest tone="dark" className="dp-watermark" alt="" />
                   <div className="dp-head">
                     <span>CRYPTREPUBLIC · NETWORK STATE №001</span>
                     <span>PASSPORT / PASSEPORT</span>
@@ -184,47 +190,7 @@ export function HeroPassport() {
                 <div className="pb-cover">
                   <div className="pb-face passport">
                     <div className="pp-inner">
-                      <svg
-                        className="pp-seal"
-                        width="64"
-                        height="64"
-                        viewBox="0 0 64 64"
-                        fill="none"
-                      >
-                        <polygon
-                          points="32,2 53,11 62,32 53,53 32,62 11,53 2,32 11,11"
-                          stroke="#c8a96a"
-                          strokeWidth="1.6"
-                          fill="none"
-                        />
-                        <polygon
-                          points="32,8 48,15 55,32 48,49 32,56 16,49 9,32 16,15"
-                          stroke="#c8a96a"
-                          strokeWidth=".6"
-                          fill="none"
-                        />
-                        <text
-                          x="32"
-                          y="38"
-                          textAnchor="middle"
-                          fontFamily="JetBrains Mono,monospace"
-                          fontSize="18"
-                          fill="#c8a96a"
-                        >
-                          CR
-                        </text>
-                        <text
-                          x="32"
-                          y="48"
-                          textAnchor="middle"
-                          fontFamily="JetBrains Mono,monospace"
-                          fontSize="5"
-                          fill="#c8a96a"
-                          letterSpacing="2"
-                        >
-                          MMXXVI
-                        </text>
-                      </svg>
+                      <Crest tone="light" className="pp-seal" height={64} alt="" />
                       <div className="pp-title">CryptRepublic</div>
                       <div className="pp-sub">SOULBOUND PASSPORT · SPECIMEN</div>
                       <div className="pp-rows">
@@ -248,24 +214,7 @@ export function HeroPassport() {
                   </div>
                   <div className="pb-face pb-back">
                     <div className="nft-head">
-                      <svg width="34" height="34" viewBox="0 0 64 64" fill="none">
-                        <polygon
-                          points="32,2 53,11 62,32 53,53 32,62 11,53 2,32 11,11"
-                          stroke="#c8a96a"
-                          strokeWidth="1.6"
-                          fill="none"
-                        />
-                        <text
-                          x="32"
-                          y="39"
-                          textAnchor="middle"
-                          fontFamily="IBM Plex Mono,monospace"
-                          fontSize="18"
-                          fill="#c8a96a"
-                        >
-                          CR
-                        </text>
-                      </svg>
+                      <Crest tone="light" height={30} alt="" />
                       <div>
                         <b>CryptRepublic</b>
                         <span>CITIZEN NFT · GENESIS EDITION</span>

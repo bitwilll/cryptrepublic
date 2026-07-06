@@ -1538,3 +1538,39 @@ svg text {
     font-size: clamp(24px, 6.6vw, 30px);
   }
 }
+
+/* ── Crest logo placements (hero + specimen passport) ── */
+.hero-emblem {
+  margin-bottom: 18px;
+}
+.hero-watermark {
+  position: absolute;
+  right: -70px;
+  top: 50%;
+  width: 720px;
+  max-width: 56%;
+  height: auto;
+  transform: translateY(-50%);
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+}
+.hero-grid {
+  position: relative;
+  z-index: 1;
+}
+.dp-watermark {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 60%;
+  height: auto;
+  transform: translate(-50%, -50%);
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+}
+.pb-inside > *:not(.dp-watermark) {
+  position: relative;
+  z-index: 1;
+}
