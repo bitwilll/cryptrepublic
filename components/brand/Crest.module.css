@@ -1,6 +1,6 @@
 .crest {
-  width: auto;
   display: block;
+  height: auto; /* aspect always preserved — width or height alone drives size, never both */
   object-fit: contain;
   user-select: none;
   -webkit-user-drag: none;

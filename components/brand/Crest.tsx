@@ -7,12 +7,15 @@ import styles from "./Crest.module.css";
  */
 export function Crest({
   tone = "dark",
-  height = 40,
+  height,
   className,
   alt = "CryptRepublic",
 }: {
-  tone?: "dark" | "light";
+  /** Fixed render height in px (width follows the natural aspect). Omit to let a
+   *  className control the size (e.g. a width-based watermark) — aspect is
+   *  always preserved either way. */
   height?: number;
+  tone?: "dark" | "light";
   className?: string;
   alt?: string;
 }): React.ReactElement {
@@ -22,7 +25,7 @@ export function Crest({
       src={tone === "light" ? "/brand/crest-light.png" : "/brand/crest-dark.png"}
       alt={alt}
       className={`${styles.crest} ${className ?? ""}`}
-      style={{ height }}
+      style={height !== undefined ? { height } : undefined}
       draggable={false}
     />
   );
