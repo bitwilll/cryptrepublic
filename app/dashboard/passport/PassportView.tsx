@@ -75,14 +75,17 @@ export default function PassportView(): React.ReactElement {
         }
         return;
       }
+      // Set the application FIRST so the provisional card is available even when
+      // the chain read throws (e.g. the passport contract isn't deployed on this
+      // network yet) — the error must never mask an applicant's passport.
+      const app = await appPromise;
+      if (mounted) setApplication(app);
       try {
         const s = await readPassportStatus(chainId, addr);
         const t = await readTotalCitizens(chainId).catch(() => null);
-        const app = await appPromise;
         if (!mounted) return;
         setStatus(s);
         setTotal(t);
-        setApplication(app);
         setState(s.isCitizen ? "citizen" : "not-citizen");
       } catch {
         if (mounted) setState("error");
@@ -97,20 +100,15 @@ export default function PassportView(): React.ReactElement {
     return <p style={{ color: "var(--muted)", marginTop: 16 }}>Reading your passport on chain…</p>;
   }
 
-  if (state === "error") {
-    return (
-      <div className={styles.errorBox} style={{ marginTop: 16 }}>
-        Could not read the passport contract on this chain. Try again shortly.
-      </div>
-    );
-  }
-
-  if (state === "no-wallet" || state === "not-citizen") {
+  if (state !== "citizen") {
     const provisional = deriveProvisional(application);
+    const chainUnavailable = state === "error";
 
     // A PROVISIONAL passport card — the honest pre-mint look-and-feel. Clearly
     // labeled NOT-YET-ON-CHAIN; the chain (readPassportStatus) remains the sole
     // source of real citizenship, so this never claims to be a sealed passport.
+    // A chain-read failure (e.g. the contract isn't deployed on this network
+    // yet) falls back to THIS card too — an applicant always sees their passport.
     if (provisional) {
       return (
         <div style={{ marginTop: 16 }} data-testid="passport-provisional">
@@ -136,6 +134,14 @@ export default function PassportView(): React.ReactElement {
             {provisional.sublabel} This is a provisional preview from your application — it becomes
             your real, non-transferable passport only once it is sealed on chain.
           </p>
+          {chainUnavailable ? (
+            <p
+              data-testid="passport-chain-unavailable"
+              style={{ color: "var(--muted)", marginTop: 6, maxWidth: 560, fontSize: 12.5 }}
+            >
+              On-chain status couldn&rsquo;t be read right now — showing your application details.
+            </p>
+          ) : null}
           <div style={{ maxWidth: 360, marginTop: 20, opacity: 0.9 }}>
             <PassportPreview
               flippable
@@ -151,6 +157,16 @@ export default function PassportView(): React.ReactElement {
               {provisional.cta}
             </Button>
           </div>
+        </div>
+      );
+    }
+
+    // No application on record. If the chain read failed we genuinely don't know
+    // the status → the honest read-error box (never a misleading "not a citizen").
+    if (chainUnavailable) {
+      return (
+        <div className={styles.errorBox} style={{ marginTop: 16 }}>
+          Could not read the passport contract on this chain. Try again shortly.
         </div>
       );
     }

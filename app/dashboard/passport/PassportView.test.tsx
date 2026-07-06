@@ -13,15 +13,20 @@ import { render, screen, waitFor } from "@testing-library/react";
 const h = vi.hoisted(() => ({
   isCitizen: false,
   application: null as Record<string, unknown> | null,
+  chainThrows: false,
 }));
 
 vi.mock("@/lib/passport/client", () => ({
-  readPassportStatus: async () => ({
-    isCitizen: h.isCitizen,
-    tokenId: h.isCitizen ? 7n : null,
-    citizen: h.isCitizen ? { motto: undefined, domicile: undefined, mintBlock: 100n } : undefined,
-    tokenURI: null,
-  }),
+  readPassportStatus: async () => {
+    // Simulate the passport contract not being deployed / RPC failure.
+    if (h.chainThrows) throw new Error("Chain not registered");
+    return {
+      isCitizen: h.isCitizen,
+      tokenId: h.isCitizen ? 7n : null,
+      citizen: h.isCitizen ? { motto: undefined, domicile: undefined, mintBlock: 100n } : undefined,
+      tokenURI: null,
+    };
+  },
   readTotalCitizens: async () => 12n,
 }));
 vi.mock("@/lib/wallet/embedded/session", () => ({
@@ -44,6 +49,7 @@ function jsonRes(body: unknown) {
 beforeEach(() => {
   h.isCitizen = false;
   h.application = null;
+  h.chainThrows = false;
   globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
     if (String(input).includes("/api/applications")) return jsonRes({ application: h.application });
     return jsonRes({});
@@ -116,6 +122,33 @@ describe("PassportView provisional states", () => {
     render(<PassportView />);
     await waitFor(() => expect(screen.getByText(/Your Passport/i)).toBeInTheDocument());
     expect(screen.getByText(/Citizen №7/)).toBeInTheDocument();
+    expect(screen.queryByTestId("passport-provisional")).not.toBeInTheDocument();
+  });
+
+  it("chain read FAILS but an application exists → the provisional passport (never the error box)", async () => {
+    h.chainThrows = true;
+    h.application = {
+      status: "OATH_ACCEPTED",
+      name: "Jay Doe",
+      domicileCity: "Lisbon",
+      motto: "code is law",
+      adminApprovedAt: "2026-07-06T00:00:00.000Z",
+    };
+    render(<PassportView />);
+    await waitFor(() => expect(screen.getByTestId("passport-provisional")).toBeInTheDocument());
+    expect(screen.getByTestId("passport-provisional")).toHaveTextContent(/JAY DOE/);
+    // Honest note that on-chain status couldn't be read — but the passport shows.
+    expect(screen.getByTestId("passport-chain-unavailable")).toBeInTheDocument();
+    expect(screen.queryByText(/Could not read the passport contract/i)).not.toBeInTheDocument();
+  });
+
+  it("chain read FAILS and there is NO application → the honest read-error box", async () => {
+    h.chainThrows = true;
+    h.application = null;
+    render(<PassportView />);
+    await waitFor(() =>
+      expect(screen.getByText(/Could not read the passport contract/i)).toBeInTheDocument(),
+    );
     expect(screen.queryByTestId("passport-provisional")).not.toBeInTheDocument();
   });
 });

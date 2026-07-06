@@ -340,50 +340,214 @@
 }
 
 /* Passport preview card */
+/* ══════════════════════════════════════════════════════════════════════════
+   CRYPTREPUBLIC DIGITAL PASSPORT — a professional, bureaucratic, secure crypto
+   data page. Deep ink stock + gold foil + a guilloché security texture, an
+   ICAO-style machine-readable zone, a contactless chip, and an engraved
+   reverse. Rendered static (mint draft / sealed) or flippable (NFT-style).
+   ══════════════════════════════════════════════════════════════════════════ */
 .passport {
-  padding: 20px;
-  background: var(--ink);
-  color: #fff;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-}
-.passportHead {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  --pp-gold: #c8a96a;
+  --pp-ink: #0b0f16;
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  border-radius: 14px;
+  background: var(--pp-ink);
+  color: #f3f0e8;
+  border: 1px solid rgba(200, 169, 106, 0.38);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 20px 44px -26px rgba(0, 0, 0, 0.75);
   font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.6);
 }
-.passportName {
-  margin-top: 18px;
+/* guilloché security texture — interfering fine-line fields ("secure paper"). */
+.passportGuilloche {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.6;
+  background-image: repeating-radial-gradient(
+      circle at 16% -4%,
+      rgba(200, 169, 106, 0.07) 0 1px,
+      transparent 1px 8px
+    ),
+    repeating-radial-gradient(
+      circle at 94% 92%,
+      rgba(200, 169, 106, 0.055) 0 1px,
+      transparent 1px 10px
+    ),
+    repeating-linear-gradient(37deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 7px);
+}
+.passportWatermark {
+  position: absolute;
+  right: -22px;
+  bottom: 30px;
   font-family: var(--serif);
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-.passportRow {
-  margin-top: 12px;
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.7);
-  font-family: var(--mono);
-}
-.passportNo {
-  margin-top: 18px;
-  font-family: var(--mono);
-  font-size: 28px;
+  font-size: 150px;
   font-weight: 700;
-  color: var(--gold);
-  letter-spacing: 0.02em;
+  line-height: 1;
+  color: rgba(200, 169, 106, 0.05);
+  pointer-events: none;
+  user-select: none;
 }
-
-/* ── Flippable NFT-style passport (opt-in `flippable`): a 3D card flip revealing
-   a designed reverse face. The inner uses a single-cell grid so BOTH faces stack
-   in the same cell and the card sizes to the taller face — no clipping. The
-   non-flippable preview is byte-for-byte unchanged. ── */
+.passportHeader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 15px 9px;
+  border-bottom: 1px solid rgba(200, 169, 106, 0.32);
+  background: linear-gradient(180deg, rgba(200, 169, 106, 0.13), rgba(200, 169, 106, 0));
+}
+.passportEmblem {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--pp-gold);
+  color: var(--pp-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+.passportTitle {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.22;
+}
+.passportTitle b {
+  display: block;
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #f6f2e8;
+}
+.passportTitle span {
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  color: rgba(200, 169, 106, 0.85);
+}
+.passportType {
+  flex: none;
+  text-align: right;
+  font-size: 7.5px;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.55);
+}
+.passportType b {
+  display: block;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--pp-gold);
+}
+.passportBody {
+  position: relative;
+  display: flex;
+  gap: 13px;
+  padding: 13px 15px 9px;
+}
+.passportPortrait {
+  flex: none;
+  width: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.passportSeal {
+  width: 66px;
+  height: 66px;
+  border-radius: 8px;
+  border: 1px solid rgba(200, 169, 106, 0.5);
+  background: repeating-radial-gradient(
+      circle at 50% 50%,
+      rgba(200, 169, 106, 0.14) 0 1px,
+      transparent 1px 5px
+    ),
+    rgba(200, 169, 106, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--pp-gold);
+}
+.passportChip {
+  width: 26px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid rgba(200, 169, 106, 0.65);
+  background: linear-gradient(135deg, rgba(200, 169, 106, 0.45), rgba(200, 169, 106, 0.12));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #0b0f16;
+}
+.passportSbt {
+  font-size: 7px;
+  letter-spacing: 0.12em;
+  color: var(--pp-gold);
+}
+.passportFields {
+  flex: 1;
+  min-width: 0;
+}
+.passportFieldLabel {
+  font-size: 7.5px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(200, 169, 106, 0.8);
+}
+.passportFieldValue {
+  font-size: 12px;
+  color: #f3f0e8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.passportFieldNo {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--pp-gold);
+}
+.passportFieldName {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.passportFieldGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px 12px;
+}
+.passportMrz {
+  position: relative;
+  margin-top: 2px;
+  padding: 8px 15px 11px;
+  border-top: 1px dashed rgba(200, 169, 106, 0.3);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  line-height: 1.55;
+  color: rgba(243, 240, 232, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+}
+/* ── Flip (opt-in `flippable`): a 3D card flip revealing the engraved reverse.
+   A single-cell grid stacks both faces so the card is as tall as the taller
+   face — no clipping. Non-flippable renders just the face. ── */
 .passportFlip {
   display: block;
   width: 100%;
@@ -392,7 +556,7 @@
   background: none;
   text-align: inherit;
   cursor: pointer;
-  perspective: 1400px;
+  perspective: 1600px;
 }
 .passportFlip:focus-visible {
   outline: 2px solid var(--gold);
@@ -401,7 +565,7 @@
 }
 .passportFlipInner {
   display: grid;
-  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
   transform-style: preserve-3d;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -414,41 +578,38 @@
 }
 .passportFace,
 .passportBack {
-  grid-area: 1 / 1; /* stack in one cell → the card is as tall as the taller face */
-  position: relative; /* anchor the flip hint */
+  grid-area: 1 / 1;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 }
 .passportBack {
   transform: rotateY(180deg);
+}
+.passportBackBody {
+  position: relative;
+  padding: 14px 16px 15px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 10px;
 }
-.passportFlipHint {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.14em;
-  color: rgba(255, 255, 255, 0.55);
-  pointer-events: none;
-}
-.passportSeal {
-  margin: 12px auto 4px;
-  width: 58px;
-  height: 58px;
+.passportSealLg {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto;
   border-radius: 50%;
-  border: 2px solid var(--gold);
+  border: 2px solid var(--pp-gold);
+  background: repeating-radial-gradient(
+    circle at 50% 50%,
+    rgba(200, 169, 106, 0.16) 0 1px,
+    transparent 1px 5px
+  );
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--serif);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--gold);
+  color: var(--pp-gold);
 }
 .passportBackMotto {
   text-align: center;
@@ -459,11 +620,42 @@
   min-height: 20px;
 }
 .passportBackFlag {
-  margin-top: 10px;
-  margin-bottom: 4px;
   text-align: center;
-  font-family: var(--mono);
-  font-size: 10px;
+  font-size: 9.5px;
   letter-spacing: 0.14em;
-  color: var(--gold);
+  color: var(--pp-gold);
+}
+.passportBackNote {
+  margin: 0;
+  text-align: center;
+  font-size: 9.5px;
+  line-height: 1.5;
+  color: rgba(243, 240, 232, 0.6);
+}
+.passportBarcode {
+  height: 22px;
+  border-radius: 3px;
+  opacity: 0.75;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--pp-gold) 0 1px,
+    transparent 1px 3px,
+    var(--pp-gold) 3px 5px,
+    transparent 5px 6px,
+    var(--pp-gold) 6px 7px,
+    transparent 7px 11px,
+    var(--pp-gold) 11px 14px,
+    transparent 14px 16px
+  );
+}
+.passportFlipHint {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 2;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
 }
