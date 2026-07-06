@@ -529,12 +529,19 @@
 }
 .passportFieldGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 7px 12px;
+}
+/* Grid items default to min-width:auto and won't shrink below their content —
+   a long value (e.g. the motto) would then push the second column off the card
+   (which clips it). min-width:0 lets the columns share the row and the values
+   ellipsis instead of overflowing. */
+.passportFieldGrid > div {
+  min-width: 0;
 }
 .passportMrz {
   position: relative;
-  margin-top: 2px;
+  margin-top: auto; /* push the MRZ to the bottom edge on the (taller) flip card */
   padding: 8px 15px 11px;
   border-top: 1px dashed rgba(200, 169, 106, 0.3);
   background: rgba(255, 255, 255, 0.03);
@@ -581,6 +588,12 @@
   grid-area: 1 / 1;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+}
+/* Flex column so the MRZ's margin-top:auto pushes it to the bottom edge when the
+   card is stretched to the taller (reverse) face — no dead space, no overlap. */
+.passportFace {
+  display: flex;
+  flex-direction: column;
 }
 .passportBack {
   transform: rotateY(180deg);
