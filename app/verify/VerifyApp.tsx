@@ -199,9 +199,7 @@ export function VerifyApp({ initialSerial }: { initialSerial?: string }): React.
               <div className={styles.deedField}>
                 <div className={styles.microLabel}>Kind</div>
                 <div className={styles.deedValue}>
-                  {state.data.kind === "MESSAGE"
-                    ? "Signed message"
-                    : "Signed document fingerprint"}
+                  {state.data.kind === "MESSAGE" ? "Signed message" : "Signed document fingerprint"}
                 </div>
               </div>
               <div className={styles.deedField}>

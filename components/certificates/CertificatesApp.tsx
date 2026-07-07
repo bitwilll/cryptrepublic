@@ -37,10 +37,7 @@ interface CertRow {
   issuedAt: string;
   revokedAt: string | null;
 }
-type Load =
-  | { status: "loading" }
-  | { status: "ok"; certificates: CertRow[] }
-  | { status: "error" };
+type Load = { status: "loading" } | { status: "ok"; certificates: CertRow[] } | { status: "error" };
 type Phase = "idle" | "signing" | "submitting";
 
 function verifyUrl(serial: string): string {
@@ -294,8 +291,7 @@ export function CertificatesApp(): React.ReactElement {
               </div>
               <p className={styles.privacyNote}>
                 The file never leaves your device — it is hashed locally and only its SHA-256
-                fingerprint is signed and recorded. The Republic never receives the document
-                itself.
+                fingerprint is signed and recorded. The Republic never receives the document itself.
               </p>
               <p className={styles.status} aria-live="polite" data-testid="file-hash-status">
                 {hashing
@@ -489,9 +485,7 @@ function Deed({
         </div>
         <div className={`${styles.deedField} ${styles.deedFieldWide}`}>
           <div className={styles.microLabel}>Signer address</div>
-          <div className={`${styles.deedValue} ${styles.deedValueMono}`}>
-            {cert.signerAddress}
-          </div>
+          <div className={`${styles.deedValue} ${styles.deedValueMono}`}>{cert.signerAddress}</div>
         </div>
       </div>
       <footer className={styles.deedFooter}>

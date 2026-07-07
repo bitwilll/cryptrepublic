@@ -27,10 +27,7 @@ interface TrustPayload {
   referralGatePassed: boolean;
   negativeStandingRule: string;
 }
-type Load =
-  | { status: "loading" }
-  | { status: "ok"; data: TrustPayload }
-  | { status: "error" };
+type Load = { status: "loading" } | { status: "ok"; data: TrustPayload } | { status: "error" };
 
 const SEGMENTS = 20; // 5 points per segment
 const GUIDANCE = [
@@ -185,8 +182,7 @@ export function TrustApp(): React.ReactElement {
 
       <aside className={styles.statute} data-testid="trust-statute">
         Statute of standing: {d.negativeStandingRule} See the{" "}
-        <Link href="/documents/penal-code">Penal code</Link> for the procedure of verified
-        disputes.
+        <Link href="/documents/penal-code">Penal code</Link> for the procedure of verified disputes.
       </aside>
     </>
   );

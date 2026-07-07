@@ -43,7 +43,12 @@ export const NAV_SECTIONS: readonly NavSection[] = [
   {
     title: "Economy",
     items: [
-      { href: "/dashboard/holdings", label: "Sovereign holdings", icon: "holdings", badge: "dividend" },
+      {
+        href: "/dashboard/holdings",
+        label: "Sovereign holdings",
+        icon: "holdings",
+        badge: "dividend",
+      },
       { href: "/dashboard/wallet", label: "Wallet & chain", icon: "wallet" },
       { href: "/dashboard/store", label: "Citizen store", icon: "store" },
       { href: "/dashboard/bitwill", label: "BitWill estate", icon: "bitwill" },

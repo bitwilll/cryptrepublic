@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Crest } from "@/components/brand/Crest";
 
 export function SiteHeader() {
@@ -11,7 +12,7 @@ export function SiteHeader() {
     <header className="site" data-screen-label="Navigation">
       <div className="wrap">
         <nav className="nav">
-          <a
+          <Link
             className="brand"
             href="/"
             style={{ gap: "12px", display: "flex", alignItems: "center" }}
@@ -23,16 +24,16 @@ export function SiteHeader() {
                 NETWORK STATE №001
               </span>
             </span>
-          </a>
+          </Link>
           <div className="nav-links">
-            <a href="/#why">Why</a>
-            <a href="/#how">How it works</a>
-            <a href="/services">Services</a>
-            <a href="/documents">Documents</a>
-            <a href="/knowledge">Knowledge</a>
+            <Link href="/#why">Why</Link>
+            <Link href="/#how">How it works</Link>
+            <Link href="/services">Services</Link>
+            <Link href="/documents">Documents</Link>
+            <Link href="/knowledge">Knowledge</Link>
           </div>
           <div className="nav-cta">
-            <a
+            <Link
               href="/auth"
               style={{
                 textDecoration: "none",
@@ -42,8 +43,8 @@ export function SiteHeader() {
               }}
             >
               Sign in
-            </a>
-            <a
+            </Link>
+            <Link
               className="btn btn-primary"
               href="/dashboard"
               style={{
@@ -57,7 +58,7 @@ export function SiteHeader() {
               }}
             >
               Mint passport
-            </a>
+            </Link>
           </div>
           <button
             className="burger"
@@ -79,30 +80,30 @@ export function SiteHeader() {
         </nav>
       </div>
       <div className={`mobile-menu${menuOpen ? " open" : ""}`} id="mobileMenu">
-        <a href="/#why" onClick={closeMenu}>
+        <Link href="/#why" onClick={closeMenu}>
           Why CryptRepublic
-        </a>
-        <a href="/#how" onClick={closeMenu}>
+        </Link>
+        <Link href="/#how" onClick={closeMenu}>
           How it works
-        </a>
-        <a href="/services" onClick={closeMenu}>
+        </Link>
+        <Link href="/services" onClick={closeMenu}>
           Citizen services
-        </a>
-        <a href="/documents" onClick={closeMenu}>
+        </Link>
+        <Link href="/documents" onClick={closeMenu}>
           Documents
-        </a>
-        <a href="/knowledge" onClick={closeMenu}>
+        </Link>
+        <Link href="/knowledge" onClick={closeMenu}>
           Knowledge base
-        </a>
-        <a href="/brand" onClick={closeMenu}>
+        </Link>
+        <Link href="/brand" onClick={closeMenu}>
           Brand & commissary
-        </a>
-        <a href="/auth" style={{ color: "var(--blue)" }} onClick={closeMenu}>
+        </Link>
+        <Link href="/auth" style={{ color: "var(--blue)" }} onClick={closeMenu}>
           Sign in / Register
-        </a>
-        <a className="btn btn-primary" href="/dashboard" onClick={closeMenu}>
+        </Link>
+        <Link className="btn btn-primary" href="/dashboard" onClick={closeMenu}>
           Mint passport →
-        </a>
+        </Link>
       </div>
     </header>
   );

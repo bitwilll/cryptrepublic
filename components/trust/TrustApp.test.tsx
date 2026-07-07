@@ -25,8 +25,7 @@ const h = vi.hoisted(() => ({
     ],
     thresholds: { referralGate: 50 },
     referralGatePassed: true,
-    negativeStandingRule:
-      "Upon verified dispute or convicted felony the score may go negative.",
+    negativeStandingRule: "Upon verified dispute or convicted felony the score may go negative.",
   },
 }));
 
@@ -82,8 +81,6 @@ describe("TrustApp", () => {
     expect(await screen.findByTestId("trust-error")).toBeInTheDocument();
     h.ok = true;
     fireEvent.click(screen.getByRole("button", { name: /retry/i }));
-    await waitFor(() =>
-      expect(screen.getByTestId("trust-score-value")).toHaveTextContent("64"),
-    );
+    await waitFor(() => expect(screen.getByTestId("trust-score-value")).toHaveTextContent("64"));
   });
 });

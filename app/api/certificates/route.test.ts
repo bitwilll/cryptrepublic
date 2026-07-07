@@ -56,8 +56,7 @@ async function signedBody(
   const kind = (overrides.kind ?? "MESSAGE") as "MESSAGE" | "DOCUMENT";
   const title = overrides.title ?? "Statement of record";
   const subject = overrides.subject ?? "I attest this statement before the Republic.";
-  const contentHash =
-    kind === "MESSAGE" ? await sha256HexOfText(subject) : ("0x" + "cd".repeat(32));
+  const contentHash = kind === "MESSAGE" ? await sha256HexOfText(subject) : "0x" + "cd".repeat(32);
   const signature = await signer.signMessage({
     message: canonicalPayload({ kind, title, subject, contentHash }),
   });
@@ -112,9 +111,7 @@ describe("POST /api/certificates", () => {
 
   it("400 when the MESSAGE content hash does not match the message text", async () => {
     const body = await signedBody(linked);
-    const res = await POST(
-      post({ ...body, contentHash: "0x" + "00".repeat(32) }, { token }),
-    );
+    const res = await POST(post({ ...body, contentHash: "0x" + "00".repeat(32) }, { token }));
     expect(res.status).toBe(400);
     expect((await res.json()).error).toMatch(/content hash/i);
   });
@@ -197,9 +194,7 @@ describe("GET /api/certificates", () => {
     await prisma.linkedWallet.create({
       data: { userId: otherId, address: stranger.address, chain: "EVM", verifiedAt: new Date() },
     });
-    expect(
-      (await POST(post(await signedBody(stranger), { token: otherToken }))).status,
-    ).toBe(200);
+    expect((await POST(post(await signedBody(stranger), { token: otherToken }))).status).toBe(200);
 
     const res = await GET(get({ token }));
     expect(res.status).toBe(200);

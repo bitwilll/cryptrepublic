@@ -35,8 +35,8 @@ export default async function VerifyPage({
             <div className="kicker">PUBLIC REGISTRY</div>
             <h1 style={{ marginTop: 10 }}>Verify a certificate</h1>
             <p className={styles.lede}>
-              Every certificate issued by a citizen carries a public serial. Enter one to check
-              its signature, content fingerprint, and standing — no account required, nothing to
+              Every certificate issued by a citizen carries a public serial. Enter one to check its
+              signature, content fingerprint, and standing — no account required, nothing to
               install. The Republic re-verifies the cryptography on every lookup.
             </p>
             <VerifyApp initialSerial={typeof serial === "string" ? serial : undefined} />

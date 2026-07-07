@@ -419,7 +419,7 @@ model SignedCertificate {
   kind          String // CertificateKind union MESSAGE|DOCUMENT
   title         String
   subject       String // signed message text, or document name for DOCUMENT
-  contentHash   String // 0x keccak256 of the canonical signed payload (public)
+  contentHash   String // sha-256 of the signed content (message text / document bytes) (public)
   signerAddress String // checksummed EVM address (public)
   signature     String // 0x signature (public attestation, not a secret)
   createdAt     DateTime  @default(now())

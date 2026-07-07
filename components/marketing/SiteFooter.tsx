@@ -1,10 +1,12 @@
+import Link from "next/link";
+
 export function SiteFooter() {
   return (
     <footer className="site" data-screen-label="Footer">
       <div className="wrap">
         <div className="foot">
           <div className="about">
-            <a className="brand" href="/" style={{ color: "#fff" }}>
+            <Link className="brand" href="/" style={{ color: "#fff" }}>
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
                 <polygon
                   points="15,1 25,5 29,15 25,25 15,29 5,25 1,15 5,5"
@@ -24,7 +26,7 @@ export function SiteFooter() {
                 </text>
               </svg>
               CryptRepublic
-            </a>
+            </Link>
             <p>
               The world&apos;s first network state. Ratified MMXXVI by the Cabinet of the Republic.
               Backed by 48,392 citizens. Recognized in time.
@@ -32,28 +34,28 @@ export function SiteFooter() {
           </div>
           <div>
             <h4>Republic</h4>
-            <a href="/#why">Why CryptRepublic</a>
-            <a href="/services">Citizen services</a>
-            <a href="/#holdings">Sovereign holdings</a>
-            <a href="/#governance">Governance</a>
-            <a href="/#embassies">Embassies</a>
+            <Link href="/#why">Why CryptRepublic</Link>
+            <Link href="/services">Citizen services</Link>
+            <Link href="/#holdings">Sovereign holdings</Link>
+            <Link href="/#governance">Governance</Link>
+            <Link href="/#embassies">Embassies</Link>
           </div>
           <div>
             <h4>Citizens</h4>
-            <a href="/dashboard">Citizen dashboard</a>
-            <a href="/dashboard/mint">Mint a passport</a>
-            <a href="/dashboard/wallet">Wallet &amp; chain</a>
-            <a href="/dashboard/holdings">Claim dividends</a>
-            <a href="/dashboard/store">Citizen store</a>
-            <a href="/verify">Verify a certificate</a>
+            <Link href="/dashboard">Citizen dashboard</Link>
+            <Link href="/dashboard/mint">Mint a passport</Link>
+            <Link href="/dashboard/wallet">Wallet &amp; chain</Link>
+            <Link href="/dashboard/holdings">Claim dividends</Link>
+            <Link href="/dashboard/store">Citizen store</Link>
+            <Link href="/verify">Verify a certificate</Link>
           </div>
           <div>
             <h4>Programme</h4>
-            <a href="/#how">How it works</a>
-            <a href="/documents/constitution">The Constitution</a>
-            <a href="/documents">Documents registry</a>
-            <a href="/knowledge">Knowledge base</a>
-            <a href="/brand">Brand &amp; commissary</a>
+            <Link href="/#how">How it works</Link>
+            <Link href="/documents/constitution">The Constitution</Link>
+            <Link href="/documents">Documents registry</Link>
+            <Link href="/knowledge">Knowledge base</Link>
+            <Link href="/brand">Brand &amp; commissary</Link>
           </div>
         </div>
         <div className="legal">
