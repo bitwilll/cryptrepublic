@@ -23,3 +23,6 @@ prisma/ci.db
 next-env.d.ts
 .vercel
 tsconfig.tsbuildinfo
+
+# harness-managed git worktrees (never commit)
+.claude/worktrees/
