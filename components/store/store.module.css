@@ -1,0 +1,464 @@
+/* Citizen Store (Wave 15) — government-issue document styling. 1px --line
+   borders, uppercase mono micro-labels, generous whitespace. The global
+   retheme squares every corner (* { border-radius: 0 }); no radii here. */
+
+.page {
+  padding: 32px 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.lede {
+  color: var(--muted);
+  margin-top: 8px;
+  max-width: 620px;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* uppercase mono micro-label */
+.microLabel {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+}
+.tab {
+  appearance: none;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 12px 18px;
+  min-height: 44px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+.tabActive {
+  color: var(--blue);
+  border-bottom-color: var(--blue);
+}
+
+/* ── Browse controls ── */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  appearance: none;
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 9px 14px;
+  min-height: 38px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+.chipActive {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+.searchForm {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.searchInput {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 14px;
+  width: 220px;
+  max-width: 100%;
+}
+.searchInput:focus {
+  border-color: var(--blue);
+}
+
+/* ── Listing cards ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 14px;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 20px;
+  color: inherit;
+  text-decoration: none;
+}
+.card:hover {
+  border-color: var(--blue);
+}
+.cardTitle {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin: 0;
+}
+.price {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.cardMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  margin-top: auto;
+}
+.categoryTag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--blue);
+  border: 1px solid var(--line);
+  padding: 3px 8px;
+}
+.metaText {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+/* ── Status pills ── */
+.status {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid currentColor;
+}
+.statusActive {
+  color: var(--success);
+}
+.statusPending {
+  color: var(--gold);
+}
+.statusMuted {
+  color: var(--muted);
+}
+.statusError {
+  color: #b04141;
+}
+
+/* ── Panels (detail / forms / rows) ── */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 24px 28px;
+}
+.panelTight {
+  padding: 18px 20px;
+}
+.detailLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 880px) {
+  .detailLayout {
+    grid-template-columns: 1fr;
+  }
+}
+.aside {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.description {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 14px 0 0;
+}
+.priceLg {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 800;
+  margin-top: 8px;
+}
+.settlementNote {
+  border: 1px solid var(--gold);
+  border-left-width: 3px;
+  background: color-mix(in srgb, var(--gold) 10%, transparent);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin-top: 14px;
+}
+
+/* ── Rows (my listings / inquiries) ── */
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 16px 20px;
+}
+.rowMain {
+  min-width: 0;
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rowTitle {
+  font-size: 15px;
+  font-weight: 800;
+  color: inherit;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.rowTitle:hover {
+  color: var(--blue);
+}
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* small secondary action button (44px touch height) */
+.actionBtn {
+  appearance: none;
+  background: var(--card);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 11px 16px;
+  min-height: 44px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.actionBtn:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+.actionBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.actionBtnDanger {
+  color: #b04141;
+  border-color: #b04141;
+}
+.actionBtnPrimary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+.actionBtnPrimary:hover:not(:disabled) {
+  background: var(--blue-d);
+  border-color: var(--blue-d);
+}
+
+/* ── Forms ── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 640px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.input,
+.textarea,
+.select {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  width: 100%;
+}
+.input:focus,
+.textarea:focus,
+.select:focus {
+  border-color: var(--blue);
+}
+.textarea {
+  min-height: 140px;
+  resize: vertical;
+  line-height: 1.6;
+}
+.priceWrap {
+  display: flex;
+  align-items: stretch;
+  max-width: 260px;
+}
+.priceWrap .input {
+  font-family: var(--mono);
+}
+.priceSuffix {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-left: none;
+  background: var(--card);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+.fieldError {
+  font-size: 12px;
+  color: #8b3a3a;
+}
+
+/* ── Async status / errors ── */
+.errorBox {
+  border: 1px solid #b04141;
+  border-left-width: 3px;
+  background: color-mix(in srgb, #b04141 10%, transparent);
+  padding: 12px 16px;
+  color: #8b3a3a;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.successText {
+  color: var(--success);
+  font-size: 13px;
+  font-weight: 700;
+}
+.emptyState {
+  border: 1px dashed var(--line);
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* ── Inquiry thread ── */
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.inquiry {
+  border: 1px solid var(--line);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.inquiryMsg {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.replyBlock {
+  border-left: 3px solid var(--blue);
+  padding: 8px 0 8px 14px;
+  background: color-mix(in srgb, var(--blue) 5%, transparent);
+}
+
+/* ── Filing receipt ── */
+.receipt {
+  border: 1px solid var(--success);
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 640px;
+}
+.receiptGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px 20px;
+}
+.receiptValue {
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+}
+.receiptSerial {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+.receiptActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* loading skeleton stack */
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
