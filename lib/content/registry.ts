@@ -1,10 +1,11 @@
 /**
- * THE STATE REGISTRY — the complete CryptRepublic programme, service, and
- * utility catalogue, transcribed 1:1 from the Cabinet's CRYPTREPUBLIC Miro
- * board (July 2026). This file is the single source of truth for the public
- * /services and /programs directories.
+ * THE STATE REGISTRY — the cryptrepublic.com service and utility catalogue,
+ * transcribed from the .COM tree of the Cabinet's CRYPTREPUBLIC Miro board
+ * (July 2026). Per the Cabinet's direction, the board's .IO and .ORG branches
+ * are SEPARATE future properties and are deliberately NOT part of this site.
+ * This file is the single source of truth for the public /services directory.
  *
- * Every board item appears here. `status` records where each item stands:
+ * Every .COM board item appears here. `status` records where each item stands:
  *  - "live"            — operational today; `href` points at the feature
  *  - "beta"            — operational with reduced scope
  *  - "in-development"  — being built now
@@ -13,7 +14,7 @@
 
 export type RegistryStatus = "live" | "beta" | "in-development" | "planned";
 
-export type RegistryBranch = "org" | "io" | "services" | "utilities";
+export type RegistryBranch = "services" | "utilities";
 
 export interface RegistryCapability {
   title: string;
@@ -38,15 +39,6 @@ export interface RegistryItem {
 }
 
 export const REGISTRY_BRANCH_LABELS: Record<RegistryBranch, { title: string; blurb: string }> = {
-  org: {
-    title: "National programmes",
-    blurb:
-      "Civic initiatives of the Republic — health, learning, community, and open development.",
-  },
-  io: {
-    title: "Civic infrastructure",
-    blurb: "Ballots, portals, and instruments of exchange operated for every citizen.",
-  },
   services: {
     title: "Citizen services",
     blurb: "The everyday services of citizenship — identity, wallet, attestation, and dividends.",
@@ -58,135 +50,6 @@ export const REGISTRY_BRANCH_LABELS: Record<RegistryBranch, { title: string; blu
 };
 
 export const REGISTRY: readonly RegistryItem[] = [
-  // ─── .ORG — national programmes ────────────────────────────────────────
-  {
-    id: "charity",
-    title: "Charity",
-    branch: "org",
-    summary: "State-coordinated charitable works, funded transparently on-chain.",
-    status: "planned",
-  },
-  {
-    id: "mindfulness",
-    title: "Mindfulness",
-    branch: "org",
-    summary: "A national mindfulness practice — sessions and resources for every citizen.",
-    status: "planned",
-  },
-  {
-    id: "online-sessions",
-    title: "Online sessions",
-    branch: "org",
-    summary: "Live civic sessions: teach-ins, town halls, and open office hours.",
-    status: "planned",
-  },
-  {
-    id: "community-building",
-    title: "Community building",
-    branch: "org",
-    summary: "Citizen circles and embassy meetups that turn a ledger into a nation.",
-    status: "in-development",
-  },
-  {
-    id: "nonprofit-fundraising",
-    title: "Non-profit fundraising & auction",
-    branch: "org",
-    summary: "Fundraisers and charity auctions run under Treasury observation.",
-    status: "planned",
-  },
-  {
-    id: "mental-health",
-    title: "Mental health & consultation",
-    branch: "org",
-    summary: "Confidential consultation programmes for citizens in need.",
-    status: "planned",
-  },
-  {
-    id: "sleep-apps",
-    title: "Apps for better sleep & mental health",
-    branch: "org",
-    summary: "Civic applications for rest, recovery, and mental fitness.",
-    status: "planned",
-  },
-  {
-    id: "adhd-apps",
-    title: "Apps for ADHD & organizing life",
-    branch: "org",
-    summary: "Focus and life-organisation tools issued as public goods.",
-    status: "planned",
-  },
-  {
-    id: "blockchain-oss",
-    title: "Blockchain open-source development",
-    branch: "org",
-    summary: "The Republic's protocols and passports are developed in the open.",
-    status: "live",
-    href: "https://github.com/bitwilll/cryptrepublic",
-    external: true,
-  },
-  {
-    id: "hackathon",
-    title: "Hackathon",
-    branch: "org",
-    summary: "National build weeks — citizens shipping public goods together.",
-    status: "planned",
-  },
-
-  // ─── .IO — civic infrastructure ────────────────────────────────────────
-  {
-    id: "portals",
-    title: "Portals",
-    branch: "io",
-    summary: "One-Portal sign-in: your passport as a single identity across state portals.",
-    detail:
-      "The passport acts as blockchain KYC and login identity — one click, one portal, with one-time auth tokens, time-based two-factor, or wallet QR scanning.",
-    status: "beta",
-    href: "/auth",
-  },
-  {
-    id: "vote",
-    title: "Vote",
-    branch: "io",
-    summary: "Binding ballots on the constitution and acts of the Cabinet.",
-    status: "live",
-    href: "/dashboard/governance",
-  },
-  {
-    id: "elections",
-    title: "Elections",
-    branch: "io",
-    summary: "Elected offices of the Republic, run on the governance rails.",
-    status: "in-development",
-  },
-  {
-    id: "escrow",
-    title: "Escrow",
-    branch: "io",
-    summary: "Neutral escrow for citizen-to-citizen settlement.",
-    status: "planned",
-  },
-  {
-    id: "giftcards",
-    title: "Giftcards",
-    branch: "io",
-    summary: "State giftcards, redeemable across the commissary and services.",
-    status: "planned",
-  },
-  {
-    id: "payment-cards",
-    title: "Payment cards",
-    branch: "io",
-    summary: "Citizen payment cards drawing on the sovereign wallet.",
-    status: "planned",
-  },
-  {
-    id: "lottery",
-    title: "Lottery",
-    branch: "io",
-    summary: "A provably-fair national lottery under Treasury audit.",
-    status: "planned",
-  },
-
   // ─── .COM — user services ──────────────────────────────────────────────
   {
     id: "user-signup",
@@ -415,8 +278,6 @@ export const REGISTRY: readonly RegistryItem[] = [
 /** items grouped by branch, preserving board order */
 export function registryByBranch(): Record<RegistryBranch, RegistryItem[]> {
   const groups: Record<RegistryBranch, RegistryItem[]> = {
-    org: [],
-    io: [],
     services: [],
     utilities: [],
   };

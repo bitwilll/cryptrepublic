@@ -28,7 +28,6 @@ export function SiteHeader() {
             <a href="/#why">Why</a>
             <a href="/#how">How it works</a>
             <a href="/services">Services</a>
-            <a href="/programs">Programmes</a>
             <a href="/documents">Documents</a>
             <a href="/knowledge">Knowledge</a>
           </div>
@@ -88,9 +87,6 @@ export function SiteHeader() {
         </a>
         <a href="/services" onClick={closeMenu}>
           Citizen services
-        </a>
-        <a href="/programs" onClick={closeMenu}>
-          National programmes
         </a>
         <a href="/documents" onClick={closeMenu}>
           Documents

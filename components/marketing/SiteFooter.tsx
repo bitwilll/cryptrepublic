@@ -34,7 +34,6 @@ export function SiteFooter() {
             <h4>Republic</h4>
             <a href="/#why">Why CryptRepublic</a>
             <a href="/services">Citizen services</a>
-            <a href="/programs">National programmes</a>
             <a href="/#holdings">Sovereign holdings</a>
             <a href="/#governance">Governance</a>
             <a href="/#embassies">Embassies</a>
