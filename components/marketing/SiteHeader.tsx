@@ -13,7 +13,7 @@ export function SiteHeader() {
         <nav className="nav">
           <a
             className="brand"
-            href="#top"
+            href="/"
             style={{ gap: "12px", display: "flex", alignItems: "center" }}
           >
             <Crest tone="dark" height={34} />
@@ -25,11 +25,12 @@ export function SiteHeader() {
             </span>
           </a>
           <div className="nav-links">
-            <a href="#why">Why</a>
-            <a href="#how">How it works</a>
-            <a href="#holdings">Holdings</a>
-            <a href="#governance">Governance</a>
-            <a href="#embassies">Embassies</a>
+            <a href="/#why">Why</a>
+            <a href="/#how">How it works</a>
+            <a href="/services">Services</a>
+            <a href="/programs">Programmes</a>
+            <a href="/documents">Documents</a>
+            <a href="/knowledge">Knowledge</a>
           </div>
           <div className="nav-cta">
             <a
@@ -79,20 +80,26 @@ export function SiteHeader() {
         </nav>
       </div>
       <div className={`mobile-menu${menuOpen ? " open" : ""}`} id="mobileMenu">
-        <a href="#why" onClick={closeMenu}>
+        <a href="/#why" onClick={closeMenu}>
           Why CryptRepublic
         </a>
-        <a href="#how" onClick={closeMenu}>
+        <a href="/#how" onClick={closeMenu}>
           How it works
         </a>
-        <a href="#holdings" onClick={closeMenu}>
-          Sovereign holdings
+        <a href="/services" onClick={closeMenu}>
+          Citizen services
         </a>
-        <a href="#governance" onClick={closeMenu}>
-          Governance
+        <a href="/programs" onClick={closeMenu}>
+          National programmes
         </a>
-        <a href="#embassies" onClick={closeMenu}>
-          Embassies
+        <a href="/documents" onClick={closeMenu}>
+          Documents
+        </a>
+        <a href="/knowledge" onClick={closeMenu}>
+          Knowledge base
+        </a>
+        <a href="/brand" onClick={closeMenu}>
+          Brand & commissary
         </a>
         <a href="/auth" style={{ color: "var(--blue)" }} onClick={closeMenu}>
           Sign in / Register

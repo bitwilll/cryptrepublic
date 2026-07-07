@@ -12,7 +12,12 @@ export type NavIconKind =
   | "mint"
   | "holdings"
   | "wallet"
-  | "referrals";
+  | "referrals"
+  | "trust"
+  | "certificate"
+  | "store"
+  | "bitwill"
+  | "insurance";
 
 export function NavIcon({
   kind,
@@ -108,6 +113,44 @@ export function NavIcon({
           <circle cx="12" cy="17" r="2.5" />
           <line x1="8" y1="8.5" x2="10.5" y2="15" />
           <line x1="16" y1="8.5" x2="13.5" y2="15" />
+        </g>
+      )}
+      {kind === "trust" && (
+        <g {...p}>
+          <path d="M12 3 L20 6 V12 C20 16.5 16.5 20 12 21 C7.5 20 4 16.5 4 12 V6 Z" />
+          <polyline points="8.5,12 11,14.5 15.5,9.5" />
+        </g>
+      )}
+      {kind === "certificate" && (
+        <g {...p}>
+          <rect x="4" y="4" width="16" height="13" />
+          <path d="M7 8 H17" />
+          <path d="M7 11 H13" />
+          <circle cx="15.5" cy="15" r="2.2" />
+          <path d="M14.5 17 L14 21 L15.5 19.8 L17 21 L16.5 17" />
+        </g>
+      )}
+      {kind === "store" && (
+        <g {...p}>
+          <path d="M4 9 L5 4 H19 L20 9" />
+          <path d="M4 9 H20 V11 C20 12 19 13 18 13 C17 13 16 12 16 11 C16 12 15 13 14 13 C13 13 12 12 12 11 C12 12 11 13 10 13 C9 13 8 12 8 11 C8 12 7 13 6 13 C5 13 4 12 4 11 Z" />
+          <path d="M5 13 V20 H19 V13" />
+          <rect x="10" y="16" width="4" height="4" />
+        </g>
+      )}
+      {kind === "bitwill" && (
+        <g {...p}>
+          <path d="M7 3 H17 C18 3 19 4 19 5 V21 L16 19 L12 21 L8 19 L5 21 V5 C5 4 6 3 7 3 Z" />
+          <path d="M9 8 H15" />
+          <path d="M9 11 H15" />
+          <path d="M9 14 H12" />
+        </g>
+      )}
+      {kind === "insurance" && (
+        <g {...p}>
+          <path d="M12 3 C7 3 3 7 3 12 H21 C21 7 17 3 12 3 Z" />
+          <path d="M12 12 V18 C12 20 10.5 21 9 21" />
+          <path d="M12 3 V2" />
         </g>
       )}
     </svg>

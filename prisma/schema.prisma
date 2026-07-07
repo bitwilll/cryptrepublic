@@ -35,6 +35,13 @@ model User {
 
   passkey2faEnabled   Boolean              @default(false) // Wave 14 — require a passkey to complete password sign-in
   webauthnCredentials WebAuthnCredential[]
+
+  storeListings         StoreListing[]         @relation("StoreListings")
+  storeInquiries        StoreInquiry[]         @relation("StoreInquiries")
+  certificates          SignedCertificate[]    @relation("Certificates")
+  bitwills              BitwillDirective[]     @relation("Bitwills")
+  insuranceApplications InsuranceApplication[] @relation("InsuranceApplications")
+  commissaryInterests   CommissaryInterest[]   @relation("CommissaryInterests")
 }
 
 model Session {
@@ -335,4 +342,122 @@ model FeatureFlag {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Wave 15 — CITIZEN SERVICES (store / bitwill / insurance / certificates /
+// commissary interest). ALL PUBLIC data — no secret columns. Signatures are
+// public attestations (like WitnessSignature); never a key, seed, or password.
+// Settlement of any listed price is peer-to-peer on-chain by the citizens
+// themselves — the Republic never holds or moves funds.
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A citizen-to-citizen marketplace listing (Miro: STORE — user as buyer/seller).
+model StoreListing {
+  id           String         @id @default(cuid())
+  sellerUserId String
+  seller       User           @relation("StoreListings", fields: [sellerUserId], references: [id], onDelete: Cascade)
+  title        String
+  description  String
+  category     String // StoreCategory union (lib/services/types.ts)
+  priceCoin    String // decimal string, CRPT units — pricing intent only; settlement is peer-to-peer
+  status       String         @default("ACTIVE") // ListingStatus union ACTIVE|SOLD|WITHDRAWN|REMOVED
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  inquiries    StoreInquiry[]
+
+  @@index([status])
+  @@index([sellerUserId])
+}
+
+/// A buyer's inquiry on a listing (in-app message thread seed; no payments).
+model StoreInquiry {
+  id          String       @id @default(cuid())
+  listingId   String
+  listing     StoreListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyerUserId String
+  buyer       User         @relation("StoreInquiries", fields: [buyerUserId], references: [id], onDelete: Cascade)
+  message     String
+  reply       String? // seller's reply
+  status      String       @default("OPEN") // InquiryStatus union OPEN|ANSWERED|CLOSED
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([listingId])
+  @@index([buyerUserId])
+}
+
+/// A wallet-signed message/document attestation (Miro: Signing Message &
+/// Certificate). The signature is produced CLIENT-SIDE by the citizen's own
+/// wallet; the server stores only the public record and verifies recovery.
+model SignedCertificate {
+  id            String    @id @default(cuid())
+  serial        String    @unique // human-readable serial ("CR-CERT-…")
+  authorUserId  String
+  author        User      @relation("Certificates", fields: [authorUserId], references: [id], onDelete: Cascade)
+  kind          String // CertificateKind union MESSAGE|DOCUMENT
+  title         String
+  subject       String // signed message text, or document name for DOCUMENT
+  contentHash   String // 0x keccak256 of the canonical signed payload (public)
+  signerAddress String // checksummed EVM address (public)
+  signature     String // 0x signature (public attestation, not a secret)
+  createdAt     DateTime  @default(now())
+  revokedAt     DateTime?
+
+  @@index([authorUserId])
+  @@index([signerAddress])
+}
+
+/// A BitWill inheritance directive (Miro: BITWILL — INHERITANCE). A wallet-signed
+/// OFF-CHAIN declaration of intent: names a beneficiary for the citizen's estate
+/// record. It never holds, moves, or can move funds — it is a signed document.
+model BitwillDirective {
+  id                 String    @id @default(cuid())
+  ownerUserId        String
+  owner              User      @relation("Bitwills", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  beneficiaryName    String
+  beneficiaryContact String // email / citizen no. — supplied by the owner
+  beneficiaryAddress String? // optional EVM address (public)
+  assetsMemo         String // free-text estate description; NEVER keys or seeds
+  directiveHash      String // 0x keccak256 of the canonical directive payload
+  signerAddress      String // checksummed EVM address that signed
+  signature          String // 0x signature (public)
+  status             String    @default("ACTIVE") // DirectiveStatus union ACTIVE|REVOKED|SUPERSEDED
+  createdAt          DateTime  @default(now())
+  revokedAt          DateTime?
+
+  @@index([ownerUserId])
+}
+
+/// A citizen's application for Republic cover (Miro: User Insurance — asset /
+/// health). A registry of applications and their review state — no premiums are
+/// collected and no funds move through the Republic.
+model InsuranceApplication {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation("InsuranceApplications", fields: [userId], references: [id], onDelete: Cascade)
+  product      String // InsuranceProduct union ASSET|HEALTH
+  coverageNote String // what the citizen wants covered
+  valueUsd     BigInt? // declared value (whole USD) for asset cover
+  status       String   @default("SUBMITTED") // SUBMITTED|IN_REVIEW|APPROVED|DECLINED
+  reviewNote   String? // admin note (Wave 9 audit conventions apply)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+/// Register-of-interest for a Commissary (brand kit / merchandise) item. itemId
+/// references lib/content/registry.ts COMMISSARY ids — content, not FK.
+model CommissaryInterest {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("CommissaryInterests", fields: [userId], references: [id], onDelete: Cascade)
+  itemId    String
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, itemId])
+  @@index([itemId])
 }

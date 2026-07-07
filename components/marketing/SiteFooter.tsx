@@ -4,7 +4,7 @@ export function SiteFooter() {
       <div className="wrap">
         <div className="foot">
           <div className="about">
-            <a className="brand" href="#top" style={{ color: "#fff" }}>
+            <a className="brand" href="/" style={{ color: "#fff" }}>
               <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
                 <polygon
                   points="15,1 25,5 29,15 25,25 15,29 5,25 1,15 5,5"
@@ -32,24 +32,29 @@ export function SiteFooter() {
           </div>
           <div>
             <h4>Republic</h4>
-            <a href="#why">Why CryptRepublic</a>
-            <a href="#holdings">Sovereign holdings</a>
-            <a href="#governance">Governance</a>
-            <a href="#embassies">Embassies</a>
+            <a href="/#why">Why CryptRepublic</a>
+            <a href="/services">Citizen services</a>
+            <a href="/programs">National programmes</a>
+            <a href="/#holdings">Sovereign holdings</a>
+            <a href="/#governance">Governance</a>
+            <a href="/#embassies">Embassies</a>
           </div>
           <div>
             <h4>Citizens</h4>
             <a href="/dashboard">Citizen dashboard</a>
-            <a href="/dashboard">Mint a passport</a>
-            <a href="/dashboard">Wallet &amp; chain</a>
-            <a href="/dashboard">Claim dividends</a>
+            <a href="/dashboard/mint">Mint a passport</a>
+            <a href="/dashboard/wallet">Wallet &amp; chain</a>
+            <a href="/dashboard/holdings">Claim dividends</a>
+            <a href="/dashboard/store">Citizen store</a>
+            <a href="/verify">Verify a certificate</a>
           </div>
           <div>
             <h4>Programme</h4>
-            <a href="#how">How it works</a>
-            <a href="#">The Constitution</a>
-            <a href="#">Press &amp; media</a>
-            <a href="#">Contact the Cabinet</a>
+            <a href="/#how">How it works</a>
+            <a href="/documents/constitution">The Constitution</a>
+            <a href="/documents">Documents registry</a>
+            <a href="/knowledge">Knowledge base</a>
+            <a href="/brand">Brand &amp; commissary</a>
           </div>
         </div>
         <div className="legal">

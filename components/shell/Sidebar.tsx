@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Crest } from "@/components/brand/Crest";
 import { NavIcon } from "./NavIcon";
-import { NAV_ITEMS, isActive } from "./navItems";
+import { NAV_SECTIONS, isActive } from "./navItems";
 import { useCitizen } from "./SessionCitizenProvider";
 import styles from "./shell.module.css";
 
@@ -91,48 +91,65 @@ export function Sidebar({ open, onNavigate }: { open: boolean; onNavigate?: () =
       </div>
 
       <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {NAV_ITEMS.map((it) => {
-          const active = isActive(pathname, it.href);
-          const badge = badgeFor(it.badge);
-          return (
-            <Link
-              key={it.href}
-              href={it.href}
-              onClick={onNavigate}
-              aria-current={active ? "page" : undefined}
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.title} role="group" aria-label={section.title}>
+            <div
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "11px 12px",
-                paddingLeft: active ? 10 : 12,
-                background: active ? "rgba(255,255,255,0.14)" : "transparent",
-                color: "#fff",
-                textDecoration: "none",
-                fontSize: 14,
-                fontWeight: 600,
-                borderLeft: active ? "2px solid var(--gold)" : "2px solid transparent",
+                padding: "14px 12px 5px",
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
+                color: "rgba(255,255,255,0.42)",
+                fontFamily: "var(--mono)",
               }}
             >
-              <NavIcon kind={it.icon} color={active ? "var(--gold)" : "#fff"} />
-              <span style={{ flex: 1 }}>{it.label}</span>
-              {badge && (
-                <span
+              {section.title}
+            </div>
+            {section.items.map((it) => {
+              const active = isActive(pathname, it.href);
+              const badge = badgeFor(it.badge);
+              return (
+                <Link
+                  key={it.href}
+                  href={it.href}
+                  onClick={onNavigate}
+                  aria-current={active ? "page" : undefined}
                   style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    background: "var(--gold)",
-                    color: "var(--navy)",
-                    padding: "2px 7px",
-                    letterSpacing: "0.04em",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "10px 12px",
+                    paddingLeft: active ? 10 : 12,
+                    background: active ? "rgba(255,255,255,0.14)" : "transparent",
+                    color: "#fff",
+                    textDecoration: "none",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    borderLeft: active ? "2px solid var(--gold)" : "2px solid transparent",
                   }}
                 >
-                  {badge}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+                  <NavIcon kind={it.icon} color={active ? "var(--gold)" : "#fff"} />
+                  <span style={{ flex: 1 }}>{it.label}</span>
+                  {badge && (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        background: "var(--gold)",
+                        color: "var(--navy)",
+                        padding: "2px 7px",
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      {badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.10)", paddingTop: 14, marginTop: 8 }}>
