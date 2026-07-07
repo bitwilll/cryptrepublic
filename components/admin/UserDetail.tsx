@@ -122,7 +122,7 @@ export function UserDetail({ userId, selfUserId }: { userId: string; selfUserId:
     <Wrap>
       <article className="pillar" style={{ padding: "24px 28px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <h3 style={{ margin: 0, fontSize: 20 }}>{user.email ?? user.id}</h3>
+          <h2 style={{ margin: 0, fontSize: 20 }}>{user.email ?? user.id}</h2>
           {suspended && <TagLabel testid="suspended-tag">SUSPENDED</TagLabel>}
         </div>
         <dl
@@ -210,7 +210,7 @@ export function UserDetail({ userId, selfUserId }: { userId: string; selfUserId:
 
       <article className="pillar" style={{ padding: "24px 28px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <h3 style={{ margin: 0, fontSize: 20 }}>Sessions</h3>
+          <h2 style={{ margin: 0, fontSize: 20 }}>Sessions</h2>
           <button
             className="btn btn-ghost"
             type="button"
@@ -266,7 +266,7 @@ export function UserDetail({ userId, selfUserId }: { userId: string; selfUserId:
       </article>
 
       <article className="pillar" style={{ padding: "24px 28px" }}>
-        <h3 style={{ margin: 0, fontSize: 20 }}>Linked wallets</h3>
+        <h2 style={{ margin: 0, fontSize: 20 }}>Linked wallets</h2>
         {linkedWallets.length === 0 ? (
           <p style={{ color: "var(--muted)", marginTop: 12, fontSize: 13 }}>No linked wallets.</p>
         ) : (
@@ -282,7 +282,7 @@ export function UserDetail({ userId, selfUserId }: { userId: string; selfUserId:
       </article>
 
       <article className="pillar" style={{ padding: "24px 28px" }}>
-        <h3 style={{ margin: 0, fontSize: 20 }}>Citizenship application</h3>
+        <h2 style={{ margin: 0, fontSize: 20 }}>Citizenship application</h2>
         {application === null ? (
           <p style={{ color: "var(--muted)", marginTop: 12, fontSize: 13 }}>No application.</p>
         ) : (

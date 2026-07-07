@@ -561,9 +561,9 @@ export function ChainActionsApp() {
           data-testid="chain-unavailable"
           style={{ padding: "24px 28px" }}
         >
-          <h3 style={{ margin: 0, fontSize: 20 }}>
+          <h2 style={{ margin: 0, fontSize: 20 }}>
             No admin contracts are registered on this chain.
-          </h3>
+          </h2>
           <p style={{ color: "var(--muted)", marginTop: 8, fontSize: 13 }}>
             The active chain (id {params.data.chainId}) has no registered contract addresses, so
             there is nothing to read and nothing to prepare. Register the deployed addresses in the
@@ -586,7 +586,7 @@ export function ChainActionsApp() {
 function ParamsPanel({ params }: { params: ParamsPayload }) {
   return (
     <article className="pillar" style={{ padding: "24px 28px" }}>
-      <h3 style={{ margin: 0, fontSize: 20 }}>Current contract parameters</h3>
+      <h2 style={{ margin: 0, fontSize: 20 }}>Current contract parameters</h2>
       <p style={{ color: "var(--muted)", marginTop: 4, fontSize: 12 }}>
         Server-side reads over the registered addresses; a failing contract degrades to an omitted
         section, never a crash.
@@ -698,7 +698,7 @@ function Row({ k, v }: { k: string; v: string }) {
 function TopologyPanel({ state, onRetry }: { state: Load<TopologyPayload>; onRetry: () => void }) {
   return (
     <article className="pillar" data-testid="role-topology" style={{ padding: "24px 28px" }}>
-      <h3 style={{ margin: 0, fontSize: 20 }}>Role topology</h3>
+      <h2 style={{ margin: 0, fontSize: 20 }}>Role topology</h2>
       <p style={{ color: "var(--muted)", marginTop: 4, fontSize: 12 }}>
         Candidates from RoleGranted logs, kept ONLY when hasRole confirms them live (AccessControl
         is not enumerable — the logs bound the candidate set; hasRole is the source of truth).
@@ -854,7 +854,7 @@ function Composer({
   return (
     <>
       <article className="pillar" style={{ padding: "24px 28px" }}>
-        <h3 style={{ margin: 0, fontSize: 20 }}>Compose a prepared action</h3>
+        <h2 style={{ margin: 0, fontSize: 20 }}>Compose a prepared action</h2>
         <p style={{ color: "var(--muted)", marginTop: 4, fontSize: 12 }}>
           Pure encoding: the composer produces calldata for YOUR Safe (or, for treasury
           GOVERNANCE_ROLE actions, a governance-proposal payload for a citizen wallet). Nothing is

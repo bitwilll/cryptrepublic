@@ -87,7 +87,7 @@ export function AuditViewer() {
             flexWrap: "wrap",
           }}
         >
-          <h3 style={{ margin: 0, fontSize: 20 }}>Administrative actions</h3>
+          <h2 style={{ margin: 0, fontSize: 20 }}>Administrative actions</h2>
           <a
             className="btn btn-ghost"
             href="/api/admin/export/audit"

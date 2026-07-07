@@ -76,7 +76,7 @@ export function ApplicationsApp() {
             flexWrap: "wrap",
           }}
         >
-          <h3 style={{ margin: 0, fontSize: 20 }}>Applications</h3>
+          <h2 style={{ margin: 0, fontSize: 20 }}>Applications</h2>
           <a
             className="btn btn-ghost"
             href="/api/admin/export/applications"

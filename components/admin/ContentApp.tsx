@@ -324,7 +324,7 @@ function CrudTab<Row extends Record<string, unknown>>(props: {
   return (
     <article className="pillar" style={{ padding: "24px 28px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <h3 style={{ margin: 0, fontSize: 20 }}>{props.title}</h3>
+        <h2 style={{ margin: 0, fontSize: 20 }}>{props.title}</h2>
         <button
           className="btn btn-ghost"
           type="button"
@@ -814,7 +814,7 @@ function ProposalsTab() {
 
   return (
     <article className="pillar" style={{ padding: "24px 28px" }}>
-      <h3 style={{ margin: 0, fontSize: 20 }}>Governance proposal content</h3>
+      <h2 style={{ margin: 0, fontSize: 20 }}>Governance proposal content</h2>
       <p style={{ color: "var(--muted)", marginTop: 6, fontSize: 12 }}>
         Proposal texts are created by citizens against real on-chain proposals — there is no admin
         create or delete (a delete would orphan the on-chain descriptionHash binding). A body whose

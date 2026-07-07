@@ -92,7 +92,7 @@ export function FlagsApp() {
       <div className="kicker">FEATURE FLAGS</div>
 
       <article className="pillar" style={{ padding: "24px 28px" }}>
-        <h3 style={{ margin: 0, fontSize: 20 }}>Flags</h3>
+        <h2 style={{ margin: 0, fontSize: 20 }}>Flags</h2>
         <p style={{ color: "var(--muted)", marginTop: 6, fontSize: 12 }}>
           Missing flags fall back to their declared defaults; undeclared keys are OFF. Deleting a
           row restores the declared default.
@@ -165,7 +165,7 @@ export function FlagsApp() {
       </article>
 
       <article className="pillar" style={{ padding: "24px 28px" }}>
-        <h3 style={{ margin: 0, fontSize: 20 }}>Create or override a flag</h3>
+        <h2 style={{ margin: 0, fontSize: 20 }}>Create or override a flag</h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();

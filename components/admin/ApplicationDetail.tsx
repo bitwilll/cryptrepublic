@@ -215,7 +215,7 @@ export function ApplicationDetail({ applicationId }: { applicationId: string }) 
     <Wrap>
       <article className="pillar" style={{ padding: "24px 28px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <h3 style={{ margin: 0, fontSize: 20 }}>{app.user.email ?? app.userId}</h3>
+          <h2 style={{ margin: 0, fontSize: 20 }}>{app.user.email ?? app.userId}</h2>
           <TagLabel>STATUS · {app.status}</TagLabel>
         </div>
         <dl
@@ -246,7 +246,7 @@ export function ApplicationDetail({ applicationId }: { applicationId: string }) 
 
       <article className="pillar" style={{ padding: "24px 28px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <h3 style={{ margin: 0, fontSize: 20 }}>Chain record</h3>
+          <h2 style={{ margin: 0, fontSize: 20 }}>Chain record</h2>
           <TagLabel testid="chain-derived-tag">CHAIN-DERIVED · NOT AUTHORITATIVE</TagLabel>
         </div>
         <p style={{ color: "var(--muted)", marginTop: 4, fontSize: 12 }}>
@@ -276,7 +276,7 @@ export function ApplicationDetail({ applicationId }: { applicationId: string }) 
       </article>
 
       <article className="pillar" style={{ padding: "24px 28px" }}>
-        <h3 style={{ margin: 0, fontSize: 20 }}>Witness signatures</h3>
+        <h2 style={{ margin: 0, fontSize: 20 }}>Witness signatures</h2>
         <p style={{ color: "var(--muted)", marginTop: 4, fontSize: 12 }}>
           Public data: checksummed witness addresses and their EIP-712 attestations.
         </p>
@@ -313,7 +313,7 @@ export function ApplicationDetail({ applicationId }: { applicationId: string }) 
 
       <article className="pillar" style={{ padding: "24px 28px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <h3 style={{ margin: 0, fontSize: 20 }}>Admin mint (override witnesses)</h3>
+          <h2 style={{ margin: 0, fontSize: 20 }}>Admin mint (override witnesses)</h2>
           <TagLabel>PASSPORT_ADMIN_ROLE</TagLabel>
         </div>
         <p style={{ color: "var(--muted)", marginTop: 4, fontSize: 12 }}>
@@ -443,7 +443,7 @@ export function ApplicationDetail({ applicationId }: { applicationId: string }) 
       )}
 
       <article className="pillar" style={{ padding: "24px 28px" }}>
-        <h3 style={{ margin: 0, fontSize: 20 }}>Review</h3>
+        <h2 style={{ margin: 0, fontSize: 20 }}>Review</h2>
         <p style={{ color: "var(--muted)", marginTop: 4, fontSize: 12 }}>
           kycStatus and a review note ONLY — a body naming status, citizenTokenId, or sealTxHash is
           rejected by the API.
