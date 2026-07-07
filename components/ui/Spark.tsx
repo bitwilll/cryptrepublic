@@ -6,7 +6,7 @@
  */
 export function Spark({
   points,
-  color = "var(--gold)",
+  color = "var(--gold-d)",
   bg = "transparent",
   width = 280,
   height = 50,

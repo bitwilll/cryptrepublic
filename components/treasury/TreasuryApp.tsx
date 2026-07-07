@@ -170,7 +170,7 @@ function TreasuryHero({
               >
                 REPRESENTATIVE SERIES
               </span>
-              <Spark points={[]} color="var(--gold)" width={720} height={80} />
+              <Spark points={[]} color="var(--gold-d)" width={720} height={80} />
             </div>
           </>
         ))}

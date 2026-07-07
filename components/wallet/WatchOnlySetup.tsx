@@ -69,7 +69,7 @@ export function WatchOnlySetup({
         }}
       />
       {error && (
-        <p role="alert" style={{ color: "#b00020", marginTop: 12 }}>
+        <p role="alert" style={{ color: "#8b3a3a", marginTop: 12 }}>
           {error}
         </p>
       )}

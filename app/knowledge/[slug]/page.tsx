@@ -53,7 +53,7 @@ export default async function KnowledgeArticlePage({
       <Crest tone="dark" className="page-watermark" alt="" />
       <GovStrip />
       <SiteHeader />
-      <main>
+      <main id="main-content">
         <div className={`wrap ${styles.page}`}>
           <Breadcrumb
             trail={[{ label: "Knowledge", href: "/knowledge" }, { label: article.title }]}

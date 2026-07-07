@@ -25,7 +25,7 @@ export default function KnowledgePage() {
       <Crest tone="dark" className="page-watermark" alt="" />
       <GovStrip />
       <SiteHeader />
-      <main>
+      <main id="main-content">
         <div className={`wrap ${styles.page}`}>
           <Breadcrumb trail={[{ label: "Knowledge" }]} />
           <h1 className={styles.pageTitle}>The State Encyclopedia</h1>

@@ -137,6 +137,7 @@
 }
 .fcKicker::before {
   content: "▮ ";
+  content: "▮ " / "";
 }
 .fcHead h2 {
   font-size: 26px;
@@ -347,8 +348,7 @@
   color: var(--navy);
 }
 .submit.gold:hover {
-  background: var(--gold-d);
-  color: #fff;
+  background: var(--gold-d); /* label stays var(--navy) — 4.83:1 on #9d8246, passes AA */
 }
 
 .console {

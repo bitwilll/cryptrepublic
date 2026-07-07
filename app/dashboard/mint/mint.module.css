@@ -257,6 +257,8 @@
 .nav {
   margin-top: 32px;
   display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   justify-content: space-between;
   align-items: center;
   padding-top: 24px;
@@ -267,6 +269,7 @@
   color: var(--muted);
   font-family: var(--mono);
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 /* Sealing / receipt */

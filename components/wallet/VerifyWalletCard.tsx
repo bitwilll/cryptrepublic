@@ -83,7 +83,7 @@ export function VerifyWalletCard({ requireUnlock }: { requireUnlock: () => boole
       ) : (
         <>
           {error && (
-            <p role="alert" style={{ color: "#b00020", marginTop: 8, fontSize: 12 }}>
+            <p role="alert" style={{ color: "#8b3a3a", marginTop: 8, fontSize: 12 }}>
               {error}
             </p>
           )}

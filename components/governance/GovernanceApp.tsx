@@ -261,7 +261,7 @@ function VoteTally({ tally }: { tally: Tally }) {
         style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}
       >
         <TallyCell label="FOR" n={forV} color="var(--success)" pct={pct(forV)} />
-        <TallyCell label="AGAINST" n={against} color="var(--gold)" pct={pct(against)} />
+        <TallyCell label="AGAINST" n={against} color="var(--gold-d)" pct={pct(against)} />
         <TallyCell label="ABSTAIN" n={abstain} color="var(--muted)" pct={pct(abstain)} />
       </div>
     </div>
@@ -500,7 +500,7 @@ function DissentThread({ proposalId, isCitizen }: { proposalId: string; isCitize
             {posting ? "Posting…" : "Post"}
           </button>
           {error && (
-            <p role="alert" style={{ marginTop: 8, fontSize: 12, color: "#b00020" }}>
+            <p role="alert" style={{ marginTop: 8, fontSize: 12, color: "#8b3a3a" }}>
               {error}
             </p>
           )}

@@ -7,7 +7,7 @@ export function SiteFooter() {
         <div className="foot">
           <div className="about">
             <Link className="brand" href="/" style={{ color: "#fff" }}>
-              <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+              <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true">
                 <polygon
                   points="15,1 25,5 29,15 25,25 15,29 5,25 1,15 5,5"
                   stroke="#c8a96a"

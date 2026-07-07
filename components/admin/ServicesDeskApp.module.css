@@ -51,7 +51,7 @@
 }
 .chipSubmitted {
   border-color: var(--gold);
-  color: var(--gold-d);
+  color: var(--gold-ink);
 }
 .chipInReview {
   border-color: var(--blue);
@@ -169,4 +169,9 @@
 .primaryAction {
   min-height: 44px;
   padding: 0 20px;
+}
+
+.status:empty {
+  min-height: 0;
+  margin: -24px 0 0; /* collapses to the single 24px flex gap */
 }

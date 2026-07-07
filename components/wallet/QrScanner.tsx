@@ -151,7 +151,7 @@ export function QrScanner({
         }}
       />
       {error && (
-        <p role="alert" style={{ color: "#b00020", marginTop: 10, fontSize: 13 }}>
+        <p role="alert" style={{ color: "#8b3a3a", marginTop: 10, fontSize: 13 }}>
           {error}
         </p>
       )}

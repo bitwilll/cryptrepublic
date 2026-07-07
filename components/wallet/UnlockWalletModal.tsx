@@ -70,7 +70,7 @@ export function UnlockWalletModal({
           style={{ width: "100%", padding: 10, border: "1px solid var(--line)", borderRadius: 8 }}
         />
         {error && (
-          <p role="alert" style={{ color: "#b00020", marginTop: 12 }}>
+          <p role="alert" style={{ color: "#8b3a3a", marginTop: 12 }}>
             {error}
           </p>
         )}

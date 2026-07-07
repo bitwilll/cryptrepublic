@@ -210,7 +210,7 @@ function FormModal({
         })}
         {extra}
         {error && (
-          <p data-testid="form-error" style={{ color: "#b04141", fontSize: 13, margin: 0 }}>
+          <p data-testid="form-error" style={{ color: "#8b3a3a", fontSize: 13, margin: 0 }}>
             {error}
           </p>
         )}
@@ -339,7 +339,7 @@ function CrudTab<Row extends Record<string, unknown>>(props: {
       {props.note}
       {state.status === "ok" && props.summary?.(rows)}
       {listError && (
-        <p data-testid="list-error" style={{ color: "#b04141", fontSize: 13 }}>
+        <p data-testid="list-error" style={{ color: "#8b3a3a", fontSize: 13 }}>
           {listError}
         </p>
       )}
@@ -946,7 +946,7 @@ function CommentsModal({ proposal, onClose }: { proposal: ProposalRow; onClose: 
       {state.status === "loading" && <Skeleton lines={3} />}
       {state.status === "error" && <CardError onRetry={load} testid="comments-error" />}
       {error && (
-        <p data-testid="comment-error" style={{ color: "#b04141", fontSize: 13 }}>
+        <p data-testid="comment-error" style={{ color: "#8b3a3a", fontSize: 13 }}>
           {error}
         </p>
       )}

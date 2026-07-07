@@ -129,7 +129,12 @@ export function TrustApp(): React.ReactElement {
 
       <section className={styles.card} data-testid="trust-factor-ledger">
         <h2 className={styles.microLabel}>Factor ledger · sum equals your score</h2>
-        <div className={styles.tableWrap}>
+        <div
+          className={styles.tableWrap}
+          role="region"
+          aria-label="Factor ledger (scrolls horizontally on narrow screens)"
+          tabIndex={0}
+        >
           <table className={styles.table}>
             <thead>
               <tr>

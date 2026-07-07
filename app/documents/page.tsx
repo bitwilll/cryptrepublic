@@ -55,7 +55,7 @@ export default function DocumentsPage() {
       <Crest tone="dark" className="page-watermark" alt="" />
       <GovStrip />
       <SiteHeader />
-      <main>
+      <main id="main-content">
         <div className={`wrap ${styles.page}`}>
           <Breadcrumb trail={[{ label: "Documents" }]} />
           <h1 className={styles.pageTitle}>Registry of Official Documents</h1>

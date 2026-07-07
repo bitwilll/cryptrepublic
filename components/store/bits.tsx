@@ -14,7 +14,7 @@ export const SETTLEMENT_NOTICE =
 const LISTING_PILLS: Record<string, { label: string; cls: string }> = {
   ACTIVE: { label: "Active", cls: styles.statusActive },
   SOLD: { label: "Sold", cls: styles.statusMuted },
-  WITHDRAWN: { label: "Withdrawn", cls: styles.statusPending },
+  WITHDRAWN: { label: "Withdrawn", cls: styles.statusMuted },
   REMOVED: { label: "Removed", cls: styles.statusError },
 };
 const INQUIRY_PILLS: Record<string, { label: string; cls: string }> = {
@@ -35,7 +35,12 @@ export function InquiryStatusPill({ status }: { status: string }) {
 
 export function Skeletons({ lines = 3 }: { lines?: number }) {
   return (
-    <div className={styles.skeletons} data-testid="store-skeleton">
+    <div
+      className={styles.skeletons}
+      data-testid="store-skeleton"
+      role="status"
+      aria-label="Loading"
+    >
       {Array.from({ length: lines }).map((_, i) => (
         <div key={i} className="skeleton-line" />
       ))}

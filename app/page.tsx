@@ -22,7 +22,7 @@ export default function HomePage() {
       <SiteHeader />
       <Reveal />
       {/* <main> landmark (Wave 8 A2) — header/footer chrome stays outside. */}
-      <main>
+      <main id="main-content">
         <HeroPassport />
         <LiveTicker />
         <Pillars />

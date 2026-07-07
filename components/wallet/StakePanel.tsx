@@ -180,7 +180,12 @@ export function StakePanel({
       <div style={{ marginTop: 10 }}>
         <div
           data-testid="staked-amount"
-          style={{ fontSize: 26, fontWeight: 800, color: "var(--gold)", letterSpacing: "-0.02em" }}
+          style={{
+            fontSize: 26,
+            fontWeight: 800,
+            color: "var(--gold-d)",
+            letterSpacing: "-0.02em",
+          }}
         >
           {position ? fmt(position.staked) : "—"} $CRYPT
         </div>
@@ -252,7 +257,7 @@ export function StakePanel({
           )}
 
           {error && (
-            <p role="alert" style={{ color: "#b00020", marginTop: 10, fontSize: 12 }}>
+            <p role="alert" style={{ color: "#8b3a3a", marginTop: 10, fontSize: 12 }}>
               {error}
             </p>
           )}
@@ -291,7 +296,7 @@ export function StakePanel({
             $CRYPT remaining). The payout may be less than earned if the pool is short.
           </p>
           {error && (
-            <p role="alert" style={{ color: "#b00020", marginTop: 10, fontSize: 12 }}>
+            <p role="alert" style={{ color: "#8b3a3a", marginTop: 10, fontSize: 12 }}>
               {error}
             </p>
           )}

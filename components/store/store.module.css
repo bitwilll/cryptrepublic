@@ -90,6 +90,11 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  /* flex item of .controls: without this, min-width:auto props the page open at mobile */
+  min-width: 0;
+}
+.searchForm label {
+  white-space: nowrap;
 }
 .searchInput {
   padding: 10px 12px;
@@ -100,6 +105,7 @@
   font-size: 14px;
   width: 220px;
   max-width: 100%;
+  min-width: 0; /* allow shrink below the ~175px UA minimum on narrow rows */
 }
 .searchInput:focus {
   border-color: var(--blue);
@@ -168,22 +174,25 @@
   font-family: var(--mono);
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 3px 8px;
+  padding: 3px 9px;
   border: 1px solid currentColor;
+  white-space: nowrap;
 }
 .statusActive {
   color: var(--success);
 }
 .statusPending {
-  color: var(--gold);
+  color: var(--gold-ink);
+  border-color: var(--gold);
 }
 .statusMuted {
   color: var(--muted);
 }
 .statusError {
-  color: #b04141;
+  color: #8b3a3a;
+  border-color: #b04141;
 }
 
 /* ── Panels (detail / forms / rows) ── */
@@ -299,7 +308,7 @@
   cursor: not-allowed;
 }
 .actionBtnDanger {
-  color: #b04141;
+  color: #8b3a3a;
   border-color: #b04141;
 }
 .actionBtnPrimary {
@@ -389,13 +398,6 @@
   color: var(--success);
   font-size: 13px;
   font-weight: 700;
-}
-.emptyState {
-  border: 1px dashed var(--line);
-  padding: 40px 24px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 14px;
 }
 
 /* ── Inquiry thread ── */

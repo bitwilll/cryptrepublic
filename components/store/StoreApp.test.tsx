@@ -68,7 +68,7 @@ describe("StoreApp — browse", () => {
     h.browse.listings = [card];
     render(<StoreApp />);
     await waitFor(() => expect(screen.getByText("Ceremonial flag")).toBeTruthy());
-    expect(screen.getByText("₡ 128.00 CRPT")).toBeTruthy();
+    expect(screen.getByText("128.00 $CRYPT")).toBeTruthy();
     expect(screen.getByText("Citizen № 42")).toBeTruthy();
     expect(screen.getByText(/Posted 01 Jul 2026/)).toBeTruthy();
     expect(

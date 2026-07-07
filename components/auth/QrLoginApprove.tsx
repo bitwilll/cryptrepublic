@@ -134,14 +134,14 @@ export function QrLoginApprove({ requireUnlock }: { requireUnlock: () => boolean
       {phase === "busy" && <p style={{ fontSize: 13 }}>Signing locally…</p>}
 
       {phase === "done" && (
-        <p data-testid="qr-approve-done" style={{ color: "var(--gold, #c8a96a)", fontSize: 14 }}>
+        <p data-testid="qr-approve-done" style={{ color: "var(--success)", fontSize: 14 }}>
           Approved ✓ — return to your other device; it will sign in.
         </p>
       )}
 
       {phase === "error" && (
         <div>
-          <p role="alert" data-testid="qr-approve-error" style={{ color: "#b00020", fontSize: 13 }}>
+          <p role="alert" data-testid="qr-approve-error" style={{ color: "#8b3a3a", fontSize: 13 }}>
             {error}
           </p>
           <button className="btn" type="button" onClick={reset} style={{ marginTop: 8 }}>

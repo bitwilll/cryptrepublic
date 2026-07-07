@@ -76,9 +76,9 @@ export function SwapBridgeModal({
           style={{
             padding: "10px 12px",
             borderRadius: 8,
-            background: "rgba(176,0,32,0.08)",
-            border: "1px solid rgba(176,0,32,0.35)",
-            color: "#b00020",
+            background: "color-mix(in srgb, #b04141 10%, transparent)",
+            border: "1px solid #b04141",
+            color: "#8b3a3a",
             fontSize: 12,
             fontWeight: 700,
             letterSpacing: "0.04em",
@@ -147,7 +147,7 @@ export function SwapBridgeModal({
           </p>
         )}
         {error && (
-          <p role="alert" style={{ color: "#b00020", marginTop: 12, fontSize: 12 }}>
+          <p role="alert" style={{ color: "#8b3a3a", marginTop: 12, fontSize: 12 }}>
             {error}
           </p>
         )}

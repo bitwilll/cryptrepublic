@@ -209,6 +209,7 @@ function ObligationsCard({
                     }
                     style={{
                       display: "flex",
+                      flexWrap: "wrap",
                       alignItems: "center",
                       gap: 14,
                       padding: "12px 14px",
@@ -216,7 +217,7 @@ function ObligationsCard({
                       border: "1px solid var(--line)",
                     }}
                   >
-                    <div style={{ flex: 1, fontWeight: 500 }}>{o.label}</div>
+                    <div style={{ flex: 1, minWidth: 180, fontWeight: 500 }}>{o.label}</div>
                     <Link
                       className="btn"
                       href="/dashboard/mint"
@@ -232,6 +233,7 @@ function ObligationsCard({
               style={{
                 marginTop: 16,
                 display: "flex",
+                flexWrap: "wrap",
                 alignItems: "center",
                 gap: 14,
                 padding: "12px 14px",
@@ -239,7 +241,7 @@ function ObligationsCard({
                 border: "1px solid var(--line)",
               }}
             >
-              <div style={{ flex: 1, fontWeight: 500 }}>
+              <div style={{ flex: 1, minWidth: 180, fontWeight: 500 }}>
                 Mint your passport to take part in the Republic.
               </div>
               <Link
@@ -261,6 +263,7 @@ function ObligationsCard({
                   key={`${o.kind}-${o.ref}`}
                   style={{
                     display: "flex",
+                    flexWrap: "wrap",
                     alignItems: "center",
                     gap: 14,
                     padding: "12px 14px",
@@ -268,7 +271,7 @@ function ObligationsCard({
                     border: "1px solid var(--line)",
                   }}
                 >
-                  <div style={{ flex: 1, fontWeight: 500 }}>{o.label}</div>
+                  <div style={{ flex: 1, minWidth: 180, fontWeight: 500 }}>{o.label}</div>
                   <Link
                     href={obligationHref(o.kind)}
                     className="btn"
@@ -459,7 +462,7 @@ function CensusTickerCard({ total }: { total: number | null }) {
           fontFamily: "var(--mono)",
           fontSize: 26,
           fontWeight: 700,
-          color: "var(--gold)",
+          color: "var(--gold-d)",
         }}
       >
         {total != null ? total.toLocaleString("en-US").replace(/,/g, " ") : "—"}

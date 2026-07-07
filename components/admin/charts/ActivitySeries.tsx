@@ -61,7 +61,7 @@ export function ActivitySeries({
           const x = PAD_X + i * slot + (slot - barW) / 2;
           return (
             <g key={d.label}>
-              <rect x={x} y={H - PAD_B - h} width={barW} height={h} fill="var(--gold)" />
+              <rect x={x} y={H - PAD_B - h} width={barW} height={h} fill="var(--gold-d)" />
               {i % labelEvery === 0 && (
                 <text
                   x={PAD_X + i * slot + slot / 2}

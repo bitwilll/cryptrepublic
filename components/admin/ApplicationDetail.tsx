@@ -332,7 +332,7 @@ export function ApplicationDetail({ applicationId }: { applicationId: string }) 
         )}
         {app.resolvedMintTo === null ? (
           <div data-testid="approve-mint-disabled" style={{ marginTop: 12 }}>
-            <p style={{ margin: 0, fontSize: 13, color: "#b04141" }}>
+            <p style={{ margin: 0, fontSize: 13, color: "#8b3a3a" }}>
               This applicant has no verified wallet — adminMint needs a destination. The mint
               destination is always the server-resolved verified wallet, never a typed address.
             </p>
@@ -361,7 +361,7 @@ export function ApplicationDetail({ applicationId }: { applicationId: string }) 
             {mint.phase === "error" && (
               <p
                 data-testid="approve-mint-error"
-                style={{ color: "#b04141", fontSize: 13, margin: 0 }}
+                style={{ color: "#8b3a3a", fontSize: 13, margin: 0 }}
               >
                 {mint.message}
               </p>
@@ -449,7 +449,7 @@ export function ApplicationDetail({ applicationId }: { applicationId: string }) 
           rejected by the API.
         </p>
         {saveError && (
-          <p data-testid="review-error" style={{ color: "#b04141", fontSize: 13 }}>
+          <p data-testid="review-error" style={{ color: "#8b3a3a", fontSize: 13 }}>
             {saveError}
           </p>
         )}

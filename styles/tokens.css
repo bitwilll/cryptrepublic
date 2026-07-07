@@ -7,11 +7,12 @@
   --cyan: #00b3e6;
   --gold: #c8a96a;
   --gold-d: #9d8246;
+  --gold-ink: #806a38; /* gold at text strength: 5.20:1 on #fff, 4.85:1 on --paper */
   --paper: #f6f7f9;
   --card: #ffffff;
   --line: #e5eaef;
   --muted: #5a6a7d;
-  --success: #1f8a5b;
+  --success: #187a50; /* 5.33:1 on #fff, 4.97:1 on --paper — AA small text */
   /* Map font families to the next/font CSS variables from app/layout.tsx so that
      every rule below using var(--sans)/var(--serif)/var(--mono) resolves to the
      self-hosted faces. --serif is used by .hero h1 em, .pp-title, .sec-head h2 em,
@@ -131,6 +132,24 @@ h3 {
 /* Global keyboard focus ring (Wave 8 A2). Token-conformant: radius 0 (the
    retheme squares everything), --blue ring. .passport-book keeps its own
    focus-visible treatment (outline:none + transform, declared later). */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 200;
+  background: var(--blue);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 13px;
+  padding: 12px 20px;
+  text-decoration: none;
+}
+.skip-link:focus {
+  left: 0;
+}
+
 :focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 2px;
@@ -242,6 +261,7 @@ header.site {
   opacity: 0.85;
   transition: opacity 0.15s;
   white-space: nowrap;
+  padding: 13px 0;
 }
 .nav-links a:hover {
   opacity: 1;
@@ -258,7 +278,7 @@ header.site {
   background: none;
   border: 1px solid var(--line);
   border-radius: 10px;
-  padding: 9px;
+  padding: 11px;
   cursor: pointer;
 }
 .mobile-menu {
@@ -1112,6 +1132,7 @@ em {
 }
 .kicker::before {
   content: "▮ ";
+  content: "▮ " / "";
 }
 .btn {
   text-transform: uppercase;

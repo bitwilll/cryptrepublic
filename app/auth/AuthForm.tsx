@@ -325,10 +325,7 @@ export function AuthForm() {
                   disabled={busy}
                   style={{ width: "100%" }}
                 >
-                  <span
-                    className={styles.glyph}
-                    style={{ background: "#0a1929", color: "var(--ink)" }}
-                  >
+                  <span className={styles.glyph} style={{ background: "#0a1929" }}>
                     ⚿
                   </span>
                   <span>
@@ -357,10 +354,7 @@ export function AuthForm() {
                   disabled={busy}
                   style={{ width: "100%" }}
                 >
-                  <span
-                    className={styles.glyph}
-                    style={{ background: "#0a1929", color: "var(--ink)" }}
-                  >
+                  <span className={styles.glyph} style={{ background: "#0a1929" }}>
                     ⚿
                   </span>
                   <span>

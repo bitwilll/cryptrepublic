@@ -129,7 +129,7 @@ export function OfflineSignModal({ onClose }: { onClose: () => void }) {
         {phase.step === "scan" && (
           <div style={{ marginTop: 14 }} data-testid="offline-scan">
             {error && (
-              <p role="alert" style={{ color: "#b00020", marginBottom: 10 }}>
+              <p role="alert" style={{ color: "#8b3a3a", marginBottom: 10 }}>
                 {error}
               </p>
             )}
@@ -194,7 +194,7 @@ export function OfflineSignModal({ onClose }: { onClose: () => void }) {
               </div>
             </dl>
             {error && (
-              <p role="alert" style={{ color: "#b00020", marginTop: 10 }}>
+              <p role="alert" style={{ color: "#8b3a3a", marginTop: 10 }}>
                 {error}
               </p>
             )}

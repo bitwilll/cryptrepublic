@@ -32,7 +32,7 @@ function validatePrice(v: string): string | null {
     return "Enter a decimal amount with at most 2 decimal places, e.g. 128.00.";
   }
   if (Number(v) <= 0) return "Price must be greater than zero.";
-  if (Number(v) > 10_000_000) return "Price cannot exceed 10,000,000 CRPT.";
+  if (Number(v) > 10_000_000) return "Price cannot exceed 10,000,000 $CRYPT.";
   return null;
 }
 
@@ -99,7 +99,7 @@ export function NewListingForm() {
         </div>
         <div className={styles.receiptGrid}>
           <div>
-            <span className={styles.microLabel}>Listing serial</span>
+            <span className={styles.microLabel}>Registry reference</span>
             <div className={`${styles.receiptValue} ${styles.receiptSerial}`}>{filed.id}</div>
           </div>
           <div>
@@ -237,11 +237,11 @@ export function NewListingForm() {
             data-testid="price-input"
           />
           <span className={styles.priceSuffix} aria-hidden="true">
-            CRPT
+            $CRYPT
           </span>
         </div>
         <p id="listing-price-hint" className={styles.hint}>
-          Up to 10,000,000 CRPT, at most 2 decimal places. {SETTLEMENT_NOTICE}
+          Up to 10,000,000 $CRYPT, at most 2 decimal places. {SETTLEMENT_NOTICE}
         </p>
         <div id="listing-price-error" aria-live="polite">
           {touched.price && errors.price && <p className={styles.fieldError}>{errors.price}</p>}

@@ -123,7 +123,7 @@ export function PasskeysSurface(): React.ReactElement {
   return (
     <div data-testid="passkeys-surface">
       {error && (
-        <p role="alert" style={{ color: "#b00020", fontSize: 13 }}>
+        <p role="alert" style={{ color: "#8b3a3a", fontSize: 13 }}>
           {error}
         </p>
       )}

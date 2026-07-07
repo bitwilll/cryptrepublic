@@ -188,7 +188,7 @@ export function SendModal({
               </div>
             </dl>
             {error && (
-              <p role="alert" style={{ color: "#b00020", marginTop: 12 }}>
+              <p role="alert" style={{ color: "#8b3a3a", marginTop: 12 }}>
                 {error}
               </p>
             )}
@@ -251,7 +251,7 @@ export function SendModal({
               />
             </label>
             {to.length > 0 && !recipientValid && (
-              <p role="alert" style={{ color: "#b00020", fontSize: 12, marginTop: 4 }}>
+              <p role="alert" style={{ color: "#8b3a3a", fontSize: 12, marginTop: 4 }}>
                 Invalid recipient address.
               </p>
             )}
@@ -275,7 +275,7 @@ export function SendModal({
             </label>
 
             {error && (
-              <p role="alert" style={{ color: "#b00020", marginTop: 12 }}>
+              <p role="alert" style={{ color: "#8b3a3a", marginTop: 12 }}>
                 {error}
               </p>
             )}

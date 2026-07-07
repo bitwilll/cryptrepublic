@@ -35,7 +35,7 @@
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--gold-d);
+  color: var(--gold-ink);
   margin-bottom: 6px;
 }
 
@@ -237,4 +237,9 @@ textarea.input {
   font-size: 14px;
   line-height: 1.65;
   max-width: 620px;
+}
+
+.status:empty {
+  min-height: 0;
+  margin-block: -12px; /* collapses the empty live-region band to the intended single 24px gap */
 }

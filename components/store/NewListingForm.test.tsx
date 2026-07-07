@@ -94,7 +94,7 @@ describe("NewListingForm", () => {
       priceCoin: "128.00",
     });
     expect(screen.getByText("lst-new")).toBeTruthy();
-    expect(screen.getByText("₡ 128.00 CRPT")).toBeTruthy();
+    expect(screen.getByText("128.00 $CRYPT")).toBeTruthy();
     expect(
       screen
         .getByText(/View the listing/i)

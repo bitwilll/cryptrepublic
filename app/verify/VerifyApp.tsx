@@ -119,12 +119,14 @@ export function VerifyApp({ initialSerial }: { initialSerial?: string }): React.
             placeholder="CR-2026-XXXXXX"
             autoComplete="off"
             spellCheck={false}
+            aria-invalid={Boolean(formError)}
+            aria-describedby="verify-serial-error"
             data-testid="verify-serial"
           />
         </div>
         <button
           type="submit"
-          className={styles.verifyBtn}
+          className={`btn btn-primary ${styles.verifyBtn}`}
           disabled={state.status === "loading"}
           data-testid="verify-submit"
         >
@@ -132,11 +134,13 @@ export function VerifyApp({ initialSerial }: { initialSerial?: string }): React.
         </button>
       </form>
 
-      {formError && (
-        <p role="alert" className={styles.error}>
-          {formError}
-        </p>
-      )}
+      <div id="verify-serial-error" aria-live="polite">
+        {formError && (
+          <p role="alert" className={styles.error}>
+            {formError}
+          </p>
+        )}
+      </div>
 
       <p className={styles.status} aria-live="polite" data-testid="verify-status">
         {state.status === "loading" ? "Consulting the public registry…" : ""}

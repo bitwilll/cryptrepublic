@@ -68,6 +68,26 @@
    wide tables then scroll inside their own overflow-x wrappers. */
 .main :global(.wrap) {
   max-width: min(1180px, 100%);
+  /* Island roots set inline `padding: "32px 0"`, wiping .wrap's gutters —
+     content prints edge-to-edge on small screens. Restore the global 24/18px
+     gutters; !important is REQUIRED to beat the inline styles. Vertical
+     padding is deliberately left to the islands. */
+  padding-left: 24px !important;
+  padding-right: 24px !important;
+}
+
+@media (max-width: 640px) {
+  .main :global(.wrap) {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+}
+
+/* Witness / Mint / Insurance / BitWill wrap their islands in the marketing
+   `section.block` (padding clamp(64px,9vw,110px)). Inside the app shell,
+   normalize to the 32px dashboard rhythm every other page uses. */
+.main :global(section.block) {
+  padding: 32px 0;
 }
 
 .backdrop {

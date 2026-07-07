@@ -235,7 +235,7 @@ export function WalletApp() {
               }}
             />
             {createError && (
-              <p role="alert" style={{ color: "#b00020", marginTop: 12 }}>
+              <p role="alert" style={{ color: "#8b3a3a", marginTop: 12 }}>
                 {createError}
               </p>
             )}
@@ -275,7 +275,7 @@ export function WalletApp() {
                 width: "min(560px, 96vw)",
               }}
             >
-              <h2 style={{ marginTop: 0, color: "#b00020" }}>Write this down. Shown once.</h2>
+              <h2 style={{ marginTop: 0, color: "#8b3a3a" }}>Write this down. Shown once.</h2>
               <p style={{ color: "var(--muted)" }}>{HONEST_WARNING}</p>
               <pre
                 data-testid="mnemonic"
@@ -365,7 +365,7 @@ export function WalletApp() {
                 </button>
               </div>
               {createError && (
-                <p role="alert" style={{ color: "#b00020", marginTop: 12 }}>
+                <p role="alert" style={{ color: "#8b3a3a", marginTop: 12 }}>
                   {createError}
                 </p>
               )}

@@ -122,7 +122,7 @@ export function TxButton({
       )}
 
       {state === "error" && error && (
-        <p role="alert" style={{ marginTop: 8, fontSize: 12, color: "#b00020" }}>
+        <p role="alert" style={{ marginTop: 8, fontSize: 12, color: "#8b3a3a" }}>
           {error}
         </p>
       )}

@@ -71,9 +71,19 @@ export function StoreApp() {
             role="tab"
             id={`store-tab-${key}`}
             aria-selected={tab === key}
-            aria-controls={`store-panel-${key}`}
+            aria-controls={tab === key ? `store-panel-${key}` : undefined}
+            tabIndex={tab === key ? 0 : -1}
             className={`${styles.tab} ${tab === key ? styles.tabActive : ""}`}
             onClick={() => setTab(key)}
+            onKeyDown={(e) => {
+              const order = ["browse", "mine", "inquiries"] as const;
+              const dir = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+              if (!dir) return;
+              e.preventDefault();
+              const next = order[(order.indexOf(tab) + dir + order.length) % order.length];
+              setTab(next);
+              document.getElementById(`store-tab-${next}`)?.focus();
+            }}
             data-testid={`store-tab-${key}`}
           >
             {label}
@@ -195,7 +205,7 @@ function BrowsePanel() {
         </Link>
       </div>
 
-      <div aria-live="polite">
+      <div>
         {page.status === "loading" && <Skeletons lines={4} />}
         {page.status === "error" && (
           <ErrorBox>
@@ -206,7 +216,7 @@ function BrowsePanel() {
           </ErrorBox>
         )}
         {page.status === "ok" && listings.length === 0 && (
-          <div className={styles.emptyState} data-testid="store-empty">
+          <div className="empty-state" data-testid="store-empty">
             No listings under this seal yet.
           </div>
         )}
@@ -265,7 +275,7 @@ function MyListingsPanel() {
   }, [load]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }} aria-live="polite">
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {error && <ErrorBox>{error}</ErrorBox>}
       {state.status === "loading" && <Skeletons lines={4} />}
       {state.status === "error" && (
@@ -277,7 +287,7 @@ function MyListingsPanel() {
         </ErrorBox>
       )}
       {state.status === "ok" && state.data.length === 0 && (
-        <div className={styles.emptyState}>
+        <div className="empty-state">
           You have filed no listings yet.{" "}
           <Link href="/dashboard/store/new" style={{ color: "var(--blue)", fontWeight: 700 }}>
             File your first listing.
@@ -422,7 +432,7 @@ function MyInquiriesPanel() {
   }, [load]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }} aria-live="polite">
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {state.status === "loading" && <Skeletons lines={4} />}
       {state.status === "error" && (
         <ErrorBox>
@@ -433,7 +443,7 @@ function MyInquiriesPanel() {
         </ErrorBox>
       )}
       {state.status === "ok" && state.data.length === 0 && (
-        <div className={styles.emptyState}>You have not inquired on any listing yet.</div>
+        <div className="empty-state">You have not inquired on any listing yet.</div>
       )}
       {state.status === "ok" &&
         state.data.map((i) => (

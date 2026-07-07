@@ -105,7 +105,7 @@ export function ExternalWalletPanel() {
           </div>
         )}
         {connectError && (
-          <p role="alert" data-testid="connect-error" style={{ color: "#b00020", marginTop: 12 }}>
+          <p role="alert" data-testid="connect-error" style={{ color: "#8b3a3a", marginTop: 12 }}>
             {connectError}
           </p>
         )}
@@ -146,8 +146,8 @@ export function ExternalWalletPanel() {
           data-testid="wrong-chain"
           style={{
             padding: "12px 16px",
-            border: "1px solid #b00020",
-            color: "#b00020",
+            border: "1px solid #b04141",
+            color: "#8b3a3a",
             fontSize: 13,
           }}
         >
@@ -296,7 +296,7 @@ function ExternalSendForm({
                 : "Not confirmed."}
           </p>
           {error && (
-            <p role="alert" style={{ color: "#b00020", marginTop: 8 }}>
+            <p role="alert" style={{ color: "#8b3a3a", marginTop: 8 }}>
               {error}
             </p>
           )}
@@ -310,7 +310,7 @@ function ExternalSendForm({
             Amount {vm.amountDisplay} {vm.tokenSymbol} · est. fee {vm.feeDisplay} {vm.feeSymbol}
           </p>
           {error && (
-            <p role="alert" style={{ color: "#b00020", marginTop: 8 }}>
+            <p role="alert" style={{ color: "#8b3a3a", marginTop: 8 }}>
               {error}
             </p>
           )}
@@ -371,7 +371,7 @@ function ExternalSendForm({
             />
           </label>
           {to.length > 0 && !recipientValid && (
-            <p role="alert" style={{ color: "#b00020", fontSize: 12, marginTop: 4 }}>
+            <p role="alert" style={{ color: "#8b3a3a", fontSize: 12, marginTop: 4 }}>
               Invalid recipient address.
             </p>
           )}
@@ -393,12 +393,12 @@ function ExternalSendForm({
             />
           </label>
           {blocked && (
-            <p style={{ fontSize: 12, color: "#b00020", marginTop: 8 }}>
+            <p style={{ fontSize: 12, color: "#8b3a3a", marginTop: 8 }}>
               Sending is blocked until the wallet is on the right network.
             </p>
           )}
           {error && (
-            <p role="alert" style={{ color: "#b00020", marginTop: 8 }}>
+            <p role="alert" style={{ color: "#8b3a3a", marginTop: 8 }}>
               {error}
             </p>
           )}

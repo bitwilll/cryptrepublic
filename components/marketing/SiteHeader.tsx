@@ -10,6 +10,9 @@ export function SiteHeader() {
 
   return (
     <header className="site" data-screen-label="Navigation">
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
       <div className="wrap">
         <nav className="nav">
           <Link
@@ -64,6 +67,8 @@ export function SiteHeader() {
             className="burger"
             id="burger"
             aria-label="Open menu"
+            aria-expanded={menuOpen}
+            aria-controls="mobileMenu"
             onClick={() => setMenuOpen((o) => !o)}
           >
             <svg
@@ -73,13 +78,18 @@ export function SiteHeader() {
               stroke="#0f1f33"
               strokeWidth="2"
               fill="none"
+              aria-hidden="true"
             >
               <path d="M3 6h18M3 12h18M3 18h18" />
             </svg>
           </button>
         </nav>
       </div>
-      <div className={`mobile-menu${menuOpen ? " open" : ""}`} id="mobileMenu">
+      <nav
+        className={`mobile-menu${menuOpen ? " open" : ""}`}
+        id="mobileMenu"
+        aria-label="Site menu"
+      >
         <Link href="/#why" onClick={closeMenu}>
           Why CryptRepublic
         </Link>
@@ -104,7 +114,7 @@ export function SiteHeader() {
         <Link className="btn btn-primary" href="/dashboard" onClick={closeMenu}>
           Mint passport →
         </Link>
-      </div>
+      </nav>
     </header>
   );
 }

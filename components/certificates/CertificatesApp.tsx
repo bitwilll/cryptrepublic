@@ -323,7 +323,7 @@ export function CertificatesApp(): React.ReactElement {
 
           <button
             type="button"
-            className={styles.primaryBtn}
+            className={`btn btn-primary ${styles.primaryBtn}`}
             onClick={() => void issue()}
             disabled={busy || hashing}
             data-testid="cert-issue"
@@ -353,7 +353,7 @@ export function CertificatesApp(): React.ReactElement {
         )}
         {list.status === "ok" &&
           (list.certificates.length === 0 ? (
-            <p className={styles.empty}>No certificates issued yet.</p>
+            <p className="empty-state">No certificates issued yet.</p>
           ) : (
             <div className={styles.tableWrap}>
               <table className={styles.table}>

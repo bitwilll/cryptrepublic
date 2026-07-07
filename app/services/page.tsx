@@ -67,7 +67,7 @@ export default function ServicesPage() {
       <Crest tone="dark" className="page-watermark" alt="" />
       <GovStrip />
       <SiteHeader />
-      <main>
+      <main id="main-content">
         <div className={`wrap ${styles.page}`}>
           <Breadcrumb trail={[{ label: "Services" }]} />
           <h1 className={styles.pageTitle}>Citizen Services Directory</h1>

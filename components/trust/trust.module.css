@@ -6,14 +6,20 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding: 32px 0;
+  padding: 32px 24px;
   max-width: 860px;
+  /* This div also carries the global `.wrap` (margin: 0 auto) and is a direct
+     flex item of the shell's .main column: the auto margins center it, so the
+     page floats mid-column instead of anchoring left like every sibling
+     dashboard screen. Kill the auto margins and the stretch. */
+  margin: 0;
+  align-self: flex-start;
 }
 
 .card {
   background: var(--card);
   border: 1px solid var(--line);
-  padding: 28px 32px;
+  padding: 24px 28px;
 }
 
 .microLabel {
@@ -95,7 +101,7 @@
 }
 
 .gateHeld {
-  color: var(--gold-d);
+  color: var(--gold-ink);
 }
 
 /* Factor ledger */
@@ -185,6 +191,7 @@
 
 .guidance li::before {
   content: "▮";
+  content: "▮" / "";
   color: var(--gold);
   flex: none;
 }

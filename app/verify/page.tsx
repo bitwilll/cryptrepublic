@@ -3,6 +3,7 @@ import { Crest } from "@/components/brand/Crest";
 import { GovStrip } from "@/components/marketing/GovStrip";
 import { SiteHeader } from "@/components/marketing/SiteHeader";
 import { SiteFooter } from "@/components/marketing/SiteFooter";
+import { Breadcrumb } from "@/components/registry/Breadcrumb";
 import { VerifyApp } from "./VerifyApp";
 import styles from "./verify.module.css";
 
@@ -29,10 +30,10 @@ export default async function VerifyPage({
       <Crest tone="dark" className="page-watermark" alt="" />
       <GovStrip />
       <SiteHeader />
-      <main>
+      <main id="main-content">
         <section className={`block ${styles.section}`}>
           <div className="wrap">
-            <div className="kicker">PUBLIC REGISTRY</div>
+            <Breadcrumb trail={[{ label: "Verify" }]} />
             <h1 className={styles.pageTitle}>Verify a certificate</h1>
             <p className={styles.lede}>
               Every certificate issued by a citizen carries a public serial. Enter one to check its

@@ -222,7 +222,7 @@ export function AirgappedSendModal({
               />
             </label>
             {to.length > 0 && !recipientValid && (
-              <p role="alert" style={{ color: "#b00020", fontSize: 12, marginTop: 4 }}>
+              <p role="alert" style={{ color: "#8b3a3a", fontSize: 12, marginTop: 4 }}>
                 Invalid recipient address.
               </p>
             )}
@@ -244,7 +244,7 @@ export function AirgappedSendModal({
               />
             </label>
             {error && (
-              <p role="alert" style={{ color: "#b00020", marginTop: 10 }}>
+              <p role="alert" style={{ color: "#8b3a3a", marginTop: 10 }}>
                 {error}
               </p>
             )}
@@ -267,7 +267,7 @@ export function AirgappedSendModal({
 
         {phase.step === "toolarge" && (
           <div style={{ marginTop: 14 }} data-testid="ag-toolarge">
-            <p role="alert" style={{ color: "#b00020" }}>
+            <p role="alert" style={{ color: "#8b3a3a" }}>
               {phase.message}
             </p>
             <p style={{ color: "var(--muted)", fontSize: 12 }}>
@@ -357,7 +357,7 @@ export function AirgappedSendModal({
         {phase.step === "scan" && (
           <div style={{ marginTop: 14 }} data-testid="ag-scan">
             {error && (
-              <p role="alert" style={{ color: "#b00020", marginBottom: 10 }}>
+              <p role="alert" style={{ color: "#8b3a3a", marginBottom: 10 }}>
                 {error}
               </p>
             )}

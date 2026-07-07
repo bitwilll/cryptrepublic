@@ -136,7 +136,7 @@ export function AdminOverviewApp() {
             }}
           >
             <TileLink href="/admin/users" label="View all users" testid="overview-users">
-              <h3 style={{ margin: 0, fontSize: 20 }}>Users</h3>
+              <h2 style={{ margin: 0, fontSize: 20 }}>Users</h2>
               <div style={{ marginTop: 14, display: "flex", gap: 28, flexWrap: "wrap" }}>
                 <Tile value={state.data.users.total} label="Total" />
                 <Tile value={state.data.users.suspended} label="Suspended" />
@@ -148,7 +148,7 @@ export function AdminOverviewApp() {
               label="Review citizenship applications"
               testid="overview-applications"
             >
-              <h3 style={{ margin: 0, fontSize: 20 }}>Applications</h3>
+              <h2 style={{ margin: 0, fontSize: 20 }}>Applications</h2>
               <div style={{ marginTop: 14, display: "flex", gap: 24, flexWrap: "wrap" }}>
                 {Object.entries(state.data.applications).map(([status, count]) => (
                   <Tile key={status} value={count} label={status} />
@@ -156,7 +156,7 @@ export function AdminOverviewApp() {
               </div>
             </TileLink>
             <TileLink href="/admin/content" label="Manage content" testid="overview-content">
-              <h3 style={{ margin: 0, fontSize: 20 }}>Content</h3>
+              <h2 style={{ margin: 0, fontSize: 20 }}>Content</h2>
               <div style={{ marginTop: 14, display: "flex", gap: 24, flexWrap: "wrap" }}>
                 {Object.entries(state.data.content).map(([key, count]) => (
                   <Tile key={key} value={count} label={CONTENT_LABELS[key] ?? key} />
@@ -164,7 +164,7 @@ export function AdminOverviewApp() {
               </div>
             </TileLink>
             <TileLink href="/admin/flags" label="Manage feature flags" testid="overview-flags">
-              <h3 style={{ margin: 0, fontSize: 20 }}>Feature flags</h3>
+              <h2 style={{ margin: 0, fontSize: 20 }}>Feature flags</h2>
               <div style={{ marginTop: 14 }}>
                 <Tile
                   value={state.data.flags}
@@ -179,7 +179,7 @@ export function AdminOverviewApp() {
             style={{ padding: "24px 28px" }}
             data-testid="overview-glance-card"
           >
-            <h3 style={{ margin: 0, fontSize: 20 }}>Republic at a glance</h3>
+            <h2 style={{ margin: 0, fontSize: 20 }}>Republic at a glance</h2>
             <p style={{ color: "var(--muted)", marginTop: 4, fontSize: 12 }}>
               Database counts are live; the citizens count is chain-derived (shown as — when the
               chain is unavailable); census geography is a seeded demonstration, not live data.
@@ -244,7 +244,7 @@ export function AdminOverviewApp() {
           </article>
 
           <article className="pillar" style={{ padding: "24px 28px" }}>
-            <h3 style={{ margin: 0, fontSize: 20 }}>Recent administrative actions</h3>
+            <h2 style={{ margin: 0, fontSize: 20 }}>Recent administrative actions</h2>
             <p style={{ color: "var(--muted)", marginTop: 4, fontSize: 12 }}>
               The last 10 audit rows. Every admin mutation writes its row in the same database
               transaction.

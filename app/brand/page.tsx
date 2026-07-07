@@ -28,7 +28,7 @@ const PALETTE: readonly { name: string; token: string; hex: string; dark?: boole
   { name: "Card", token: "--card", hex: "#ffffff" },
   { name: "Line", token: "--line", hex: "#e5eaef" },
   { name: "Muted", token: "--muted", hex: "#5a6a7d", dark: true },
-  { name: "Success", token: "--success", hex: "#1f8a5b", dark: true },
+  { name: "Success", token: "--success", hex: "#187a50", dark: true },
 ];
 
 /**
@@ -48,7 +48,7 @@ export default function BrandPage() {
       <Crest tone="dark" className="page-watermark" alt="" />
       <GovStrip />
       <SiteHeader />
-      <main>
+      <main id="main-content">
         <div className={`wrap ${styles.page}`}>
           <Breadcrumb trail={[{ label: "Brand & Commissary" }]} />
           <h1 className={styles.pageTitle}>State Brand & Commissary</h1>

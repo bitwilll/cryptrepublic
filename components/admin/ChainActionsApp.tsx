@@ -898,7 +898,7 @@ function Composer({
                   margin: 0,
                   padding: "10px 14px",
                   border: "2px solid #b04141",
-                  color: "#b04141",
+                  color: "#8b3a3a",
                   fontSize: 12,
                   fontWeight: 700,
                 }}
@@ -920,7 +920,7 @@ function Composer({
                 {selfFillError && (
                   <p
                     data-testid="admin-mint-self-fill-error"
-                    style={{ color: "#b04141", fontSize: 12, margin: "6px 0 0" }}
+                    style={{ color: "#8b3a3a", fontSize: 12, margin: "6px 0 0" }}
                   >
                     {selfFillError}
                   </p>
@@ -997,7 +997,7 @@ function Composer({
           )}
 
           {error && (
-            <p data-testid="composer-error" style={{ color: "#b04141", fontSize: 13, margin: 0 }}>
+            <p data-testid="composer-error" style={{ color: "#8b3a3a", fontSize: 13, margin: 0 }}>
               {error}
             </p>
           )}

@@ -152,7 +152,7 @@ export function UserDetail({ userId, selfUserId }: { userId: string; selfUserId:
         </dl>
 
         {actionError && (
-          <p data-testid="user-action-error" style={{ color: "#b04141", fontSize: 13 }}>
+          <p data-testid="user-action-error" style={{ color: "#8b3a3a", fontSize: 13 }}>
             {actionError}
           </p>
         )}

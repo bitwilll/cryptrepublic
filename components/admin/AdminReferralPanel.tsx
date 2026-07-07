@@ -94,7 +94,7 @@ export function AdminReferralPanel({ userId }: { userId: string }) {
             <p
               role="alert"
               data-testid="admin-referral-action-error"
-              style={{ color: "#b04141", fontSize: 13, marginTop: 12 }}
+              style={{ color: "#8b3a3a", fontSize: 13, marginTop: 12 }}
             >
               {error}
             </p>

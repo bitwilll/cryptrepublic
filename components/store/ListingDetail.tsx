@@ -73,7 +73,7 @@ export function ListingDetail({ id }: { id: string }) {
           ← Citizen store
         </Link>
       </div>
-      <div aria-live="polite">
+      <div>
         {state.status === "loading" && <Skeletons lines={6} />}
         {state.status === "error" && (
           <ErrorBox>
@@ -84,7 +84,7 @@ export function ListingDetail({ id }: { id: string }) {
           </ErrorBox>
         )}
         {state.status === "notfound" && (
-          <div className={styles.emptyState} data-testid="listing-notfound">
+          <div className="empty-state" data-testid="listing-notfound">
             This listing is not on the Registry.
           </div>
         )}

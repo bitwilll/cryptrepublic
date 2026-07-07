@@ -49,7 +49,7 @@ export default async function DocumentPage({ params }: { params: Promise<{ slug:
       <Crest tone="dark" className="page-watermark" alt="" />
       <GovStrip />
       <SiteHeader />
-      <main>
+      <main id="main-content">
         <div className={`wrap ${styles.page}`}>
           <Breadcrumb trail={[{ label: "Documents", href: "/documents" }, { label: doc.title }]} />
           <header className={styles.docHeader}>

@@ -142,7 +142,7 @@ export function QrLoginPanel() {
       )}
 
       {phase === "approved" && (
-        <p style={{ color: "var(--gold, #c8a96a)", fontSize: 13 }}>Approved ✓ — signing you in…</p>
+        <p style={{ color: "var(--success)", fontSize: 13 }}>Approved ✓ — signing you in…</p>
       )}
 
       {(phase === "expired" || phase === "error") && (

@@ -155,7 +155,7 @@ export function ReferralCards({ full = false }: { full?: boolean }) {
               <p style={{ color: "var(--muted)", fontSize: 12, marginTop: 6 }}>{d.createReason}</p>
             )}
             {error && (
-              <p role="alert" style={{ color: "#b00020", fontSize: 12, marginTop: 6 }}>
+              <p role="alert" style={{ color: "#8b3a3a", fontSize: 12, marginTop: 6 }}>
                 {error}
               </p>
             )}

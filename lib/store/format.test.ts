@@ -4,11 +4,11 @@ import { nextListingStatus } from "./transitions";
 
 describe("formatCoin", () => {
   it("pads to 2 dp and groups thousands in the official mono format", () => {
-    expect(formatCoin("128.00")).toBe("₡ 128.00 CRPT");
-    expect(formatCoin("128")).toBe("₡ 128.00 CRPT");
-    expect(formatCoin("9.5")).toBe("₡ 9.50 CRPT");
-    expect(formatCoin("0.01")).toBe("₡ 0.01 CRPT");
-    expect(formatCoin("10000000")).toBe("₡ 10,000,000.00 CRPT");
+    expect(formatCoin("128.00")).toBe("128.00 $CRYPT");
+    expect(formatCoin("128")).toBe("128.00 $CRYPT");
+    expect(formatCoin("9.5")).toBe("9.50 $CRYPT");
+    expect(formatCoin("0.01")).toBe("0.01 $CRYPT");
+    expect(formatCoin("10000000")).toBe("10 000 000.00 $CRYPT");
   });
 });
 

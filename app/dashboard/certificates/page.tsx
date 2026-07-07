@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { CertificatesApp } from "@/components/certificates/CertificatesApp";
 import styles from "@/components/certificates/certificates.module.css";
 
@@ -22,8 +23,11 @@ export default function CertificatesPage() {
         <h2 style={{ fontSize: 32, marginTop: 10 }}>Certificates</h2>
         <p style={{ color: "var(--muted)", marginTop: 8, maxWidth: 560 }}>
           Attest and certify statements under your own seal. Your wallet signs locally; the Republic
-          records only the public certificate — anyone can verify it at /verify, no account
-          required.
+          records only the public certificate — anyone can{" "}
+          <Link href="/verify" style={{ color: "var(--blue)" }}>
+            verify it on the public register
+          </Link>
+          , no account required.
         </p>
       </div>
       <CertificatesApp />

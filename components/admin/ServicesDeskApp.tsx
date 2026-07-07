@@ -175,7 +175,7 @@ export function ServicesDeskApp() {
 
       {/* ── Panel 1: insurance queue ─────────────────────────────────── */}
       <article className={styles.panel} data-testid="panel-insurance">
-        <h3 className={styles.panelTitle}>Insurance queue</h3>
+        <h2 className={styles.panelTitle}>Insurance queue</h2>
         <p className={styles.panelNote}>
           Applications to the mutual-cover programme. A decline requires a review note; every
           decision is audit-logged. Registry state only — approval moves no funds.
@@ -302,7 +302,7 @@ export function ServicesDeskApp() {
 
       {/* ── Panel 2: store moderation ────────────────────────────────── */}
       <article className={styles.panel} data-testid="panel-store">
-        <h3 className={styles.panelTitle}>Store moderation</h3>
+        <h2 className={styles.panelTitle}>Store moderation</h2>
         <p className={styles.panelNote}>
           Citizen-store listings across all statuses. Removal is moderation, not deletion — the
           listing row survives and the reason is recorded in the audit trail.
@@ -350,7 +350,7 @@ export function ServicesDeskApp() {
               { key: "category", label: "Category" },
               {
                 key: "priceCoin",
-                label: "Price (CRPT)",
+                label: "Price ($CRYPT)",
                 align: "right",
                 render: (l) => <span className={styles.mono}>{l.priceCoin}</span>,
               },
@@ -388,7 +388,7 @@ export function ServicesDeskApp() {
 
       {/* ── Panel 3: programme statistics ────────────────────────────── */}
       <article className={styles.panel} data-testid="panel-stats">
-        <h3 className={styles.panelTitle}>Programme statistics</h3>
+        <h2 className={styles.panelTitle}>Programme statistics</h2>
         <p className={styles.panelNote}>
           Aggregate registry counts across the citizen-services programmes.
         </p>

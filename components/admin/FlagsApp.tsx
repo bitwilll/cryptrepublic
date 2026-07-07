@@ -98,7 +98,7 @@ export function FlagsApp() {
           row restores the declared default.
         </p>
         {mutError && (
-          <p data-testid="flag-mutation-error" style={{ color: "#b04141", fontSize: 13 }}>
+          <p data-testid="flag-mutation-error" style={{ color: "#8b3a3a", fontSize: 13 }}>
             {mutError}
           </p>
         )}

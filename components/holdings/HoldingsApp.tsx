@@ -391,7 +391,7 @@ function DividendClaimPanel({
                 marginTop: 8,
                 fontSize: 40,
                 fontWeight: 800,
-                color: "var(--gold)",
+                color: "var(--gold-d)",
                 fontFamily: "var(--mono)",
               }}
             >

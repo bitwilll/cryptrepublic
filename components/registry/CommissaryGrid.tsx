@@ -137,6 +137,7 @@ export function CommissaryGrid({ groups }: Props): React.ReactElement {
                     onClick={() => toggle(item.id)}
                     disabled={busy === item.id}
                     aria-pressed={registered}
+                    aria-label={`${registered ? "Withdraw interest" : "Register interest"} — ${item.title}`}
                   >
                     {busy === item.id
                       ? "Filing…"

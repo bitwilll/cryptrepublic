@@ -15,7 +15,7 @@ export const priceCoinSchema = z
   .string()
   .regex(PRICE_COIN_REGEX, "Price must be a decimal number with at most 2 decimal places.")
   .refine((s) => Number(s) > 0, "Price must be greater than zero.")
-  .refine((s) => Number(s) <= 10_000_000, "Price cannot exceed 10,000,000 CRPT.");
+  .refine((s) => Number(s) <= 10_000_000, "Price cannot exceed 10,000,000 $CRYPT.");
 
 export const listingCreateSchema = z
   .object({

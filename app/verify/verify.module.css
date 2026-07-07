@@ -6,7 +6,7 @@
 }
 
 .pageTitle {
-  margin-top: 10px;
+  margin-top: 14px;
   font-size: clamp(28px, 4.4vw, 48px);
 }
 
@@ -58,21 +58,13 @@
   border-color: var(--gold);
 }
 
+/* layout + disabled only — visual style comes from the global .btn.btn-primary */
 .verifyBtn {
   min-height: 44px;
-  padding: 12px 28px;
-  border: none;
-  background: var(--blue);
-  color: #fff;
-  font-family: var(--mono);
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
 }
 
-.verifyBtn:disabled {
+.verifyBtn:disabled,
+.verifyBtn:disabled:hover {
   background: var(--muted);
   cursor: not-allowed;
 }
