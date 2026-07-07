@@ -221,7 +221,7 @@ export function WalletChainApp() {
     return (
       <div className="wrap" style={{ padding: "32px 0", maxWidth: 720 }}>
         <div className="kicker">SOVEREIGN WALLET</div>
-        <h1 style={{ marginTop: 12 }}>Choose your wallet mode</h1>
+        <h2 style={{ fontSize: 32, marginTop: 12 }}>Choose your wallet mode</h2>
         <p style={{ color: "var(--muted)", marginTop: 12 }}>
           Every mode is non-custodial: CryptRepublic never holds keys and never signs.
         </p>
@@ -234,7 +234,7 @@ export function WalletChainApp() {
     return (
       <div className="wrap" style={{ padding: "32px 0", maxWidth: 720 }}>
         <div className="kicker">SOVEREIGN WALLET</div>
-        <h1 style={{ marginTop: 12 }}>Hardware / external wallet</h1>
+        <h2 style={{ fontSize: 32, marginTop: 12 }}>Hardware / external wallet</h2>
         <div data-testid="hardware-panel">
           <ExternalWalletPanel />
         </div>
@@ -250,7 +250,7 @@ export function WalletChainApp() {
       return (
         <div className="wrap" style={{ padding: "32px 0", maxWidth: 720 }}>
           <div className="kicker">SOVEREIGN WALLET</div>
-          <h1 style={{ marginTop: 12 }}>Watch-only wallet</h1>
+          <h2 style={{ fontSize: 32, marginTop: 12 }}>Watch-only wallet</h2>
           <div data-testid="watchonly-panel">
             <WatchOnlySetup onConfigured={(a) => setWatchAddress(a)} />
           </div>
@@ -330,7 +330,7 @@ export function WalletChainApp() {
     return (
       <div className="wrap" style={{ padding: "32px 0" }}>
         <div className="kicker">SOVEREIGN WALLET</div>
-        <h1 style={{ marginTop: 12 }}>No wallet yet</h1>
+        <h2 style={{ fontSize: 32, marginTop: 12 }}>No wallet yet</h2>
         <p style={{ color: "var(--muted)", marginTop: 12 }}>
           Create or import your embedded wallet first, then return here to manage tokens, staking,
           and chain activity.

@@ -202,7 +202,7 @@ export function InsuranceApp() {
   return (
     <div className={styles.app} data-testid="insurance-app">
       <div>
-        <h1>Citizen insurance</h1>
+        <h2 style={{ fontSize: 32 }}>Citizen insurance</h2>
         <p className={styles.lede}>
           Apply for asset and health cover under the Republic&apos;s registry. Applications are
           reviewed by the Insurance Office and recorded with their outcome.

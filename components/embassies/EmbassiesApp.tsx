@@ -87,7 +87,7 @@ export function EmbassiesApp() {
           }}
         >
           <div>
-            <h1 style={{ margin: 0, fontSize: 34 }}>Where the Republic gathers in flesh.</h1>
+            <h2 style={{ margin: 0, fontSize: 34 }}>Where the Republic gathers in flesh.</h2>
             <p style={{ color: "var(--muted)", marginTop: 8 }}>
               The directory of embassies. Per-embassy citizen counts are live and self-declared.
             </p>

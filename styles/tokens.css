@@ -985,6 +985,11 @@ footer.site {
   .quotes {
     grid-template-columns: 1fr 1fr;
   }
+  /* 3-card grids: the odd last card spans the row instead of orphaning */
+  .cards3 > :last-child:nth-child(odd),
+  .quotes > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
   .hold-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -1003,6 +1008,18 @@ footer.site {
     grid-template-columns: 1fr;
   }
 }
+/* Footer 641-1020px: four tracks squeeze links into ~118px - three link
+   columns + full-width about; the <=640 two-column rule is untouched. */
+@media (max-width: 1020px) and (min-width: 641px) {
+  .foot {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 40px 32px;
+  }
+  .foot .about {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 640px) {
   .cards3,
   .quotes,

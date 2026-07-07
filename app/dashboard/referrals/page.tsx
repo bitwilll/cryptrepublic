@@ -25,7 +25,7 @@ export default function ReferralsPage() {
     >
       <div>
         <div className="kicker">SOCIAL STANDING</div>
-        <h1 style={{ marginTop: 10 }}>Referrals &amp; trust</h1>
+        <h2 style={{ fontSize: 32, marginTop: 10 }}>Referrals &amp; trust</h2>
         <p style={{ color: "var(--muted)", marginTop: 8, maxWidth: 560 }}>
           You can only witness (attest) for citizens you referred, and every new citizen needs
           enough distinct referrers to seal their passport. Refer members below.

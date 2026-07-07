@@ -115,7 +115,9 @@ export default function PassportView(): React.ReactElement {
     if (provisional) {
       return (
         <div style={{ marginTop: 16 }} data-testid="passport-provisional">
-          <h1 style={{ marginTop: 8 }}>Your passport — {provisional.label.toLowerCase()}</h1>
+          <h2 style={{ fontSize: 32, marginTop: 8 }}>
+            Your passport — {provisional.label.toLowerCase()}
+          </h2>
           <div
             data-testid="passport-provisional-status"
             role="status"
@@ -177,7 +179,7 @@ export default function PassportView(): React.ReactElement {
 
     return (
       <div style={{ marginTop: 16, maxWidth: 560 }}>
-        <h1 style={{ marginTop: 8 }}>You are not yet a citizen.</h1>
+        <h2 style={{ fontSize: 32, marginTop: 8 }}>You are not yet a citizen.</h2>
         <p style={{ color: "var(--muted)", marginTop: 12 }}>
           {state === "no-wallet"
             ? "Connect or unlock a wallet, then mint your passport to join the Republic."
@@ -199,7 +201,7 @@ export default function PassportView(): React.ReactElement {
   // so never reverse it to a display name; show motto/domicile (decodable) instead.
   return (
     <div style={{ marginTop: 16 }}>
-      <h1 style={{ marginTop: 8 }}>Your Passport</h1>
+      <h2 style={{ fontSize: 32, marginTop: 8 }}>Your Passport</h2>
       <p style={{ color: "var(--muted)", marginTop: 8 }}>
         Citizen №{tokenId}
         {total !== null ? ` · one of ${total.toString()}` : ""} · non-transferable (soulbound).

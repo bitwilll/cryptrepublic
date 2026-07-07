@@ -3,9 +3,7 @@ export function EmbassiesStrip() {
     <section className="block" id="embassies" data-screen-label="Embassies">
       <div className="wrap">
         <div className="sec-head reveal">
-          <div className="kicker" style={{ fontSize: "16px" }}>
-            Embassies
-          </div>
+          <div className="kicker">Embassies</div>
           <h2>
             27 cities. 22 countries. <em>One Republic.</em>
           </h2>

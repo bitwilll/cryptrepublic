@@ -151,6 +151,26 @@ export function AuditViewer() {
         )}
         {state.status === "ok" && state.data.rows.length > 0 && (
           <div style={{ marginTop: 16, display: "flex", flexDirection: "column" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "180px 1fr 1fr 1fr",
+                gap: 12,
+                padding: "10px 4px",
+                borderBottom: "2px solid var(--ink)",
+                fontFamily: "var(--mono)",
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
+                color: "var(--muted)",
+              }}
+            >
+              <span>When</span>
+              <span>Action</span>
+              <span>Actor</span>
+              <span>Target</span>
+            </div>
             {state.data.rows.map((row) => (
               <div
                 key={row.id}

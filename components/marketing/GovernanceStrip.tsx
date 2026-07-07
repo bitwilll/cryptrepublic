@@ -3,16 +3,14 @@ export function GovernanceStrip() {
     <section className="block gov" id="governance" data-screen-label="Governance">
       <div className="wrap">
         <div className="sec-head reveal">
-          <div className="kicker" style={{ fontSize: "17px" }}>
-            Governance · live
-          </div>
+          <div className="kicker">Governance · live</div>
           <h2>
             The parliament <em>never adjourns.</em>
           </h2>
         </div>
         <div className="vote-card reveal">
           <div>
-            <div className="kicker" style={{ color: "var(--gold-d)", fontSize: "14px" }}>
+            <div className="kicker" style={{ color: "var(--gold-d)" }}>
               AMENDMENT §47 · CLOSES IN 18H
             </div>
             <h3 style={{ marginTop: "10px" }}>

@@ -86,7 +86,7 @@ export function GovernanceApp() {
   return (
     <div className="wrap" style={{ padding: "32px 0" }}>
       <div className="kicker">CONSTITUTION &amp; VOTES</div>
-      <h1 style={{ marginTop: 12, marginBottom: 20 }}>Amendments in session</h1>
+      <h2 style={{ fontSize: 32, marginTop: 12, marginBottom: 20 }}>Amendments in session</h2>
 
       {proposals.status === "loading" && <Skeleton lines={5} />}
       {proposals.status === "error" && (

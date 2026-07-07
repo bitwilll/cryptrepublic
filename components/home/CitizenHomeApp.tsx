@@ -151,9 +151,9 @@ function Salutation({
       >
         SALUTATION · {chainName} · BLOCK {blockLabel}
       </div>
-      <h1 style={{ marginTop: 10, fontSize: 34 }}>
+      <h2 style={{ marginTop: 10, fontSize: 34 }}>
         {isCitizen ? "Welcome back, Citizen." : "Welcome, applicant."}
-      </h1>
+      </h2>
       <p style={{ color: "var(--muted)", marginTop: 12, maxWidth: 560, lineHeight: 1.55 }}>
         {isCitizen
           ? "Your standing in the Republic is active. Your outstanding obligations are below."

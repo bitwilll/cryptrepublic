@@ -105,9 +105,9 @@ function Detail({ payload, onChanged }: { payload: DetailPayload; onChanged: () 
             <ListingStatusPill status={listing.status} />
             <span className={styles.metaText}>Posted {formatDate(listing.createdAt)}</span>
           </div>
-          <h1 style={{ marginTop: 14 }} data-testid="listing-title">
+          <h2 style={{ fontSize: 32, marginTop: 14 }} data-testid="listing-title">
             {listing.title}
-          </h1>
+          </h2>
           <p className={styles.description} data-testid="listing-description">
             {listing.description}
           </p>

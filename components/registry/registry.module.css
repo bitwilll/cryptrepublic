@@ -5,7 +5,8 @@
 
 /* ── page scaffolding ─────────────────────────────────────────────────── */
 .page {
-  padding: clamp(40px, 6vw, 72px) 0 clamp(56px, 8vw, 96px);
+  padding-top: clamp(40px, 6vw, 72px);
+  padding-bottom: clamp(56px, 8vw, 96px);
 }
 .crumb {
   font-family: var(--mono);
@@ -237,7 +238,7 @@
   flex-wrap: wrap;
 }
 .kindHead h2 {
-  font-size: clamp(18px, 2.4vw, 24px);
+  font-size: clamp(20px, 2.6vw, 28px);
 }
 .docList {
   margin-top: 0;
@@ -590,7 +591,7 @@
   padding-bottom: 10px;
 }
 .themeHead h2 {
-  font-size: clamp(18px, 2.4vw, 24px);
+  font-size: clamp(20px, 2.6vw, 28px);
 }
 .articleGrid {
   margin-top: 18px;
@@ -690,7 +691,7 @@
 }
 .standfirst {
   margin: 14px 0 0;
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.6;
   color: var(--muted);
   max-width: 62ch;
@@ -893,7 +894,7 @@
   list-style: none;
   border: 1px solid var(--line);
   background: var(--card);
-  max-width: 880px;
+  max-width: 760px;
 }
 .rules li {
   padding: 14px 18px;

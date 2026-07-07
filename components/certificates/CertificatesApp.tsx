@@ -221,7 +221,7 @@ export function CertificatesApp(): React.ReactElement {
 
       {!issued && (
         <section className={styles.card} data-testid="certificate-form">
-          <div className={styles.microLabel}>Issue a certificate · signed by your wallet</div>
+          <h2 className={styles.microLabel}>Issue a certificate · signed by your wallet</h2>
 
           <div className={styles.modes} role="group" aria-label="Certificate kind">
             <button
@@ -334,7 +334,7 @@ export function CertificatesApp(): React.ReactElement {
       )}
 
       <section className={styles.card} data-testid="certificate-list">
-        <div className={styles.microLabel}>Your certificates · public registry</div>
+        <h2 className={styles.microLabel}>Your certificates · public registry</h2>
         {list.status === "loading" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 14 }}>
             <div className={styles.skeleton} />

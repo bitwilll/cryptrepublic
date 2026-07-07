@@ -5,9 +5,7 @@ export function HoldingsStrip() {
     <section className="block holdings" id="holdings" data-screen-label="Sovereign holdings">
       <div className="wrap">
         <div className="sec-head reveal">
-          <div className="kicker" style={{ fontSize: "17px" }}>
-            Sovereign holdings
-          </div>
+          <div className="kicker">Sovereign holdings</div>
           <h2>
             Owned by the Republic. <em>Paid to the people.</em>
           </h2>

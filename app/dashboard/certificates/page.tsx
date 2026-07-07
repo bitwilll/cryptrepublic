@@ -19,7 +19,7 @@ export default function CertificatesPage() {
     <div className={`wrap ${styles.stack}`}>
       <div>
         <div className="kicker">SIGNING MESSAGE &amp; CERTIFICATE</div>
-        <h1 style={{ marginTop: 10 }}>Certificates</h1>
+        <h2 style={{ fontSize: 32, marginTop: 10 }}>Certificates</h2>
         <p style={{ color: "var(--muted)", marginTop: 8, maxWidth: 560 }}>
           Attest and certify statements under your own seal. Your wallet signs locally; the Republic
           records only the public certificate — anyone can verify it at /verify, no account

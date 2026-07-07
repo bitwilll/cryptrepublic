@@ -157,6 +157,7 @@ const TITLES: Record<string, string> = {
   "/admin/content": "Content",
   "/admin/flags": "Feature flags",
   "/admin/chain": "Chain actions",
+  "/admin/services": "Services desk",
   "/admin/audit": "Audit log",
 };
 
@@ -215,7 +216,7 @@ function AdminTopbar({ onMenu }: { onMenu: () => void }) {
           <h1
             style={{
               margin: 0,
-              fontSize: 26,
+              fontSize: "clamp(19px, 5vw, 26px)",
               fontWeight: 800,
               letterSpacing: "-0.02em",
               color: "var(--ink)",

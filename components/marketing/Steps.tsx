@@ -3,9 +3,7 @@ export function Steps() {
     <section className="block gov" id="how" data-screen-label="How it works">
       <div className="wrap">
         <div className="sec-head reveal">
-          <div className="kicker" style={{ fontSize: "17px" }}>
-            How it works
-          </div>
+          <div className="kicker">How it works</div>
           <h2>
             Three steps to <em>citizenship.</em>
           </h2>

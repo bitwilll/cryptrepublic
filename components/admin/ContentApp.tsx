@@ -454,7 +454,13 @@ function AssetsTab() {
         { key: "ref", label: "Ref" },
         { key: "name", label: "Name" },
         { key: "location", label: "Location" },
-        { key: "valueUsd", label: "Value USD", align: "right" },
+        {
+          key: "valueUsd",
+          label: "Value USD",
+          align: "right",
+          render: (r: AssetRow) =>
+            r.valueUsd === "" ? "\u2014" : Number(r.valueUsd).toLocaleString("en-US"),
+        },
         { key: "status", label: "Status" },
       ]}
       fields={[

@@ -33,7 +33,7 @@ export default async function VerifyPage({
         <section className={`block ${styles.section}`}>
           <div className="wrap">
             <div className="kicker">PUBLIC REGISTRY</div>
-            <h1 style={{ marginTop: 10 }}>Verify a certificate</h1>
+            <h1 className={styles.pageTitle}>Verify a certificate</h1>
             <p className={styles.lede}>
               Every certificate issued by a citizen carries a public serial. Enter one to check its
               signature, content fingerprint, and standing — no account required, nothing to

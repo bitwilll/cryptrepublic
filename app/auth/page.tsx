@@ -37,7 +37,7 @@ export default function AuthPage() {
           </h1>
           <p className={styles.sub}>
             Authenticate with your sovereign wallet — the key that is also your passport — or with
-            the e-mail bound to your citizen record.
+            the <span style={{ whiteSpace: "nowrap" }}>e-mail</span> bound to your citizen record.
           </p>
 
           <div className={styles.paneStats}>

@@ -103,7 +103,7 @@ export default function WitnessSurface(): React.ReactElement {
 
   return (
     <div style={{ marginTop: 16, maxWidth: 640 }}>
-      <h1 style={{ marginTop: 8 }}>Witness an applicant</h1>
+      <h2 style={{ fontSize: 32, marginTop: 8 }}>Witness an applicant</h2>
       <p style={{ color: "var(--muted)", marginTop: 12 }}>
         Paste an applicant&apos;s witness request (the typed-data JSON from their mint flow). You
         must be an existing citizen to witness.
@@ -114,14 +114,30 @@ export default function WitnessSurface(): React.ReactElement {
       >
         You can only attest for applicants you have referred (Wave 12 referral-gated attestation).
       </p>
+      <label
+        htmlFor="witness-request"
+        style={{
+          display: "block",
+          marginTop: 16,
+          fontFamily: "var(--mono)",
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          color: "var(--muted)",
+        }}
+      >
+        Witness request (typed-data JSON)
+      </label>
       <textarea
+        id="witness-request"
         value={raw}
         onChange={(e) => setRaw(e.target.value)}
         rows={8}
         placeholder='{"message":{"applicant":"0x…","nameHash":"0x…","nonce":"0","deadline":"…"}}'
         style={{
           width: "100%",
-          marginTop: 16,
+          marginTop: 6,
           padding: 12,
           border: "1px solid var(--line)",
           borderRadius: 8,
@@ -145,7 +161,7 @@ export default function WitnessSurface(): React.ReactElement {
             <div
               role="status"
               data-testid="witness-submit-note"
-              style={{ marginTop: 8, color: "var(--gold-d)", fontSize: 13 }}
+              style={{ marginTop: 8, color: "#8b3a3a", fontSize: 13 }}
             >
               {submitNote} (Your signature is still valid to share with the applicant.)
             </div>
@@ -166,7 +182,7 @@ export default function WitnessSurface(): React.ReactElement {
           />
         </div>
       )}
-      {error && <div style={{ marginTop: 16, color: "var(--gold-d)" }}>{error}</div>}
+      {error && <div style={{ marginTop: 16, color: "#8b3a3a" }}>{error}</div>}
     </div>
   );
 }

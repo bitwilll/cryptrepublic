@@ -70,7 +70,7 @@ export function EmbassyDetail({ code }: { code: string }) {
       )}
       {state.status === "notfound" && (
         <div data-testid="embassy-not-found" style={{ marginTop: 16 }}>
-          <h1 style={{ fontSize: 28 }}>Embassy not found</h1>
+          <h2 style={{ fontSize: 28 }}>Embassy not found</h2>
           <p style={{ color: "var(--muted)", marginTop: 8 }}>
             No embassy with code “{code}” is in the directory.
           </p>
@@ -82,7 +82,7 @@ export function EmbassyDetail({ code }: { code: string }) {
       {state.status === "ok" && (
         <article className="pillar" style={{ padding: "28px 32px", marginTop: 16 }}>
           <div style={{ height: 8, background: state.embassy.brandColor, marginBottom: 20 }} />
-          <h1 style={{ margin: 0, fontSize: 34 }}>{state.embassy.name}</h1>
+          <h2 style={{ margin: 0, fontSize: 34 }}>{state.embassy.name}</h2>
           <div style={{ color: "var(--muted)", marginTop: 6 }}>
             {state.embassy.neighborhood} · {state.embassy.city}, {state.embassy.country}
           </div>

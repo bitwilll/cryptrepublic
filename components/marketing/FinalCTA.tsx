@@ -3,7 +3,7 @@ export function FinalCTA() {
     <section className="block cta" data-screen-label="Final CTA">
       <div className="wrap">
         <div className="reveal">
-          <div className="kicker" style={{ color: "var(--gold)", fontSize: "17px" }}>
+          <div className="kicker" style={{ color: "var(--gold)" }}>
             The census is open
           </div>
           <h2 style={{ marginTop: "12px" }}>

@@ -50,7 +50,7 @@ export function StoreApp() {
     <div className={`wrap ${styles.page}`}>
       <div>
         <div className="kicker">CITIZEN STORE</div>
-        <h1 style={{ marginTop: 10 }}>The citizen store</h1>
+        <h2 style={{ fontSize: 32, marginTop: 10 }}>The citizen store</h2>
         <p className={styles.lede}>
           Citizens trade with citizens. Listings are filed with the Registry as pricing intent only.{" "}
           {SETTLEMENT_NOTICE}

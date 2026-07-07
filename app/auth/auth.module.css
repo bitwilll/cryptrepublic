@@ -246,6 +246,7 @@
   font-size: 11px;
   color: var(--blue);
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .divider {

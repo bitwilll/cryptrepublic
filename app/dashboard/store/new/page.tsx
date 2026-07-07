@@ -28,7 +28,7 @@ export default function NewListingPage() {
       </Link>
       <div style={{ margin: "18px 0 24px" }}>
         <div className="kicker">NEW FILING</div>
-        <h1 style={{ marginTop: 10 }}>File a listing</h1>
+        <h2 style={{ fontSize: 32, marginTop: 10 }}>File a listing</h2>
         <p style={{ color: "var(--muted)", marginTop: 8, maxWidth: 560 }}>
           Enter your offer on the Registry. A listing is pricing intent only — settlement is
           arranged citizen-to-citizen; the Republic never holds funds.

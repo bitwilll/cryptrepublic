@@ -23,7 +23,7 @@ export default function SecurityPage(): React.ReactElement {
           ← Wallet
         </Link>
       </p>
-      <h1 style={{ marginTop: 8 }}>Passkeys &amp; sign-in security</h1>
+      <h2 style={{ fontSize: 32, marginTop: 8 }}>Passkeys &amp; sign-in security</h2>
       <p style={{ color: "var(--muted)", marginTop: 8, fontSize: 14, maxWidth: 540 }}>
         A passkey lets you sign in with your device&rsquo;s Touch&nbsp;ID / Face&nbsp;ID or a
         security key — no password, and phishing-resistant. The Republic stores only the

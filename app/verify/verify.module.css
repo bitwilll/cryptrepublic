@@ -5,6 +5,11 @@
   padding: 56px 0 80px;
 }
 
+.pageTitle {
+  margin-top: 10px;
+  font-size: clamp(28px, 4.4vw, 48px);
+}
+
 .lede {
   color: var(--muted);
   margin-top: 12px;

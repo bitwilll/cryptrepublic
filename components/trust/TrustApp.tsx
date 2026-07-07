@@ -85,7 +85,7 @@ export function TrustApp(): React.ReactElement {
   return (
     <>
       <section className={styles.card} data-testid="trust-score-card">
-        <div className={styles.microLabel}>Civic standing · computed on read · read-only</div>
+        <h2 className={styles.microLabel}>Civic standing · computed on read · read-only</h2>
         <div className={styles.scoreRow}>
           <span className={styles.scoreValue} data-testid="trust-score-value">
             {d.score}
@@ -128,7 +128,7 @@ export function TrustApp(): React.ReactElement {
       </section>
 
       <section className={styles.card} data-testid="trust-factor-ledger">
-        <div className={styles.microLabel}>Factor ledger · sum equals your score</div>
+        <h2 className={styles.microLabel}>Factor ledger · sum equals your score</h2>
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead>
@@ -172,7 +172,7 @@ export function TrustApp(): React.ReactElement {
       </section>
 
       <section className={styles.card}>
-        <div className={styles.microLabel}>What raises your standing</div>
+        <h2 className={styles.microLabel}>What raises your standing</h2>
         <ul className={styles.guidance}>
           {GUIDANCE.map((g) => (
             <li key={g}>{g}</li>

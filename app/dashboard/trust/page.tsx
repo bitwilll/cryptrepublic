@@ -19,7 +19,7 @@ export default function TrustPage() {
     <div className={`wrap ${styles.stack}`}>
       <div>
         <div className="kicker">CIVIC STANDING</div>
-        <h1 style={{ marginTop: 10 }}>Trust score</h1>
+        <h2 style={{ fontSize: 32, marginTop: 10 }}>Trust score</h2>
         <p style={{ color: "var(--muted)", marginTop: 8, maxWidth: 560 }}>
           Participation raises it; verified disputes lower it. The ledger below decomposes your
           standing into the exact factors the Republic computes — nothing is hidden, nothing is

@@ -3,9 +3,7 @@ export function Testimonials() {
     <section className="block gov" data-screen-label="Citizen voices">
       <div className="wrap">
         <div className="sec-head reveal">
-          <div className="kicker" style={{ fontSize: "18px" }}>
-            Voices of the Republic
-          </div>
+          <div className="kicker">Voices of the Republic</div>
           <h2>
             Why citizens <em>stayed.</em>
           </h2>

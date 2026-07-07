@@ -184,7 +184,7 @@ export function BitwillApp() {
   return (
     <div className={styles.app} data-testid="bitwill-app">
       <div>
-        <h1>BitWill — inheritance</h1>
+        <h2 style={{ fontSize: 32 }}>BitWill — inheritance</h2>
         <p className={styles.lede}>
           Name a beneficiary for your estate record. The directive is signed by your own wallet on
           this device and filed with the Republic&apos;s registry.

@@ -25,7 +25,7 @@ export default function ApproveLoginPage(): React.ReactElement {
           ← Wallet
         </Link>
       </p>
-      <h1 style={{ marginTop: 8 }}>Approve a sign-in</h1>
+      <h2 style={{ fontSize: 32, marginTop: 8 }}>Approve a sign-in</h2>
       <p style={{ color: "var(--muted)", marginTop: 8, fontSize: 14, maxWidth: 520 }}>
         Scan a wallet-QR sign-in code shown on another device to sign that device in to your
         account. Your wallet signs locally — your key never leaves this device — and only this

@@ -23,6 +23,7 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--muted);
+  line-height: 1.55;
 }
 
 /* Mode toggle — two square tabs. */
@@ -88,7 +89,7 @@
 
 .input:focus,
 .textarea:focus {
-  border-color: var(--gold);
+  border-color: var(--blue);
 }
 
 .fileInput {

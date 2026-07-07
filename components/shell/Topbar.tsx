@@ -12,7 +12,7 @@ import styles from "./shell.module.css";
  */
 const TITLES: Record<string, string> = {
   "/dashboard": "Citizen home",
-  "/dashboard/governance": "Constitution & Active Votes",
+  "/dashboard/governance": "Constitution & votes",
   "/dashboard/treasury": "Treasury",
   "/dashboard/population": "Population",
   "/dashboard/passport": "Your passport",
@@ -20,6 +20,13 @@ const TITLES: Record<string, string> = {
   "/dashboard/embassies": "Embassies",
   "/dashboard/wallet": "Wallet & chain",
   "/dashboard/mint": "Mint a passport",
+  "/dashboard/trust": "Trust score",
+  "/dashboard/certificates": "Certificates",
+  "/dashboard/store": "Citizen store",
+  "/dashboard/bitwill": "BitWill estate",
+  "/dashboard/insurance": "Insurance",
+  "/dashboard/referrals": "Referrals & trust",
+  "/dashboard/witness": "Witness attestation",
 };
 
 function titleFor(pathname: string): string {
@@ -81,7 +88,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           <h1
             style={{
               margin: 0,
-              fontSize: 26,
+              fontSize: "clamp(19px, 5vw, 26px)",
               fontWeight: 800,
               letterSpacing: "-0.02em",
               color: "var(--ink)",
@@ -118,6 +125,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
           role="status"
           aria-live="polite"
           aria-atomic="true"
+          aria-label={chain.online ? "Chain online" : "Chain offline"}
           style={{ color: "var(--blue)", display: "flex", alignItems: "center", gap: 6 }}
         >
           <span
@@ -129,7 +137,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
               boxShadow: chain.online ? "0 0 8px #1f8a5b" : "none",
             }}
           />
-          {chain.online ? "CHAIN ONLINE" : "CHAIN OFFLINE"}
+          <span className={styles.hideSm}>{chain.online ? "CHAIN ONLINE" : "CHAIN OFFLINE"}</span>
         </span>
         <span className={styles.hideSm} data-testid="topbar-block">
           {chain.blockNumber !== null ? `BLK ${chain.blockNumber.toString()}` : "BLK —"}

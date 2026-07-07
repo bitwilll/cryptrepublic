@@ -155,13 +155,13 @@ export function WalletApp() {
     <section className="block">
       <div className="wrap" style={{ maxWidth: 720 }}>
         <div className="kicker">SOVEREIGN WALLET</div>
-        <h1 style={{ marginTop: 12 }}>
+        <h2 style={{ fontSize: 32, marginTop: 12 }}>
           {view === "choose"
             ? "Choose your wallet mode"
             : view === "othermode"
               ? "Wallet mode"
               : "Embedded wallet"}
-        </h1>
+        </h2>
         {view !== "choose" && view !== "othermode" && (
           <p role="note" style={{ color: "var(--muted)", marginTop: 12, maxWidth: 560 }}>
             {HONEST_WARNING}

@@ -56,7 +56,7 @@ export function Ledger<Row extends Record<string, unknown>>({
                   borderBottom: "2px solid var(--ink)",
                   fontFamily: "var(--mono)",
                   fontSize: 10,
-                  letterSpacing: "0.08em",
+                  letterSpacing: "0.16em",
                   textTransform: "uppercase",
                   color: "var(--muted)",
                   fontWeight: 700,

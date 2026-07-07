@@ -3,9 +3,7 @@ export function Pillars() {
     <section className="block" id="why" data-screen-label="Why CryptRepublic">
       <div className="wrap">
         <div className="sec-head reveal">
-          <div className="kicker" style={{ fontSize: "17px" }}>
-            Why CryptRepublic
-          </div>
+          <div className="kicker">Why CryptRepublic</div>
           <h2>
             A nation built for the <em>borderless century.</em>
           </h2>
