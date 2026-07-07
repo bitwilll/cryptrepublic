@@ -1,0 +1,184 @@
+/* Citizen insurance office (Wave 15) — government-issue registry styling. */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px 0 56px;
+  max-width: 880px;
+}
+
+.lede {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 620px;
+  margin: 8px 0 0;
+}
+
+.notice {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  background: var(--card);
+  padding: 14px 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 720px;
+}
+.noticeLabel {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-d);
+  margin-bottom: 6px;
+}
+
+.products {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 720px) {
+  .products {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 24px 28px;
+}
+.productKicker {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--blue);
+}
+.cardTitle {
+  margin: 6px 0 0;
+  font-size: 18px;
+}
+.cardNote {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 8px 0 0;
+}
+
+.form {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fieldLabel {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.input {
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.input:focus {
+  border-color: var(--blue);
+}
+textarea.input {
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.55;
+}
+.hint {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.primaryAction {
+  min-height: 44px;
+  padding: 0 22px;
+  align-self: flex-start;
+}
+
+.error {
+  border: 1px solid #b04141;
+  border-left-width: 3px;
+  background: color-mix(in srgb, #b04141 8%, #fff);
+  color: #8b3a3a;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 620px;
+}
+.status {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  min-height: 18px;
+}
+
+/* Status chips — SUBMITTED gold, IN_REVIEW blue, APPROVED success, DECLINED red. */
+.chip {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border: 1px solid var(--muted);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.chipSubmitted {
+  border-color: var(--gold);
+  color: var(--gold-d);
+}
+.chipInReview {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.chipApproved {
+  border-color: var(--success);
+  color: var(--success);
+}
+.chipDeclined {
+  border-color: #b04141;
+  color: #8b3a3a;
+}
+.reviewNote {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #8b3a3a;
+  line-height: 1.5;
+  max-width: 320px;
+}
+.dim {
+  color: var(--muted);
+}
+.mono {
+  font-family: var(--mono);
+  font-size: 12px;
+}

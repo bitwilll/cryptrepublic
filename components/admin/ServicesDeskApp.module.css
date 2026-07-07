@@ -1,0 +1,172 @@
+/* Services desk (Wave 15 C) — admin panels for insurance review, store
+   moderation, and programme statistics. Government-issue: 1px rules, mono
+   micro-labels, squared corners (global). */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px 0 56px;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 24px 28px;
+}
+.panelTitle {
+  margin: 0;
+  font-size: 20px;
+}
+.panelNote {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 6px 0 0;
+  max-width: 640px;
+}
+
+.toolbar {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.toolbar > * {
+  min-width: 160px;
+}
+
+.chip {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border: 1px solid var(--muted);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.chipSubmitted {
+  border-color: var(--gold);
+  color: var(--gold-d);
+}
+.chipInReview {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.chipApproved,
+.chipActive {
+  border-color: var(--success);
+  color: var(--success);
+}
+.chipDeclined,
+.chipRemoved {
+  border-color: #b04141;
+  color: #8b3a3a;
+}
+
+.rowActions {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.rowNote {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+  max-width: 280px;
+}
+.mono {
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.dim {
+  color: var(--muted);
+}
+.error {
+  color: #8b3a3a;
+  font-size: 13px;
+  margin: 10px 0 0;
+}
+.status {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  min-height: 16px;
+  margin: 8px 0 0;
+}
+
+/* Statistics panel */
+.statsGrid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.statGroup {
+  border: 1px solid var(--line);
+  padding: 16px 18px;
+}
+.statGroupLabel {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 7px 0;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+.statRow:first-of-type {
+  margin-top: 10px;
+}
+.statCount {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 15px;
+}
+.bigCount {
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 34px;
+  color: var(--ink);
+  line-height: 1.1;
+}
+.privacyNote {
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+/* Dialog form bits */
+.dialogText {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+.dialogActions {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.primaryAction {
+  min-height: 44px;
+  padding: 0 20px;
+}

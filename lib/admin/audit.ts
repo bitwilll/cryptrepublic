@@ -22,6 +22,8 @@
  *   content.allocation.*                 content.constitution.*
  *   content.proposal.update              content.comment.delete
  *   flag.upsert | flag.delete
+ *   insurance.review | insurance.approve | insurance.decline   (Wave 15 services desk)
+ *   listing.remove                                             (Wave 15 services desk)
  *
  * SCOPE (recorded, addendum #8): the audit trail covers SERVER mutations only.
  * Composing/exporting PREPARED calldata (lib/admin/prepare.ts) is pure
@@ -42,7 +44,9 @@ export type AuditTargetType =
   | "PROPOSAL_CONTENT"
   | "COMMENT"
   | "FLAG"
-  | "EXPORT";
+  | "EXPORT"
+  | "INSURANCE_APPLICATION"
+  | "STORE_LISTING";
 
 /** Per-targetType field ALLOWLIST — the ONLY keys serializeForAudit will emit.
  *  INVARIANT (test-enforced): no allowlist ever contains passwordHash, tokenHash,
@@ -121,6 +125,34 @@ export const AUDIT_FIELD_ALLOWLIST: Record<AuditTargetType, readonly string[]> =
   // Wave 10 — CSV report exports (a READ, audited before the body returns). Tiny
   // allowlist: the export KIND + row count + timestamp; never a per-row secret.
   EXPORT: ["kind", "rowCount", "requestedAt"],
+  // Wave 15 — services desk. ALL PUBLIC columns (valueUsd BigInt → string via
+  // auditValue). BitwillDirective is deliberately ABSENT: directives are
+  // private instruments and the admin desk never snapshots them.
+  INSURANCE_APPLICATION: [
+    "id",
+    "userId",
+    "product",
+    "coverageNote",
+    "valueUsd",
+    "status",
+    "reviewNote",
+    "createdAt",
+    "updatedAt",
+  ],
+  // `removedReason` is synthesized onto the after-snapshot at removal time
+  // (the EXPORT precedent: audited records need not be raw DB rows).
+  STORE_LISTING: [
+    "id",
+    "sellerUserId",
+    "title",
+    "description",
+    "category",
+    "priceCoin",
+    "status",
+    "createdAt",
+    "updatedAt",
+    "removedReason",
+  ],
 };
 
 function auditValue(v: unknown): unknown {
