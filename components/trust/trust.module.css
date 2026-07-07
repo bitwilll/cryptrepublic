@@ -1,0 +1,228 @@
+/* Trust score — official ledger styling (Wave 15 — Identity).
+   Government-issue tone: 1px --line borders, square geometry (the global
+   border-radius reset squares everything), mono micro-labels, generous air. */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 32px 0;
+  max-width: 860px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 28px 32px;
+}
+
+.microLabel {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.scoreRow {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.scoreValue {
+  font-family: var(--mono);
+  font-size: clamp(44px, 7vw, 64px);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.scoreOutOf {
+  font-family: var(--mono);
+  font-size: 18px;
+  color: var(--muted);
+}
+
+/* Segmented meter — 20 square cells of 5 points each; never a rounded gauge. */
+.meter {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 3px;
+}
+
+.segment {
+  height: 26px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.segmentFilled {
+  background: var(--blue);
+  border-color: var(--blue-d);
+}
+
+/* The referral-gate boundary sits after segment 10 (the 50-point line). */
+.segmentGate {
+  border-left: 3px solid var(--gold);
+}
+
+.meterScale {
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.gateLine {
+  margin-top: 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+.gatePassed {
+  color: var(--success);
+}
+
+.gateHeld {
+  color: var(--gold-d);
+}
+
+/* Factor ledger */
+.tableWrap {
+  margin-top: 16px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 560px;
+}
+
+.table th {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  vertical-align: top;
+}
+
+.factorLabel {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.factorDetail {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.points {
+  font-family: var(--mono);
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.pointsPositive {
+  color: var(--success);
+}
+
+.pointsZero {
+  color: var(--muted);
+}
+
+.pointsNegative {
+  color: #b04141;
+}
+
+.totalRow td {
+  border-bottom: none;
+  border-top: 2px solid var(--ink);
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+/* Guidance */
+.guidance {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.guidance li {
+  display: flex;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.guidance li::before {
+  content: "▮";
+  color: var(--gold);
+  flex: none;
+}
+
+.statute {
+  border-left: 3px solid var(--gold);
+  background: var(--paper);
+  padding: 16px 20px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.statute a {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.skeleton {
+  height: 14px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.error {
+  color: #8b3a3a;
+  font-size: 14px;
+}
+
+.retry {
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 10px 22px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
