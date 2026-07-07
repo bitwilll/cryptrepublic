@@ -8,6 +8,7 @@ import { Pillars } from "@/components/marketing/Pillars";
 import { Steps } from "@/components/marketing/Steps";
 import { HoldingsStrip } from "@/components/marketing/HoldingsStrip";
 import { GovernanceStrip } from "@/components/marketing/GovernanceStrip";
+import { ServicesStrip } from "@/components/marketing/ServicesStrip";
 import { EmbassiesStrip } from "@/components/marketing/EmbassiesStrip";
 import { Testimonials } from "@/components/marketing/Testimonials";
 import { FinalCTA } from "@/components/marketing/FinalCTA";
@@ -28,6 +29,7 @@ export default function HomePage() {
         <Steps />
         <HoldingsStrip />
         <GovernanceStrip />
+        <ServicesStrip />
         <EmbassiesStrip />
         <Testimonials />
         <FinalCTA />

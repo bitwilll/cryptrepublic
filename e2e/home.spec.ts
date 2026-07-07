@@ -7,7 +7,7 @@ test("home renders all sections with no console errors", async ({ page }) => {
   });
   await page.goto("/");
   await expect(page).toHaveTitle(/CryptRepublic/);
-  await expect(page.locator("section")).toHaveCount(8);
+  await expect(page.locator("section")).toHaveCount(9);
   await expect(page.getByRole("heading", { level: 1 })).toContainText(/NETWORK STATE/i);
   // count-up settles to the real citizen figure
   await expect(page.getByText("48 392").first()).toBeVisible({ timeout: 4000 });
