@@ -1,0 +1,259 @@
+/* Public certificate verifier (Wave 15 — Identity). Marketing-chrome page;
+   the deed mirrors the dashboard's official-document styling. */
+
+.section {
+  padding: 56px 0 80px;
+}
+
+.lede {
+  color: var(--muted);
+  margin-top: 12px;
+  max-width: 620px;
+  line-height: 1.6;
+}
+
+.lookup {
+  margin-top: 28px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  max-width: 640px;
+}
+
+.field {
+  flex: 1 1 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.input {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  width: 100%;
+  text-transform: uppercase;
+}
+
+.input:focus {
+  border-color: var(--gold);
+}
+
+.verifyBtn {
+  min-height: 44px;
+  padding: 12px 28px;
+  border: none;
+  background: var(--blue);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.verifyBtn:disabled {
+  background: var(--muted);
+  cursor: not-allowed;
+}
+
+.status {
+  margin-top: 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+/* Verdict banner */
+.verdict {
+  margin-top: 28px;
+  border: 1px solid;
+  border-left-width: 6px;
+  padding: 16px 20px;
+  font-family: var(--mono);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 14px;
+  max-width: 720px;
+}
+
+.verdictValid {
+  color: var(--success);
+  border-color: var(--success);
+  background: color-mix(in srgb, var(--success) 7%, transparent);
+}
+
+.verdictRevoked {
+  color: #b04141;
+  border-color: #b04141;
+  background: color-mix(in srgb, #b04141 8%, transparent);
+}
+
+.verdictNotFound {
+  color: var(--muted);
+  border-color: var(--line);
+  background: var(--paper);
+}
+
+.verdictDetail {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--sans);
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  font-size: 13.5px;
+  color: var(--ink);
+}
+
+/* Deed */
+.deed {
+  margin-top: 24px;
+  border: 1px solid var(--ink);
+  outline: 1px solid var(--line);
+  outline-offset: 4px;
+  background: var(--card);
+  padding: 32px 36px;
+  max-width: 720px;
+}
+
+.deedHeader {
+  text-align: center;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 18px;
+}
+
+.deedTitle {
+  margin-top: 8px;
+  font-size: clamp(20px, 3vw, 28px);
+}
+
+.deedSerial {
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: clamp(16px, 2.6vw, 22px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--blue);
+}
+
+.microLabel {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.deedGrid {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+}
+
+@media (max-width: 640px) {
+  .deedGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.deedField {
+  min-width: 0;
+}
+
+.deedFieldWide {
+  grid-column: 1 / -1;
+}
+
+.deedValue {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.deedValueMono {
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+.deedSubject {
+  white-space: pre-wrap;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 12px 14px;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.standing {
+  margin-top: 20px;
+  border-top: 1px dashed var(--line);
+  padding-top: 14px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* Local re-hash checker */
+.rehash {
+  margin-top: 24px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 20px 24px;
+  max-width: 720px;
+}
+
+.rehashNote {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.fileInput {
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.match {
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.matchYes {
+  color: var(--success);
+}
+
+.matchNo {
+  color: #b04141;
+}
+
+.error {
+  margin-top: 16px;
+  color: #8b3a3a;
+  font-size: 14px;
+  max-width: 640px;
+}
