@@ -100,7 +100,7 @@ export function Sidebar({ open, onNavigate }: { open: boolean; onNavigate?: () =
                 fontWeight: 700,
                 letterSpacing: "0.16em",
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.42)",
+                color: "rgba(255,255,255,0.55)",
                 fontFamily: "var(--mono)",
               }}
             >
