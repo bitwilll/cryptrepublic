@@ -21,6 +21,82 @@ import styles from "../mint/mint.module.css";
 
 type LoadState = "loading" | "no-wallet" | "not-citizen" | "citizen" | "error";
 
+/**
+ * The CIVIC ID row (Wave 17): the anonymous, shareable CR-XXXX-XXXX handle
+ * printed on the passport, fetched (and lazily assigned) via
+ * GET /api/community/me. Renders nothing while unknown — the passport never
+ * blocks on it.
+ */
+function CivicIdRow(): React.ReactElement | null {
+  const [civicId, setCivicId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/community/me", { credentials: "same-origin" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { civicId?: string } | null) => {
+        if (mounted && d?.civicId) setCivicId(d.civicId);
+      })
+      .catch(() => {
+        /* row simply stays hidden */
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!civicId) return null;
+
+  async function copy() {
+    if (!civicId) return;
+    try {
+      await navigator.clipboard.writeText(civicId);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard unavailable — the mono value stays selectable by hand
+    }
+  }
+
+  return (
+    <div style={{ marginTop: 20, maxWidth: 560 }} data-testid="passport-civic-id-row">
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          letterSpacing: "0.14em",
+          color: "var(--muted)",
+          textTransform: "uppercase",
+        }}
+      >
+        CIVIC ID
+      </div>
+      <div
+        style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8, flexWrap: "wrap" }}
+      >
+        <span
+          data-testid="passport-civic-id"
+          style={{
+            fontFamily: "var(--mono)",
+            fontSize: 18,
+            fontWeight: 800,
+            letterSpacing: "0.06em",
+          }}
+        >
+          {civicId}
+        </span>
+        <Button variant="ghost" onClick={() => void copy()} data-testid="passport-civic-id-copy">
+          {copied ? "COPIED ✓" : "COPY"}
+        </Button>
+      </div>
+      <p style={{ color: "var(--muted)", marginTop: 6, fontSize: 12.5 }}>
+        Share it to be added as friend or family — it reveals nothing else.
+      </p>
+    </div>
+  );
+}
+
 /** Whether every char in `s` is printable ASCII/Latin (no control/replacement chars). */
 function isPrintable(s: string): boolean {
   if (s.length === 0) return false;
@@ -158,6 +234,7 @@ export default function PassportView(): React.ReactElement {
               issued={provisional.label}
             />
           </div>
+          <CivicIdRow />
           <div style={{ marginTop: 20 }}>
             <Button as="a" variant="primary" href="/dashboard/mint">
               {provisional.cta}
@@ -217,6 +294,7 @@ export default function PassportView(): React.ReactElement {
           issued={c ? `BLK ${c.mintBlock.toString()}` : "SEALED"}
         />
       </div>
+      <CivicIdRow />
       {status?.tokenURI ? (
         <p style={{ marginTop: 16 }}>
           <a
