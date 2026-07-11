@@ -13,6 +13,8 @@ import {
   NEUTRAL,
   type AppInfo,
 } from "@/lib/passport/provisional";
+import { formatOfficeTitle } from "@/lib/gov/display";
+import { isCivicOffice } from "@/lib/gov/types";
 
 /**
  * Citizen home (§7.5) client island. Every figure is REAL or honestly empty:
@@ -33,6 +35,12 @@ interface Activity extends Record<string, unknown> {
   blockNumber: string;
   ref: string;
 }
+interface MineOffice {
+  office: string;
+  officeLabel: string;
+  portfolio: string | null;
+  appointedAt: string;
+}
 
 type Load<T> = { status: "loading" } | { status: "ok"; data: T } | { status: "error" };
 
@@ -46,6 +54,9 @@ export function CitizenHomeApp() {
   // The off-chain application (declared name/domicile/motto + status) — drives
   // the provisional passport shown in the rail once a user has applied.
   const [application, setApplication] = useState<AppInfo | null>(null);
+  // The caller's OWN active civic offices (Wave 16) — honours only, no
+  // privilege. Empty (the default) renders NOTHING: no layout shift.
+  const [offices, setOffices] = useState<MineOffice[]>([]);
 
   const loadObligations = useCallback(() => {
     setObligations({ status: "loading" });
@@ -80,6 +91,10 @@ export function CitizenHomeApp() {
       .then((r) => (r.ok ? r.json() : { application: null }))
       .then((d: { application: AppInfo | null }) => setApplication(d.application))
       .catch(() => setApplication(null));
+    fetch("/api/government", { credentials: "same-origin" })
+      .then((r) => (r.ok ? r.json() : { mine: [] }))
+      .then((d: { mine?: MineOffice[] }) => setOffices(Array.isArray(d.mine) ? d.mine : []))
+      .catch(() => setOffices([]));
   }, [loadObligations, loadActivity]);
 
   const blockLabel = chain.blockNumber != null ? chain.blockNumber.toString() : "—";
@@ -101,6 +116,7 @@ export function CitizenHomeApp() {
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 24, minWidth: 0 }}>
           <Salutation isCitizen={isCitizen} blockLabel={blockLabel} chainName={chain.chainName} />
+          {offices.length > 0 && <OfficeStrip offices={offices} />}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
             <StatRow
               label="STANDING"
@@ -160,6 +176,62 @@ function Salutation({
           : "You are not yet a citizen. Mint your soulbound passport to vote, claim dividends, and take your place in the census."}
       </p>
     </article>
+  );
+}
+
+/**
+ * OFFICE OF THE REPUBLIC (Wave 16) — a quiet state honour under the hero for
+ * citizens holding a civic office: gold-ink mono pills in a var(--card) box
+ * with a 3px gold left border. Offices grant NO privilege (display only);
+ * officeless citizens never see this (the caller renders nothing).
+ */
+function OfficeStrip({ offices }: { offices: MineOffice[] }) {
+  return (
+    <section
+      data-testid="office-strip"
+      aria-label="Office of the Republic"
+      style={{
+        background: "var(--card)",
+        border: "1px solid var(--line)",
+        borderLeft: "3px solid var(--gold)",
+        padding: "12px 18px",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        flexWrap: "wrap",
+      }}
+    >
+      <span
+        style={{
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: "0.12em",
+          color: "var(--muted)",
+          fontFamily: "var(--mono)",
+        }}
+      >
+        OFFICE OF THE REPUBLIC
+      </span>
+      {offices.map((o) => (
+        <span
+          key={`${o.office}-${o.portfolio ?? ""}`}
+          data-testid="office-pill"
+          style={{
+            fontFamily: "var(--mono)",
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            padding: "3px 9px",
+            border: "1px solid var(--gold)",
+            color: "var(--gold-ink)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {isCivicOffice(o.office) ? formatOfficeTitle(o.office, o.portfolio) : o.officeLabel}
+        </span>
+      ))}
+    </section>
   );
 }
 

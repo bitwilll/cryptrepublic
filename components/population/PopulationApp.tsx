@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useChainInfo } from "@/lib/hooks/useChainInfo";
 import { useFlag } from "@/lib/flags/client";
 import { Ledger } from "@/components/ui/Ledger";
+import { groupRosterByOffice } from "@/lib/gov/display";
+import { isCivicOffice, type CivicOffice } from "@/lib/gov/types";
 
 /**
  * Population / census (§7.11) client island — READ-ONLY, public (fully viewable
@@ -28,8 +30,18 @@ interface Induction extends Record<string, unknown> {
   mintBlock: string;
   blockNumber: string;
 }
+interface RosterRow {
+  office: string;
+  officeLabel: string;
+  portfolio: string | null;
+  holder: { display: string };
+  appointedAt: string;
+}
 
 type Load<T> = { status: "loading" } | { status: "ok"; data: T } | { status: "error" };
+// The government roster is session-gated (/api/government): a signed-out
+// visitor on this public page gets a sign-in note, never a broken card.
+type GovLoad = Load<RosterRow[]> | { status: "signed-out" };
 
 export function PopulationApp() {
   const chain = useChainInfo();
@@ -42,6 +54,7 @@ export function PopulationApp() {
   });
   const [delta24h, setDelta24h] = useState<number>(0);
   const [inductions, setInductions] = useState<Load<Induction[]>>({ status: "loading" });
+  const [government, setGovernment] = useState<GovLoad>({ status: "loading" });
 
   const loadCensus = useCallback(() => {
     setCensus({ status: "loading" });
@@ -66,16 +79,35 @@ export function PopulationApp() {
       .catch(() => setInductions({ status: "error" }));
   }, []);
 
+  const loadGovernment = useCallback(() => {
+    setGovernment({ status: "loading" });
+    fetch("/api/government", { credentials: "same-origin" })
+      .then((r) => {
+        if (r.status === 401) {
+          setGovernment({ status: "signed-out" });
+          return null;
+        }
+        return r.ok ? r.json() : Promise.reject(new Error("failed"));
+      })
+      .then((d: { roster?: RosterRow[] } | null) => {
+        if (d !== null) {
+          setGovernment({ status: "ok", data: Array.isArray(d.roster) ? d.roster : [] });
+        }
+      })
+      .catch(() => setGovernment({ status: "error" }));
+  }, []);
+
   useEffect(() => {
     loadCensus();
     loadInductions();
+    loadGovernment();
     fetch("/api/stats/census")
       .then((r) => (r.ok ? r.json() : { delta24h: 0 }))
       .then((d: { delta24h?: number }) =>
         setDelta24h(typeof d.delta24h === "number" ? d.delta24h : 0),
       )
       .catch(() => setDelta24h(0));
-  }, [loadCensus, loadInductions]);
+  }, [loadCensus, loadInductions, loadGovernment]);
 
   const cities = census.status === "ok" ? census.data.cities : [];
   const total = census.status === "ok" ? census.data.totalCitizens : null;
@@ -88,6 +120,7 @@ export function PopulationApp() {
       <div className="kicker">POPULATION</div>
 
       <CensusHero total={total} delta24h={delta24h} state={census} onRetry={loadCensus} />
+      <GovernmentCard state={government} onRetry={loadGovernment} />
       {worldMapEnabled ? (
         <WorldMap cities={cities} />
       ) : (
@@ -172,6 +205,138 @@ function CensusHero({
         The trustless live count of citizens, read from chain. Per-city figures below are
         self-declared or demonstrative and are never merged into this total.
       </p>
+    </article>
+  );
+}
+
+/** "2026-07-11T…" → "11 Jul 2026" (same en-GB pattern the other apps use). */
+function appointedDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+/** Micro-label heading pattern (mono 11px 700 tracked, muted). */
+const OFFICE_LABEL_STYLE: React.CSSProperties = {
+  margin: 0,
+  fontFamily: "var(--mono)",
+  fontSize: 11,
+  fontWeight: 700,
+  letterSpacing: "0.18em",
+  textTransform: "uppercase",
+  color: "var(--muted)",
+  lineHeight: 1.55,
+};
+
+/**
+ * THE GOVERNMENT — the active office roster in protocol precedence order
+ * (Wave 16). Offices are honours + display only: they grant no privilege.
+ * The API is session-gated, so signed-out visitors on this public page get a
+ * sign-in note instead of a roster.
+ */
+function GovernmentCard({ state, onRetry }: { state: GovLoad; onRetry: () => void }) {
+  const groups =
+    state.status === "ok"
+      ? groupRosterByOffice(
+          state.data.filter((r): r is RosterRow & { office: CivicOffice } =>
+            isCivicOffice(r.office),
+          ),
+        )
+      : [];
+  return (
+    <article className="pillar" data-testid="government-roster" style={{ padding: "24px 28px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <div
+          style={{
+            fontSize: 11,
+            color: "var(--muted)",
+            letterSpacing: "0.12em",
+            fontWeight: 700,
+            fontFamily: "var(--mono)",
+          }}
+        >
+          THE GOVERNMENT
+        </div>
+        <span
+          style={{
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            padding: "2px 6px",
+            border: "1px solid var(--line)",
+            color: "var(--muted)",
+          }}
+        >
+          HONOURS ONLY · NO SPECIAL POWERS
+        </span>
+      </div>
+      {state.status === "loading" && <Skeleton lines={3} />}
+      {state.status === "error" && <CardError onRetry={onRetry} testid="government-error" />}
+      {state.status === "signed-out" && (
+        <p
+          data-testid="government-signin"
+          style={{ color: "var(--muted)", marginTop: 14, fontSize: 13 }}
+        >
+          Sign in to see the appointed government of the Republic.
+        </p>
+      )}
+      {state.status === "ok" && groups.length === 0 && (
+        <div className="empty-state" data-testid="government-empty" style={{ marginTop: 16 }}>
+          No offices have been filled. The Cabinet appoints the government from the citizenry.
+        </div>
+      )}
+      {state.status === "ok" && groups.length > 0 && (
+        <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 18 }}>
+          {groups.map((g) => (
+            <section key={g.office} data-testid="office-group">
+              <h2 style={OFFICE_LABEL_STYLE}>{g.label}</h2>
+              <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 8 }}>
+                {g.holders.map((h) => (
+                  <div
+                    key={`${g.office}-${h.holder.display}-${h.appointedAt}`}
+                    data-testid="office-holder"
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      alignItems: "baseline",
+                      gap: 12,
+                      padding: "10px 14px",
+                      background: "var(--paper)",
+                      border: "1px solid var(--line)",
+                    }}
+                  >
+                    <span style={{ flex: 1, minWidth: 160, fontWeight: 600 }}>
+                      {h.holder.display}
+                    </span>
+                    {h.portfolio && (
+                      <span
+                        style={{
+                          fontFamily: "var(--mono)",
+                          fontSize: 10,
+                          fontWeight: 700,
+                          letterSpacing: "0.1em",
+                          textTransform: "uppercase",
+                          padding: "3px 9px",
+                          border: "1px solid var(--gold)",
+                          color: "var(--gold-ink)",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {h.portfolio}
+                      </span>
+                    )}
+                    <span
+                      style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)" }}
+                    >
+                      Appointed {appointedDate(h.appointedAt)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
     </article>
   );
 }
