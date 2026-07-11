@@ -51,6 +51,7 @@ export const NAV_SECTIONS: readonly NavSection[] = [
       },
       { href: "/dashboard/wallet", label: "Wallet & chain", icon: "wallet" },
       { href: "/dashboard/store", label: "Citizen store", icon: "store" },
+      { href: "/dashboard/invest", label: "Projects & invest", icon: "treasury" },
       { href: "/dashboard/bitwill", label: "BitWill estate", icon: "bitwill" },
       { href: "/dashboard/insurance", label: "Insurance", icon: "insurance" },
     ],

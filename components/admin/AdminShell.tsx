@@ -158,6 +158,8 @@ const TITLES: Record<string, string> = {
   "/admin/flags": "Feature flags",
   "/admin/chain": "Chain actions",
   "/admin/services": "Services desk",
+  "/admin/fundraising": "Fundraising desk",
+  "/admin/offices": "Offices desk",
   "/admin/audit": "Audit log",
 };
 

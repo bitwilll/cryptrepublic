@@ -46,7 +46,9 @@ export type AuditTargetType =
   | "FLAG"
   | "EXPORT"
   | "INSURANCE_APPLICATION"
-  | "STORE_LISTING";
+  | "STORE_LISTING"
+  | "FUNDRAISING_PROJECT"
+  | "OFFICE_APPOINTMENT";
 
 /** Per-targetType field ALLOWLIST — the ONLY keys serializeForAudit will emit.
  *  INVARIANT (test-enforced): no allowlist ever contains passwordHash, tokenHash,
@@ -152,6 +154,31 @@ export const AUDIT_FIELD_ALLOWLIST: Record<AuditTargetType, readonly string[]> =
     "createdAt",
     "updatedAt",
     "removedReason",
+  ],
+  // Wave 16: fundraising decisions + office appointments. Registry rows only —
+  // money never moves; office grants no privilege. Header conventions as above.
+  FUNDRAISING_PROJECT: [
+    "id",
+    "creatorUserId",
+    "title",
+    "category",
+    "goalCoin",
+    "status",
+    "reviewNote",
+    "decidedBy",
+    "decidedAt",
+    "createdAt",
+  ],
+  OFFICE_APPOINTMENT: [
+    "id",
+    "userId",
+    "office",
+    "portfolio",
+    "note",
+    "appointedBy",
+    "appointedAt",
+    "revokedAt",
+    "revokedBy",
   ],
 };
 

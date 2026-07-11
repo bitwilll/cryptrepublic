@@ -63,6 +63,10 @@ model User {
   bitwills              BitwillDirective[]     @relation("Bitwills")
   insuranceApplications InsuranceApplication[] @relation("InsuranceApplications")
   commissaryInterests   CommissaryInterest[]   @relation("CommissaryInterests")
+  fundraisingProjects   FundraisingProject[]   @relation("FundraisingProjects")
+  investmentPledges     InvestmentPledge[]     @relation("InvestmentPledges")
+  projectEndorsements   ProjectEndorsement[]   @relation("ProjectEndorsements")
+  officeAppointments    OfficeAppointment[]    @relation("OfficeAppointments")
 }
 
 model Session {
@@ -481,4 +485,84 @@ model CommissaryInterest {
 
   @@unique([userId, itemId])
   @@index([itemId])
+}
+
+/// A citizen fundraising project (Wave 16 — Cabinet direction 2026-07-08). A
+/// REGISTRY of proposals and pledges: the Republic never holds, escrows, or
+/// moves funds. Direct contributions happen wallet-to-wallet outside the
+/// platform, to the creator's declared treasury address.
+model FundraisingProject {
+  id              String    @id @default(cuid())
+  creatorUserId   String
+  creator         User      @relation("FundraisingProjects", fields: [creatorUserId], references: [id], onDelete: Cascade)
+  title           String
+  summary         String
+  description     String
+  category        String // ProjectCategory union (lib/gov/types.ts)
+  goalCoin        String // decimal string, $CRYPT — same grammar as StoreListing.priceCoin
+  treasuryAddress String? // optional checksummed EVM address for direct wallet-to-wallet contributions (public)
+  status          String    @default("SUBMITTED") // FundraisingStatus union SUBMITTED|ACTIVE|DECLINED|CLOSED|WITHDRAWN
+  reviewNote      String? // admin decision note (Wave 9 audit conventions)
+  decidedBy       String? // admin userId that approved/declined
+  decidedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  pledges      InvestmentPledge[]
+  endorsements ProjectEndorsement[]
+
+  @@index([status])
+  @@index([creatorUserId])
+}
+
+/// A pledge of intent to invest in a project (Wave 16). A recorded COMMITMENT
+/// only — no funds are held or transferred by the Republic. One row per
+/// citizen per project; withdrawing flips status, re-pledging flips it back.
+model InvestmentPledge {
+  id         String             @id @default(cuid())
+  projectId  String
+  project    FundraisingProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User               @relation("InvestmentPledges", fields: [userId], references: [id], onDelete: Cascade)
+  amountCoin String // decimal string, $CRYPT
+  note       String?
+  status     String             @default("PLEDGED") // PledgeStatus union PLEDGED|WITHDRAWN
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@unique([projectId, userId])
+  @@index([userId])
+}
+
+/// A citizen endorsement of a SUBMITTED project — the community-approval
+/// signal (7 endorsements = community-backed, echoing the witness rule).
+model ProjectEndorsement {
+  id        String             @id @default(cuid())
+  projectId String
+  project   FundraisingProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User               @relation("ProjectEndorsements", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime           @default(now())
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+}
+
+/// A civic office appointment (Wave 16 bureaucracy — PM, ministers, senators,
+/// protectors…). Honours + public display ONLY: grants NO auth privilege;
+/// User.role (USER|ADMIN) is untouched and remains the only authz gate.
+model OfficeAppointment {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation("OfficeAppointments", fields: [userId], references: [id], onDelete: Cascade)
+  office      String // CivicOffice union (lib/gov/types.ts)
+  portfolio   String? // e.g. "Treasury", "Digital Infrastructure"
+  note        String?
+  appointedBy String // admin userId
+  appointedAt DateTime  @default(now())
+  revokedAt   DateTime?
+  revokedBy   String? // admin userId
+
+  @@index([userId])
+  @@index([office])
 }

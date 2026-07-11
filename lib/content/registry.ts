@@ -265,6 +265,18 @@ export const REGISTRY: readonly RegistryItem[] = [
     capabilities: [{ title: "Citizen as buyer" }, { title: "Citizen as seller" }],
   },
   {
+    // Post-board Cabinet addition (2026-07-08): citizen fundraising +
+    // investment pledges. Registry rows only — the Republic never holds funds.
+    id: "fundraising-investment",
+    title: "Fundraising & investment",
+    branch: "utilities",
+    summary: "Propose a project, win the community's backing, and record investment pledges.",
+    detail:
+      "Citizens propose fundraising projects; upon community endorsement and Cabinet approval they open for investment pledges. Pledges are recorded commitments — settlement is wallet-to-wallet and the Republic never holds funds.",
+    status: "live",
+    href: "/dashboard/invest",
+  },
+  {
     id: "insurance",
     title: "Citizen insurance",
     branch: "utilities",

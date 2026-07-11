@@ -25,6 +25,7 @@ const TITLES: Record<string, string> = {
   "/dashboard/store": "Citizen store",
   "/dashboard/bitwill": "BitWill estate",
   "/dashboard/insurance": "Insurance",
+  "/dashboard/invest": "Projects & investment",
   "/dashboard/referrals": "Referrals & trust",
   "/dashboard/witness": "Witness attestation",
 };
