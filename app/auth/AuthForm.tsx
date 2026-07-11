@@ -29,9 +29,12 @@ function toneClass(tone?: LogLine["tone"]): string | undefined {
   return undefined; // default green (.console color)
 }
 
-export function AuthForm() {
+export function AuthForm({ refCode: initialRefCode }: { refCode?: string } = {}) {
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>("in");
+  // Wave 17 — a ?ref=<code> arrival opens on REGISTER and pins the code so it
+  // rides the register POST body (silently ignored server-side when invalid).
+  const [refCode] = useState(initialRefCode);
+  const [mode, setMode] = useState<Mode>(refCode ? "up" : "in");
   const [busy, setBusy] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [twoFactorPending, setTwoFactorPending] = useState(false);
@@ -43,9 +46,14 @@ export function AuthForm() {
   const [badEmail, setBadEmail] = useState(false);
   const [badPass, setBadPass] = useState(false);
 
-  const [lines, setLines] = useState<LogLine[]>([
-    { text: "> cr-auth v2.6 · awaiting credentials…", tone: "dim" },
-  ]);
+  const [lines, setLines] = useState<LogLine[]>(
+    refCode
+      ? [
+          { text: "> cr-auth v2.6 · awaiting credentials…", tone: "dim" },
+          { text: `> referral code ${refCode} on file · binds on registration`, tone: "gold" },
+        ]
+      : [{ text: "> cr-auth v2.6 · awaiting credentials…", tone: "dim" }],
+  );
 
   const signin = mode === "in";
   const log = (next: LogLine[]) => setLines(next);
@@ -87,7 +95,9 @@ export function AuthForm() {
     ]);
     try {
       const endpoint = signin ? "/api/auth/login" : "/api/auth/register";
-      const body = signin ? { email, passphrase: pass } : { name, email, passphrase: pass };
+      const body = signin
+        ? { email, passphrase: pass }
+        : { name, email, passphrase: pass, ...(refCode ? { refCode } : {}) };
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "content-type": "application/json" },

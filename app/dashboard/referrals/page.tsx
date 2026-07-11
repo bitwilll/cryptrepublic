@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ReferralCards } from "@/components/home/ReferralCards";
+import { ReferralLinksCard } from "@/components/referrals/ReferralLinksCard";
 
 export const metadata: Metadata = {
   title: "Referrals & Trust — CryptRepublic",
@@ -32,6 +33,7 @@ export default function ReferralsPage() {
         </p>
       </div>
       <ReferralCards full />
+      <ReferralLinksCard />
     </div>
   );
 }

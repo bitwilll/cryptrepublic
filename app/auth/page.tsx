@@ -10,7 +10,15 @@ export const metadata: Metadata = {
     "Authenticate with your sovereign wallet or the e-mail bound to your citizen record.",
 };
 
-export default function AuthPage() {
+export default async function AuthPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ref?: string | string[] }>;
+}) {
+  // Wave 17 — a shareable referral link lands here as /auth?ref=<code>; the
+  // code rides the register POST and binds the signup to the link owner.
+  const { ref } = await searchParams;
+  const refCode = typeof ref === "string" && ref.length > 0 ? ref.slice(0, 32) : undefined;
   return (
     <>
       <div className="gov-strip" role="note">
@@ -66,7 +74,7 @@ export default function AuthPage() {
 
         {/* RIGHT — form panel */}
         <main className={styles.panel}>
-          <AuthForm />
+          <AuthForm refCode={refCode} />
         </main>
       </div>
     </>
