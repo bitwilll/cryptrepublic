@@ -1,0 +1,243 @@
+/* Referral links (Wave 17) — government-issue registry card. 1px --line
+   borders, square geometry, mono micro-labels; pills copy the store pattern. */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 24px 28px;
+}
+
+.microLabel {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.lede {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 560px;
+}
+
+/* ── Locked state ── */
+.lockedBox {
+  margin-top: 16px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  background: var(--paper);
+  padding: 16px 20px;
+}
+
+.lockedLine {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--gold-ink);
+  margin: 0;
+}
+
+.lockedHint {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.lockedHint a {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+/* ── Create form ── */
+.form {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.formRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 260px;
+  max-width: 380px;
+}
+
+.label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.input {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-size: 14px;
+  width: 100%;
+}
+
+.input[aria-invalid="true"] {
+  border-color: #b04141;
+}
+
+.fieldError {
+  font-size: 12px;
+  color: #8b3a3a;
+  margin: 0;
+}
+
+.submitBtn {
+  min-height: 44px;
+  flex: none;
+}
+
+/* Persistent async status container — compact when empty. */
+.status {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.status:empty {
+  display: none;
+}
+
+.statusOk {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.statusErr {
+  color: #8b3a3a;
+  font-weight: 700;
+}
+
+/* ── Link registry rows ── */
+.linkList {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.linkRow {
+  border: 1px solid var(--line);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.linkHead {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.linkLabel {
+  font-weight: 700;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.linkUrl {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+
+.linkMeta {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0;
+}
+
+.linkActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.actionBtn {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Status pills — copy of components/store/store.module.css .status* */
+.pill {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+
+.pillActive {
+  color: var(--success);
+}
+
+.pillRevoked {
+  color: #8b3a3a;
+  border-color: #b04141;
+}
+
+/* ── Loading / error ── */
+.skeleton {
+  height: 14px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.error {
+  color: #8b3a3a;
+  font-size: 14px;
+  margin: 12px 0 0;
+}
+
+.retry {
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 10px 22px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}

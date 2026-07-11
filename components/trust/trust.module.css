@@ -54,6 +54,25 @@
   color: var(--muted);
 }
 
+/* Negative standing (Wave 17 — Penal Code): error TEXT tone on the figure. */
+.scoreNegative {
+  color: #8b3a3a;
+}
+
+.negativeBanner {
+  margin: 14px 0 0;
+  border: 1px solid #b04141;
+  border-left-width: 3px;
+  background: color-mix(in srgb, #b04141 10%, transparent);
+  padding: 10px 14px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8b3a3a;
+}
+
 /* Segmented meter — 20 square cells of 5 points each; never a rounded gauge. */
 .meter {
   margin-top: 20px;
@@ -73,7 +92,8 @@
   border-color: var(--blue-d);
 }
 
-/* The referral-gate boundary sits after segment 10 (the 50-point line). */
+/* Gold gate boundaries: after segment 10 (the 50-point referral gate) and
+   after segment 13 (the 65-point referral-link gate). */
 .segmentGate {
   border-left: 3px solid var(--gold);
 }
@@ -88,12 +108,38 @@
   color: var(--muted);
 }
 
+/* Two stacked tick labels positioned at their true 50%/65% marks (two rows so
+   the long labels can never collide on narrow screens). */
+.gateScale {
+  position: relative;
+  height: 30px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--gold-ink);
+}
+
+.gateTickLabel {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.gateTickLabel::before {
+  content: "▲ ";
+  color: var(--gold);
+}
+
 .gateLine {
   margin-top: 16px;
   font-family: var(--mono);
   font-size: 12px;
   letter-spacing: 0.06em;
   font-weight: 700;
+}
+
+.gateLineTight {
+  margin-top: 6px;
 }
 
 .gatePassed {
@@ -161,8 +207,10 @@
   color: var(--muted);
 }
 
+/* Error TEXT tone (Wave 17 recalibration: #b04141 is the BORDER tone; text
+   uses #8b3a3a per the design system) — penal-record deductions render here. */
 .pointsNegative {
-  color: #b04141;
+  color: #8b3a3a;
 }
 
 .totalRow td {

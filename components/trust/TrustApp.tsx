@@ -4,12 +4,14 @@ import Link from "next/link";
 import styles from "./trust.module.css";
 
 /**
- * Trust score surface (Wave 15 — Identity). Renders the caller's hybrid trust
- * score from GET /api/trust as an official ledger: a segmented 0..100 meter
- * (square cells — never a rounded gauge), the factor decomposition table
- * (sum == score by construction), guidance, and the statute note. READ-ONLY:
- * the score is computed server-side from chain-real signals; it is never
- * citizenship.
+ * Trust score surface (Wave 15 — Identity; v2 Wave 17). Renders the caller's
+ * hybrid trust score from GET /api/trust as an official ledger: a segmented
+ * 0..100 meter (square cells — never a rounded gauge) with BOTH gold gate
+ * ticks (50 — referral gate; 65 — referral links), the 8-factor decomposition
+ * table (sum == score by construction), guidance, and the statute note. When
+ * the Penal Code drives the score below zero the meter renders empty under a
+ * NEGATIVE STANDING banner. READ-ONLY: the score is computed server-side from
+ * chain-real signals; it is never citizenship.
  */
 
 interface TrustFactor {
@@ -23,8 +25,10 @@ interface TrustPayload {
   computed: number;
   adminAdjustment: number;
   factors: TrustFactor[];
-  thresholds: { referralGate: number };
+  thresholds: { referralGate: number; referralLinkGate: number };
   referralGatePassed: boolean;
+  referralLinkGatePassed: boolean;
+  negativeStanding: boolean;
   negativeStandingRule: string;
 }
 type Load = { status: "loading" } | { status: "ok"; data: TrustPayload } | { status: "error" };
@@ -36,6 +40,7 @@ const GUIDANCE = [
   "Refer members who go on to seal a passport of their own (4 points each, up to 20).",
   "Vote on ratified proposals in Constitution & votes (4 points each, up to 20).",
   "Claim your citizen dividends when distributions open (4 points each, up to 20).",
+  "Witness for applicants, issue certificates, and endorse projects (up to 10 points of civic activity).",
 ] as const;
 
 export function TrustApp(): React.ReactElement {
@@ -79,23 +84,34 @@ export function TrustApp(): React.ReactElement {
 
   const d = state.data;
   const gate = d.thresholds.referralGate;
+  const linkGate = d.thresholds.referralLinkGate;
+  // Negative standing renders an EMPTY meter (the max(0, …) clamps it away).
   const filled = Math.round((Math.max(0, Math.min(100, d.score)) / 100) * SEGMENTS);
   const gateSegment = Math.floor((gate / 100) * SEGMENTS); // boundary AFTER this many segments
+  const linkGateSegment = Math.floor((linkGate / 100) * SEGMENTS);
 
   return (
     <>
       <section className={styles.card} data-testid="trust-score-card">
         <h2 className={styles.microLabel}>Civic standing · computed on read · read-only</h2>
         <div className={styles.scoreRow}>
-          <span className={styles.scoreValue} data-testid="trust-score-value">
+          <span
+            className={`${styles.scoreValue} ${d.negativeStanding ? styles.scoreNegative : ""}`}
+            data-testid="trust-score-value"
+          >
             {d.score}
           </span>
           <span className={styles.scoreOutOf}>/ 100</span>
         </div>
+        {d.negativeStanding && (
+          <p className={styles.negativeBanner} role="alert" data-testid="trust-negative-banner">
+            Negative standing — Penal Code
+          </p>
+        )}
         <div
           className={styles.meter}
           role="img"
-          aria-label={`Trust score ${d.score} of 100. The referral gate sits at ${gate}.`}
+          aria-label={`Trust score ${d.score} of 100. The referral gate sits at ${gate}; referral links unlock above ${linkGate}.`}
           data-testid="trust-meter"
         >
           {Array.from({ length: SEGMENTS }).map((_, i) => (
@@ -104,7 +120,7 @@ export function TrustApp(): React.ReactElement {
               className={[
                 styles.segment,
                 i < filled ? styles.segmentFilled : "",
-                i === gateSegment ? styles.segmentGate : "",
+                i === gateSegment || i === linkGateSegment ? styles.segmentGate : "",
               ]
                 .filter(Boolean)
                 .join(" ")}
@@ -113,8 +129,15 @@ export function TrustApp(): React.ReactElement {
         </div>
         <div className={styles.meterScale} aria-hidden="true">
           <span>0</span>
-          <span>{gate} — referral gate</span>
           <span>100</span>
+        </div>
+        <div className={styles.gateScale} aria-hidden="true">
+          <span className={styles.gateTickLabel} style={{ left: `${gate}%`, top: 0 }}>
+            {gate} — referral gate
+          </span>
+          <span className={styles.gateTickLabel} style={{ left: `${linkGate}%`, top: 15 }}>
+            {linkGate} — referral links
+          </span>
         </div>
         <p
           className={`${styles.gateLine} ${d.referralGatePassed ? styles.gatePassed : styles.gateHeld}`}
@@ -124,6 +147,14 @@ export function TrustApp(): React.ReactElement {
           {d.referralGatePassed
             ? `Standing above ${gate} — you may refer without a token.`
             : `Standing at or below ${gate} — a referral spends one referral token.`}
+        </p>
+        <p
+          className={`${styles.gateLine} ${styles.gateLineTight} ${d.referralLinkGatePassed ? styles.gatePassed : styles.gateHeld}`}
+          data-testid="trust-linkgate-line"
+        >
+          {d.referralLinkGatePassed
+            ? `Standing above ${linkGate} — shareable referral links are unlocked.`
+            : `Standing at or below ${linkGate} — shareable referral links stay locked.`}
         </p>
       </section>
 

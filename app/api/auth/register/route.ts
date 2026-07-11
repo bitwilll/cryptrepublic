@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { registerSchema, normalizeEmail } from "@/lib/validation/auth";
 import { hashPassword } from "@/lib/auth/password";
 import { createSession } from "@/lib/auth/session";
@@ -11,6 +12,13 @@ import {
   tooManyRequests,
   withSessionCookie,
 } from "@/lib/http/responses";
+
+// Wave 17 — signup may carry an OPTIONAL referral-link code (?ref= plumbed
+// through the auth form). An unknown or revoked code is SILENTLY ignored:
+// registration must never fail because of a bad ref code.
+const registerWithRefSchema = registerSchema.extend({
+  refCode: z.string().max(32).optional(),
+});
 
 export async function POST(req: Request): Promise<Response> {
   if (!isAllowedOrigin(req)) return forbidden();
@@ -27,7 +35,7 @@ export async function POST(req: Request): Promise<Response> {
   } catch {
     return badRequest();
   }
-  const parsed = registerSchema.safeParse(body);
+  const parsed = registerWithRefSchema.safeParse(body);
   if (!parsed.success) return badRequest("Please check the form fields.");
 
   const email = normalizeEmail(parsed.data.email);
@@ -37,13 +45,34 @@ export async function POST(req: Request): Promise<Response> {
     return json({ error: "Unable to create the account." }, { status: 409 });
   }
 
-  const user = await prisma.user.create({
-    data: {
-      email,
-      name: parsed.data.name,
-      passwordHash: await hashPassword(parsed.data.passphrase),
-      application: { create: { status: "DRAFT", name: parsed.data.name } },
-    },
+  const passwordHash = await hashPassword(parsed.data.passphrase);
+  const refCode = parsed.data.refCode;
+  const user = await prisma.$transaction(async (tx) => {
+    const created = await tx.user.create({
+      data: {
+        email,
+        name: parsed.data.name,
+        passwordHash,
+        application: { create: { status: "DRAFT", name: parsed.data.name } },
+      },
+    });
+    // Wave 17 — bind a ?ref= signup to the link owner as a Referral edge, in
+    // the SAME transaction as the user row. Self/duplicate are impossible (the
+    // user is brand new); unknown/revoked codes are silently ignored.
+    if (refCode) {
+      const link = await tx.referralLink.findUnique({ where: { code: refCode } });
+      if (link && !link.revokedAt) {
+        await tx.referral.create({
+          data: {
+            referrerUserId: link.ownerUserId,
+            referredUserId: created.id,
+            whenTokenConsumed: false,
+            viaLinkId: link.id,
+          },
+        });
+      }
+    }
+    return created;
   });
 
   const { token } = await createSession(user.id, {

@@ -91,6 +91,82 @@ describe("email auth routes", () => {
     expect(clear).toMatch(/Max-Age=0/);
   });
 
+  // ── Wave 17: ?ref=<code> signup binding ────────────────────────────────
+  describe("register with a referral-link code", () => {
+    const linkOwnerEmail = `linkowner${Date.now()}@auth-routes.example`;
+    const viaEmail = `via${Date.now()}@auth-routes.example`;
+    const badEmail = `bad${Date.now()}@auth-routes.example`;
+    const revokedEmail = `revoked${Date.now()}@auth-routes.example`;
+    let linkOwnerId: string;
+    let liveLinkId: string;
+    const liveCode = `livecode${Date.now() % 100}`;
+    const revokedCode = `deadcode${Date.now() % 100}`;
+
+    it("binds the signup to the link owner as a Referral (viaLinkId, no token spent)", async () => {
+      const owner = await prisma.user.create({ data: { email: linkOwnerEmail } });
+      linkOwnerId = owner.id;
+      const live = await prisma.referralLink.create({
+        data: { code: liveCode, ownerUserId: linkOwnerId },
+      });
+      liveLinkId = live.id;
+      await prisma.referralLink.create({
+        data: { code: revokedCode, ownerUserId: linkOwnerId, revokedAt: new Date() },
+      });
+
+      const res = await register(
+        post({ email: viaEmail, passphrase: pass, name: "Via", refCode: liveCode }),
+      );
+      expect(res.status).toBe(200);
+      const referred = await prisma.user.findUniqueOrThrow({ where: { email: viaEmail } });
+      const edge = await prisma.referral.findUniqueOrThrow({
+        where: {
+          referrerUserId_referredUserId: {
+            referrerUserId: linkOwnerId,
+            referredUserId: referred.id,
+          },
+        },
+      });
+      expect(edge.viaLinkId).toBe(liveLinkId);
+      expect(edge.whenTokenConsumed).toBe(false);
+    });
+
+    it("SILENTLY ignores an unknown code — registration still succeeds, no referral", async () => {
+      const res = await register(
+        post({ email: badEmail, passphrase: pass, name: "Bad", refCode: "nosuchcode99" }),
+      );
+      expect(res.status).toBe(200);
+      const user = await prisma.user.findUniqueOrThrow({ where: { email: badEmail } });
+      expect(await prisma.referral.count({ where: { referredUserId: user.id } })).toBe(0);
+    });
+
+    it("SILENTLY ignores a REVOKED code — registration still succeeds, no referral", async () => {
+      const res = await register(
+        post({ email: revokedEmail, passphrase: pass, name: "Rev", refCode: revokedCode }),
+      );
+      expect(res.status).toBe(200);
+      const user = await prisma.user.findUniqueOrThrow({ where: { email: revokedEmail } });
+      expect(await prisma.referral.count({ where: { referredUserId: user.id } })).toBe(0);
+    });
+
+    it("400 when refCode exceeds 32 chars (schema bound)", async () => {
+      const res = await register(
+        post({
+          email: `long${Date.now()}@auth-routes.example`,
+          passphrase: pass,
+          name: "Long",
+          refCode: "x".repeat(33),
+        }),
+      );
+      expect(res.status).toBe(400);
+    });
+
+    afterAll(async () => {
+      await prisma.user.deleteMany({
+        where: { email: { in: [linkOwnerEmail, viaEmail, badEmail, revokedEmail] } },
+      });
+    });
+  });
+
   afterAll(async () => {
     // Delete ONLY this suite's fixtures. Vitest runs files in parallel against
     // the shared dev.db, so a domain-wide deleteMany cascades sessions out from
