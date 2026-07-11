@@ -1,0 +1,225 @@
+/* Fundraising desk (Wave 16) — admin panels for the submitted queue, the
+   active register, and the decided ledger. Government-issue: 1px rules, mono
+   micro-labels, squared corners (global). Registry rows only — the Republic
+   never holds funds. */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px 0 56px;
+}
+
+.notice {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  background: var(--card);
+  padding: 14px 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 720px;
+}
+.noticeLabel {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  margin-bottom: 6px;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 24px 28px;
+}
+.panelTitle {
+  margin: 0;
+  font-size: 20px;
+}
+.panelNote {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 6px 0 0;
+  max-width: 640px;
+}
+
+/* ── Submitted queue cards ── */
+.queue {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.queueCard {
+  border: 1px solid var(--line);
+  padding: 18px 20px;
+}
+.queueHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.queueTitle {
+  margin: 0;
+  font-size: 18px;
+}
+.queueMeta {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px 18px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+}
+.queueMeta b {
+  color: var(--ink);
+  font-family: var(--mono);
+  font-weight: 700;
+}
+.summary {
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  max-width: 640px;
+}
+.endorseRow {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.queueActions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.primaryAction {
+  min-height: 44px;
+  padding: 0 20px;
+}
+.dangerBtn {
+  min-height: 44px;
+  padding: 0 20px;
+  background: #fff;
+  border: 1px solid #b04141;
+  color: #8b3a3a;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.dangerBtn:hover {
+  background: #fdf6f6;
+}
+
+/* ── Status pills (mono 10px, currentColor border) ── */
+.chip {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border: 1px solid var(--muted);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.chipPending {
+  border-color: var(--gold);
+  color: var(--gold-ink);
+}
+.chipActive {
+  border-color: var(--success);
+  color: var(--success);
+}
+.chipDeclined {
+  border-color: #b04141;
+  color: #8b3a3a;
+}
+
+/* Table cell bits */
+.mono {
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.dim {
+  color: var(--muted);
+}
+.rowNote {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+/* Async status + errors (persistent live region, collapses when empty) */
+.status {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  min-height: 16px;
+  margin: 8px 0 0;
+}
+.status:empty {
+  min-height: 0;
+  margin: -24px 0 0; /* collapses to the single 24px flex gap */
+}
+.error {
+  color: #8b3a3a;
+  font-size: 13px;
+  margin: 10px 0 0;
+}
+
+/* Dialog form bits */
+.dialogText {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+.dialogActions {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.noteArea {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--ink);
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 88px;
+  resize: vertical;
+}
+
+/* Empty queue — dashed-box empty state */
+.empty {
+  margin-top: 16px;
+  border: 1px dashed var(--line);
+  padding: 20px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}

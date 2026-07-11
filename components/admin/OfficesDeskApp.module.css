@@ -1,0 +1,297 @@
+/* Offices desk (Wave 16) — the Republic's protocol office. Council roster in
+   precedence order, single-seat cards for the unique offices, and the
+   appointment form. Government-issue: 1px rules, mono micro-labels, squared
+   corners (global). Offices are honours + display only. */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px 0 56px;
+}
+
+.notice {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  background: var(--card);
+  padding: 14px 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 720px;
+}
+.noticeLabel {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  margin-bottom: 6px;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 24px 28px;
+}
+.panelTitle {
+  margin: 0;
+  font-size: 20px;
+}
+.panelNote {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 6px 0 0;
+  max-width: 640px;
+}
+
+/* ── Single-seat cards (PM / CM / COP) ── */
+.seatGrid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+.seatCard {
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--gold);
+  padding: 16px 18px;
+}
+.seatOffice {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.seatHolder {
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.vacantSeat {
+  border: 1px dashed var(--line);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.vacantLabel {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Office groups (Ministers / Senators / Legislators / Protectors) ── */
+.officeGroup {
+  margin-top: 22px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+.groupLabel {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.holderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.holderId b {
+  display: block;
+  font-size: 14.5px;
+}
+.holderMail {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.holderMeta {
+  display: flex;
+  gap: 8px 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+}
+.portfolio {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border: 1px solid var(--gold);
+  color: var(--gold-ink);
+  white-space: nowrap;
+}
+.tenure {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.groupEmpty {
+  border: 1px dashed var(--line);
+  padding: 12px 16px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.revokeBtn {
+  min-height: 44px;
+  padding: 0 16px;
+  background: #fff;
+  border: 1px solid #b04141;
+  color: #8b3a3a;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.revokeBtn:hover {
+  background: #fdf6f6;
+}
+
+/* ── Appointment form ── */
+.form {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 560px;
+}
+.searchResults {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+}
+.searchResult {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  padding: 10px 12px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+}
+.searchResult:last-child {
+  border-bottom: none;
+}
+.searchResult:hover {
+  background: var(--paper);
+}
+.resultOffices {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.selectedUser {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--blue);
+  padding: 12px 14px;
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.primaryAction {
+  min-height: 44px;
+  padding: 0 20px;
+  align-self: flex-start;
+}
+.mono {
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.dim {
+  color: var(--muted);
+}
+
+/* Async status + errors (persistent live region, collapses when empty) */
+.status {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  min-height: 16px;
+  margin: 8px 0 0;
+}
+.status:empty {
+  min-height: 0;
+  margin: -24px 0 0; /* collapses to the single 24px flex gap */
+}
+.error {
+  color: #8b3a3a;
+  font-size: 13px;
+  margin: 0;
+}
+.error:empty {
+  margin: -14px 0 0; /* collapses to the single 14px form gap */
+}
+
+/* Dialog form bits */
+.dialogText {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+.dialogActions {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.noteArea {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--ink);
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 88px;
+  resize: vertical;
+}
+
+.footNote {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1.55;
+}
