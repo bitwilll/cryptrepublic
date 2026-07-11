@@ -1,0 +1,400 @@
+/* Citizens & messages (Wave 17) — government-issue document styling.
+   1px --line borders, uppercase mono micro-labels, squared geometry (the
+   global retheme zeroes every radius); patterns copied from the store and
+   trust modules so the registry reads as one system. */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 32px 24px;
+  max-width: 860px;
+  margin: 0;
+  align-self: flex-start;
+}
+
+.lede {
+  color: var(--muted);
+  margin-top: 8px;
+  max-width: 620px;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.microLabel {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 24px 28px;
+}
+.cardTitle {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0 0 4px;
+}
+
+/* ── Your Civic ID ── */
+.civicRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  margin-top: 10px;
+}
+.civicValue {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+}
+.tab {
+  appearance: none;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 12px 18px;
+  min-height: 44px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+.tabActive {
+  color: var(--blue);
+  border-bottom-color: var(--blue);
+}
+
+/* ── Status / kind pills ── */
+.status {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.kindFamily {
+  color: var(--gold-ink);
+  border-color: var(--gold);
+}
+.kindFriend {
+  color: var(--blue);
+}
+.statusPending {
+  color: var(--gold-ink);
+  border-color: var(--gold);
+}
+.statusMuted {
+  color: var(--muted);
+}
+.unread {
+  color: #fff;
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
+/* ── Rows (requests / connections / conversation list) ── */
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 16px 20px;
+}
+.rowMain {
+  min-width: 0;
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rowTitle {
+  font-size: 15px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.rowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+}
+.metaText {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.greeting {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink);
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+/* conversation list entries are buttons — full-row hit targets */
+.convoBtn {
+  appearance: none;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+.convoBtn:hover {
+  border-color: var(--blue);
+}
+
+/* ── Buttons (44px targets) ── */
+.actionBtn {
+  appearance: none;
+  background: var(--card);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 11px 16px;
+  min-height: 44px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.actionBtn:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+.actionBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.actionBtnDanger {
+  color: #8b3a3a;
+  border-color: #b04141;
+}
+.actionBtnPrimary {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+.actionBtnPrimary:hover:not(:disabled) {
+  background: var(--blue-d);
+  border-color: var(--blue-d);
+}
+
+/* ── Thread ── */
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.threadHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+.threadScroll {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 16px;
+  max-height: 440px;
+  min-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bubble {
+  max-width: 78%;
+  border: 1px solid var(--line);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.bubbleMine {
+  background: var(--paper);
+  align-self: flex-end;
+}
+.bubbleTheirs {
+  background: var(--card);
+  align-self: flex-start;
+}
+.bubbleBody {
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.composer {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+.composerInput {
+  flex: 1 1 auto;
+  min-height: 64px;
+  resize: vertical;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.composerInput:focus {
+  border-color: var(--blue);
+}
+.honesty {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* ── Forms ── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 560px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.input,
+.textarea,
+.select {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  width: 100%;
+}
+.input:focus,
+.textarea:focus,
+.select:focus {
+  border-color: var(--blue);
+}
+.textarea {
+  min-height: 100px;
+  resize: vertical;
+  line-height: 1.6;
+}
+.civicInput {
+  font-family: var(--mono);
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  max-width: 320px;
+}
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+.fieldError {
+  font-size: 12px;
+  color: #8b3a3a;
+}
+.errorBox {
+  border: 1px solid #b04141;
+  border-left-width: 3px;
+  background: color-mix(in srgb, #b04141 10%, transparent);
+  padding: 12px 16px;
+  color: #8b3a3a;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.successText {
+  color: var(--success);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* persistent aria-live status band — collapses when empty */
+.statusLine {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.statusLine:empty {
+  min-height: 0;
+  margin-block: -10px;
+}
+
+/* ── New-group member picker ── */
+.checkList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 560px;
+}
+.checkItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  padding: 12px 14px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.checkItem input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--blue);
+}
+
+/* loading skeleton stack */
+.skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
