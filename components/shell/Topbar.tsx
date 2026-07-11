@@ -27,6 +27,8 @@ const TITLES: Record<string, string> = {
   "/dashboard/insurance": "Insurance",
   "/dashboard/invest": "Projects & investment",
   "/dashboard/community": "Citizens & messages",
+  "/dashboard/conduct": "Conduct reports",
+  "/dashboard/tribunal": "Tribunal",
   "/dashboard/referrals": "Referrals & trust",
   "/dashboard/witness": "Witness attestation",
 };
