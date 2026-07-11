@@ -5,6 +5,7 @@ import { isAllowedOrigin } from "@/lib/auth/csrf";
 import { json, badRequest, forbidden } from "@/lib/http/responses";
 import { fileReportSchema } from "@/lib/validation/reports";
 import { normalizeCivicId, getOrAssignCivicId } from "@/lib/identity/civicId";
+import { OPEN_REPORT_CAP } from "@/lib/gov/types";
 
 /**
  * Conduct reports (Wave 17) — citizen filing + the citizen's own record.
@@ -15,9 +16,6 @@ import { normalizeCivicId, getOrAssignCivicId } from "@/lib/identity/civicId";
  * display name. The reporter's identity never reaches the subject: only a
  * VERIFIED charge (category, grade, penalty, note) is disclosed to them.
  */
-
-/** A reporter may hold at most this many OPEN (SUBMITTED) reports at once. */
-export const OPEN_REPORT_CAP = 3;
 
 /**
  * POST /api/reports — file a conduct report against a Civic ID. Session +

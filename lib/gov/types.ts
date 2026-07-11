@@ -139,5 +139,8 @@ export const OFFICE_FORFEITURE_GRADE: PenalGrade = "V";
 /** Offices empowered to verify conduct reports (beside ADMIN). */
 export const REPORT_VERIFIER_OFFICES: readonly CivicOffice[] = ["PROTECTOR", "CHIEF_OF_PROTECTORS"];
 
+/** A reporter may have at most this many SUBMITTED conduct reports at once. */
+export const OPEN_REPORT_CAP = 3;
+
 /** Creating a shareable referral link requires finalScore STRICTLY above this. */
 export const REFERRAL_LINK_THRESHOLD = 65;

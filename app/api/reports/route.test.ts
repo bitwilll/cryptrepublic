@@ -3,7 +3,8 @@ import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 import { prisma } from "@/lib/db";
 import { createSession } from "@/lib/auth/session";
 import { getOrAssignCivicId } from "@/lib/identity/civicId";
-import { GET, POST, OPEN_REPORT_CAP } from "./route";
+import { GET, POST } from "./route";
+import { OPEN_REPORT_CAP } from "@/lib/gov/types";
 
 /**
  * /api/reports (Wave 17 conduct reports). Real prisma against the shared
