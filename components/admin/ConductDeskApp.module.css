@@ -1,0 +1,210 @@
+/* Conduct desk (Wave 17) — admin panels for the submitted queue and the
+   verified / dismissed ledgers. Government-issue: 1px rules, mono
+   micro-labels, squared corners (global). Decisions run through the shared
+   band-validated form and are audit-logged by the API in one transaction. */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px 0 56px;
+}
+
+.notice {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  background: var(--card);
+  padding: 14px 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 720px;
+}
+
+.noticeLabel {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  margin-bottom: 6px;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 24px 28px;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 20px;
+}
+
+.panelNote {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 6px 0 0;
+  max-width: 640px;
+}
+
+/* ── Submitted queue cards ── */
+.queue {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.queueCard {
+  border: 1px solid var(--line);
+  padding: 18px 20px;
+}
+
+.queueHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.queueTitle {
+  margin: 0;
+  font-size: 18px;
+}
+
+.queueMeta {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px 18px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.complaint {
+  margin: 12px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  max-width: 640px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.queueActions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── Status / grade pills (mono 10px 700, currentColor border) ── */
+.pill {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+
+.pillGold {
+  color: var(--gold-ink);
+}
+
+.pillMuted {
+  color: var(--muted);
+}
+
+/* Grades I / II — minor offences, gold ink. */
+.gradeLow {
+  color: var(--gold-ink);
+}
+
+/* Grades III / IV — serious offences. */
+.gradeHigh {
+  color: #8b3a3a;
+  border-color: #b04141;
+}
+
+/* Grade V — forfeiture grade, bold. */
+.gradeV {
+  color: #8b3a3a;
+  border-color: #b04141;
+  font-weight: 800;
+}
+
+.gradeCell {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Table cell bits */
+.mono {
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.rowNote {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+/* Async status + errors (persistent live region, collapses when empty) */
+.status {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  min-height: 16px;
+  margin: 8px 0 0;
+}
+
+.status:empty {
+  min-height: 0;
+  margin: -24px 0 0; /* collapses to the single 24px flex gap */
+}
+
+.error {
+  color: #8b3a3a;
+  font-size: 13px;
+  margin: 10px 0 0;
+}
+
+/* Empty queue — dashed-box empty state */
+.empty {
+  margin-top: 16px;
+  border: 1px dashed var(--line);
+  padding: 20px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Statutory footer */
+.footer {
+  border-left: 3px solid var(--gold);
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 14px 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 720px;
+}

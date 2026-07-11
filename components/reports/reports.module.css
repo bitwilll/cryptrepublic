@@ -1,0 +1,330 @@
+/* Conduct tribunal (Wave 17) — the Protectors' verification docket.
+   Government-issue tone: 1px --line borders, squared geometry (global reset),
+   mono micro-labels, generous air. Stack copied from trust.module.css. */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 32px 24px;
+  max-width: 860px;
+  /* Carries the global `.wrap` (margin: 0 auto) as a direct flex item of the
+     shell's .main column — kill the centering + stretch so the page anchors
+     left like every sibling dashboard screen. */
+  margin: 0;
+  align-self: flex-start;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 24px 28px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 20px;
+}
+
+.cardNote {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 6px 0 0;
+  max-width: 640px;
+}
+
+.microLabel {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Status pills (mono 10px 700, currentColor border — store convention) ── */
+.pill {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+
+.pillGold {
+  color: var(--gold-ink);
+}
+
+.pillMuted {
+  color: var(--muted);
+}
+
+.pillDanger {
+  color: #8b3a3a;
+  border-color: #b04141;
+}
+
+.pillDangerBold {
+  color: #8b3a3a;
+  border-color: #b04141;
+  font-weight: 800;
+}
+
+/* ── Docket cards ── */
+.queue {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.queueCard {
+  border: 1px solid var(--line);
+  padding: 18px 20px;
+}
+
+.queueHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.queueTitle {
+  margin: 0;
+  font-size: 18px;
+}
+
+.queueMeta {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px 18px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.mono {
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.complaint {
+  margin: 12px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  max-width: 640px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.queueActions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── Decide form ── */
+.form {
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 520px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modeGroup {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.modeGroup legend {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.modeOption {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.input,
+.select,
+.textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--ink);
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+}
+
+.textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.fieldError {
+  color: #8b3a3a;
+  font-size: 13px;
+  margin: 0;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.forfeitWarning {
+  border: 1px solid #b04141;
+  border-left: 3px solid #b04141;
+  background: var(--paper);
+  color: #8b3a3a;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 10px 14px;
+  margin: 0;
+}
+
+.confirmBox {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  background: var(--paper);
+  padding: 14px 18px;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.formActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dangerBtn {
+  min-height: 44px;
+  padding: 0 20px;
+  background: #fff;
+  border: 1px solid #b04141;
+  color: #8b3a3a;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.dangerBtn:hover {
+  background: #fdf6f6;
+}
+
+.error {
+  color: #8b3a3a;
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Async status live region — persistent, collapses when empty. */
+.status {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--success);
+  min-height: 16px;
+  margin: 8px 0 0;
+}
+
+.status:empty {
+  min-height: 0;
+  margin: -20px 0 0; /* collapses to the single 20px stack gap */
+}
+
+/* ── Penal Code reference table ── */
+.tableWrap {
+  margin-top: 16px;
+  overflow-x: auto;
+}
+
+.bandTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 480px;
+}
+
+.bandTable th {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.bandTable td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  vertical-align: top;
+}
+
+.skeleton {
+  height: 14px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.retry {
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 10px 22px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
