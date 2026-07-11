@@ -46,6 +46,16 @@ model User {
   investmentPledges     InvestmentPledge[]     @relation("InvestmentPledges")
   projectEndorsements   ProjectEndorsement[]   @relation("ProjectEndorsements")
   officeAppointments    OfficeAppointment[]    @relation("OfficeAppointments")
+
+  civicId String? @unique // CR-XXXX-XXXX anonymous handle (lazy-assigned; lib/identity/civicId.ts)
+
+  connectionsRequested CitizenConnection[]  @relation("ConnectionsRequested")
+  connectionsReceived  CitizenConnection[]  @relation("ConnectionsReceived")
+  conversationMembers  ConversationMember[] @relation("ConversationMembers")
+  messagesSent         DirectMessage[]      @relation("MessagesSent")
+  referralLinks        ReferralLink[]       @relation("ReferralLinks")
+  reportsFiled         CitizenReport[]      @relation("ReportsFiled")
+  reportsAgainst       CitizenReport[]      @relation("ReportsAgainst")
 }
 
 model Session {
@@ -206,6 +216,7 @@ model Referral {
   referredUserId    String
   referred          User     @relation("ReferralsReceived", fields: [referredUserId], references: [id], onDelete: Cascade)
   whenTokenConsumed Boolean  @default(false) // true = create spent a referral token; false = trust>50 bypass
+  viaLinkId         String? // ReferralLink id when the edge came from a ?ref= signup (Wave 17)
   createdAt         DateTime @default(now())
 
   @@unique([referrerUserId, referredUserId])
@@ -544,4 +555,106 @@ model OfficeAppointment {
 
   @@index([userId])
   @@index([office])
+}
+
+/// A friend/family connection between two citizens (Wave 17). Requests are
+/// addressed by the target's ANONYMOUS Civic ID (User.civicId) — identity
+/// disclosure stays in the citizen's hands. Only ACCEPTED pairs may message.
+model CitizenConnection {
+  id              String    @id @default(cuid())
+  requesterUserId String
+  requester       User      @relation("ConnectionsRequested", fields: [requesterUserId], references: [id], onDelete: Cascade)
+  addresseeUserId String
+  addressee       User      @relation("ConnectionsReceived", fields: [addresseeUserId], references: [id], onDelete: Cascade)
+  kind            String    @default("FRIEND") // ConnectionKind union FRIEND|FAMILY
+  status          String    @default("PENDING") // ConnectionStatus union PENDING|ACCEPTED|DECLINED|REMOVED
+  greeting        String? // optional message shown with the request
+  createdAt       DateTime  @default(now())
+  respondedAt     DateTime?
+
+  @@unique([requesterUserId, addresseeUserId])
+  @@index([addresseeUserId, status])
+}
+
+/// A conversation (Wave 17): DIRECT (auto-created when a connection is
+/// accepted) or GROUP (creator adds members by Civic ID from their ACCEPTED
+/// connections). Messages are stored in the registry — NOT end-to-end
+/// encrypted; the UI states this honestly.
+model Conversation {
+  id            String   @id @default(cuid())
+  kind          String   @default("DIRECT") // ConversationKind union DIRECT|GROUP
+  title         String? // group name; null for DIRECT
+  creatorUserId String? // group creator; null for DIRECT
+  createdAt     DateTime @default(now())
+
+  members  ConversationMember[]
+  messages DirectMessage[]
+}
+
+model ConversationMember {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation("ConversationMembers", fields: [userId], references: [id], onDelete: Cascade)
+  addedBy        String? // userId that added this member (GROUP)
+  joinedAt       DateTime     @default(now())
+  leftAt         DateTime?
+  lastReadAt     DateTime?
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+model DirectMessage {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderUserId   String
+  sender         User         @relation("MessagesSent", fields: [senderUserId], references: [id], onDelete: Cascade)
+  body           String // plain text 1..2000; stored by the registry, never E2E-encrypted
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+/// A shareable referral link (Wave 17). Creation is gated at trust
+/// finalScore > 65 (REFERRAL_LINK_THRESHOLD) — stricter than the 50-point
+/// token bypass. Signup with ?ref=code binds a Referral edge to the owner.
+model ReferralLink {
+  id          String    @id @default(cuid())
+  code        String    @unique // short slug carried in the public signup URL
+  ownerUserId String
+  owner       User      @relation("ReferralLinks", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  label       String?
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
+
+  @@index([ownerUserId])
+}
+
+/// A conduct report filed by one citizen about another (Wave 17). Verified by
+/// an ADMIN or a sitting Protector / Chief of Protectors (deciderOffice).
+/// Verification assigns a Penal Code grade (I..V) and a penalty within that
+/// grade's band; VERIFIED reports feed the negative penal-record factor of the
+/// trust score. Grade V forfeits every office held (Penal Code).
+model CitizenReport {
+  id             String    @id @default(cuid())
+  reporterUserId String
+  reporter       User      @relation("ReportsFiled", fields: [reporterUserId], references: [id], onDelete: Cascade)
+  subjectUserId  String
+  subject        User      @relation("ReportsAgainst", fields: [subjectUserId], references: [id], onDelete: Cascade)
+  category       String // ReportCategory union (lib/gov/types.ts — mirrors Penal Code grades)
+  body           String // the complaint (never surfaced in audit snapshots)
+  status         String    @default("SUBMITTED") // ReportStatus union SUBMITTED|VERIFIED|DISMISSED
+  grade          String? // PenalGrade union I..V — set at verification
+  penalty        Int? // negative points within the grade band — set at verification
+  decidedBy      String? // admin or officer userId
+  deciderOffice  String? // "ADMIN" | "PROTECTOR" | "CHIEF_OF_PROTECTORS"
+  note           String? // decision note
+  createdAt      DateTime  @default(now())
+  decidedAt      DateTime?
+
+  @@index([subjectUserId, status])
+  @@index([status])
 }

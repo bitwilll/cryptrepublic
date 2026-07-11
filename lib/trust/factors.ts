@@ -1,4 +1,5 @@
-import { TENURE_BLOCKS_PER_POINT, type TrustScore } from "./score";
+import { CIVIC_ACTIVITY_CAP, SCORE_FLOOR, TENURE_BLOCKS_PER_POINT, type TrustScore } from "./score";
+import { REFERRAL_LINK_THRESHOLD } from "@/lib/gov/types";
 
 /**
  * Faithful DECOMPOSITION of the existing hybrid trust score (lib/trust/score.ts)
@@ -34,8 +35,10 @@ export interface TrustReport {
   computed: number;
   adminAdjustment: number;
   factors: TrustFactor[];
-  thresholds: { referralGate: number };
+  thresholds: { referralGate: number; referralLinkGate: number };
   referralGatePassed: boolean; // score > threshold (mirrors the gate exactly)
+  referralLinkGatePassed: boolean; // score > 65 unlocks shareable referral links
+  negativeStanding: boolean; // score < 0 — the statute made real (Wave 17)
   negativeStandingRule: string;
 }
 
@@ -52,12 +55,32 @@ export function decomposeTrustScore(t: TrustScore): TrustFactor[] {
   const referralPoints = Math.min(SUBSCORE_CAP, s.referralsBecameCitizens * POINTS_PER_EVENT);
   const governancePoints = Math.min(SUBSCORE_CAP, s.governanceVotes * POINTS_PER_EVENT);
   const dividendPoints = Math.min(SUBSCORE_CAP, s.dividendClaims * POINTS_PER_EVENT);
-  // The EFFECTIVE adjustment — what the clamp actually let through — so the
-  // ledger never overstates a Cabinet delta the 0..100 band absorbed.
-  const effectiveAdjustment = t.finalScore - t.computed;
+  const civicUnits =
+    s.witnessAttestationsGiven * 2 + s.certificatesIssued + s.projectEndorsementsGiven;
+  const civicPoints = Math.min(CIVIC_ACTIVITY_CAP, civicUnits);
+  // Civic activity is INSIDE `computed`, which clamps at 100 — attribute to the
+  // ledger only what the clamp let through (the five chain factors are listed
+  // first; civic absorbs the overflow, mirroring the adjustment convention).
+  const chainPoints =
+    (s.isCitizen ? SUBSCORE_CAP : 0) +
+    tenurePoints +
+    referralPoints +
+    governancePoints +
+    dividendPoints;
+  const effectiveCivic = Math.min(civicPoints, Math.max(0, 100 - chainPoints));
+  // Two post-computed terms share the tail to finalScore. Penal is attributed
+  // first (statute), the Cabinet adjustment takes the remainder — each shows
+  // its RAW recorded value in the detail when the band absorbed part of it.
+  const afterPenal = Math.max(SCORE_FLOOR, Math.min(100, t.computed + s.penalPoints));
+  const effectivePenal = afterPenal - t.computed;
+  const effectiveAdjustment = t.finalScore - afterPenal;
   const clampNote =
     t.adminAdjustment !== 0 && effectiveAdjustment !== t.adminAdjustment
-      ? ` (clamped to the 0–100 band from a recorded ${t.adminAdjustment > 0 ? "+" : ""}${t.adminAdjustment})`
+      ? ` (clamped to the −100…100 band from a recorded ${t.adminAdjustment > 0 ? "+" : ""}${t.adminAdjustment})`
+      : "";
+  const penalClampNote =
+    s.penalPoints !== 0 && effectivePenal !== s.penalPoints
+      ? ` (recorded ${s.penalPoints}; the −100 floor absorbed the rest)`
       : "";
 
   return [
@@ -106,6 +129,24 @@ export function decomposeTrustScore(t: TrustScore): TrustFactor[] {
           : "No dividend claims on record.",
     },
     {
+      key: "civic-activity",
+      label: "Civic activity",
+      points: effectiveCivic,
+      detail:
+        civicUnits > 0
+          ? `${plural(s.witnessAttestationsGiven, "witness attestation")} given (2 points each), ${plural(s.certificatesIssued, "certificate")} issued and ${plural(s.projectEndorsementsGiven, "project endorsement")} made (1 point each), capped at ${CIVIC_ACTIVITY_CAP}.`
+          : "Witness for applicants, issue certificates, and endorse projects to earn up to 10 points.",
+    },
+    {
+      key: "penal-record",
+      label: "Penal record",
+      points: effectivePenal,
+      detail:
+        s.verifiedReportCount > 0
+          ? `${plural(s.verifiedReportCount, "verified conduct report")} on record under the Penal Code${penalClampNote}.`
+          : "No verified conduct reports on record.",
+    },
+    {
       key: "cabinet-adjustment",
       label: "Cabinet adjustment",
       points: effectiveAdjustment,
@@ -124,8 +165,13 @@ export function buildTrustReport(t: TrustScore): TrustReport {
     computed: t.computed,
     adminAdjustment: t.adminAdjustment,
     factors: decomposeTrustScore(t),
-    thresholds: { referralGate: REFERRAL_GATE_THRESHOLD },
+    thresholds: {
+      referralGate: REFERRAL_GATE_THRESHOLD,
+      referralLinkGate: REFERRAL_LINK_THRESHOLD,
+    },
     referralGatePassed: t.finalScore > REFERRAL_GATE_THRESHOLD,
+    referralLinkGatePassed: t.finalScore > REFERRAL_LINK_THRESHOLD,
+    negativeStanding: t.finalScore < 0,
     negativeStandingRule: NEGATIVE_STANDING_RULE,
   };
 }

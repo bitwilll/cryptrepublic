@@ -160,6 +160,7 @@ const TITLES: Record<string, string> = {
   "/admin/services": "Services desk",
   "/admin/fundraising": "Fundraising desk",
   "/admin/offices": "Offices desk",
+  "/admin/reports": "Conduct desk",
   "/admin/audit": "Audit log",
 };
 

@@ -265,6 +265,19 @@ export const REGISTRY: readonly RegistryItem[] = [
     capabilities: [{ title: "Citizen as buyer" }, { title: "Citizen as seller" }],
   },
   {
+    // Post-board Cabinet addition (2026-07-12): anonymous Civic IDs, citizen
+    // connections and registry messaging. Messages are stored by the registry
+    // (not end-to-end encrypted) — stated honestly in the product.
+    id: "citizen-connections",
+    title: "Citizens & messages",
+    branch: "utilities",
+    summary: "Share your Civic ID, connect as friends or family, and talk on the portal.",
+    detail:
+      "Every citizen carries an anonymous Civic ID on their passport. Share it to be added as a friend or family member — upon the other citizen's acceptance both can message on the portal, form groups, and request endorsements, without disclosing name or e-mail.",
+    status: "live",
+    href: "/dashboard/community",
+  },
+  {
     // Post-board Cabinet addition (2026-07-08): citizen fundraising +
     // investment pledges. Registry rows only — the Republic never holds funds.
     id: "fundraising-investment",

@@ -11,26 +11,31 @@ import { resolveApplicantAddress } from "@/lib/applications/applicant";
 import { prisma } from "@/lib/db";
 
 /**
- * Hybrid trust score (Wave 12). The `computed` component is derived ONLY from
- * honest, chain-real signals (never fabricated); the sole persisted input is
- * `User.trustAdjustment` (an admin-set, audited signed delta). The score is
- * computed ON READ (no cache column) and surfaced READ-ONLY to the citizen —
- * it is NEVER citizenship (that stays chain-derived). `finalScore > 50`
- * bypasses the referral-token cost (see lib/referrals/gate.ts).
+ * Hybrid trust score (Wave 12, extended Wave 17). The `computed` component is
+ * derived ONLY from honest signals (chain-real or DB-real; never fabricated);
+ * the persisted inputs are `User.trustAdjustment` (admin-set, audited) and
+ * VERIFIED CitizenReport penalties (officer/admin-decided, audited). The score
+ * is computed ON READ and surfaced READ-ONLY — it is NEVER citizenship (that
+ * stays chain-derived). `finalScore > 50` bypasses the referral-token cost;
+ * `finalScore > 65` unlocks shareable referral links (lib/referrals/gate.ts).
  *
- * Five bounded sub-scores (each max 20 → computed in 0..100 before clamp):
- *   isCitizen (20) · tenure (20) · referrals-who-became-citizens (20) ·
- *   governance votes (20) · dividend claims (20).
+ * Positive signals: five bounded chain sub-scores (each max 20) + a civic
+ * activity sub-score (max 10, from DB-real acts: witness attestations given,
+ * certificates issued, project endorsements) → computed clamped 0..100.
+ * Negative signal (Wave 17, per the Penal Code): the summed penalties of
+ * VERIFIED conduct reports. finalScore = clamp(computed + adjustment +
+ * penalPoints, −100, 100) — the statute allows negative standing.
  *
  * TODO(future): a server-side STAKE signal — staking is a client-only reader
- * today; add a server stake read as a 6th signal when one exists (rebalance
- * the caps). Deferred this wave (Constraint #6).
+ * today; add a server stake read when one exists (rebalance the caps).
  */
 
 // ≈ one day on a 2s-block chain (Base): 1 tenure point per ~43.2k blocks,
 // capped at 20 (≈20 days of citizenship reaches the tenure ceiling).
 export const TENURE_BLOCKS_PER_POINT = 43_200;
 const SUBSCORE_CAP = 20;
+export const CIVIC_ACTIVITY_CAP = 10;
+export const SCORE_FLOOR = -100;
 
 export interface TrustSubject {
   userId: string;
@@ -44,12 +49,19 @@ export interface TrustSignals {
   referralsBecameCitizens: number;
   governanceVotes: number;
   dividendClaims: number;
+  // Wave 17 — DB-real civic activity (2 pts / attestation, 1 pt each otherwise; combined cap 10)
+  witnessAttestationsGiven: number;
+  certificatesIssued: number;
+  projectEndorsementsGiven: number;
+  // Wave 17 — penal record: sum of VERIFIED report penalties (<= 0) + count
+  penalPoints: number;
+  verifiedReportCount: number;
 }
 
 export interface TrustScore {
   computed: number; // 0..100 (sum of honest sub-scores, pre-adjustment)
   adminAdjustment: number; // the persisted signed delta
-  finalScore: number; // clamp(computed + adminAdjustment, 0, 100)
+  finalScore: number; // clamp(computed + adminAdjustment + penalPoints, -100, 100)
   signals: TrustSignals;
 }
 
@@ -106,6 +118,56 @@ async function countGovernanceVotes(chainId: number, tokenId: bigint): Promise<n
   return votes;
 }
 
+async function civicActivityOf(userId: string): Promise<{
+  witnessAttestationsGiven: number;
+  certificatesIssued: number;
+  projectEndorsementsGiven: number;
+}> {
+  const wallets = await safe(
+    () =>
+      prisma.linkedWallet.findMany({
+        where: { userId, verifiedAt: { not: null } },
+        select: { address: true },
+      }),
+    [] as { address: string }[],
+  );
+  const witnessAttestationsGiven =
+    wallets.length > 0
+      ? await safe(
+          () =>
+            prisma.witnessSignature.count({
+              where: { witnessAddress: { in: wallets.map((w) => w.address) } },
+            }),
+          0,
+        )
+      : 0;
+  const certificatesIssued = await safe(
+    () => prisma.signedCertificate.count({ where: { authorUserId: userId, revokedAt: null } }),
+    0,
+  );
+  const projectEndorsementsGiven = await safe(
+    () => prisma.projectEndorsement.count({ where: { userId } }),
+    0,
+  );
+  return { witnessAttestationsGiven, certificatesIssued, projectEndorsementsGiven };
+}
+
+async function penalRecordOf(userId: string): Promise<{ penalPoints: number; count: number }> {
+  const agg = await safe(
+    () =>
+      prisma.citizenReport.aggregate({
+        where: { subjectUserId: userId, status: "VERIFIED" },
+        _sum: { penalty: true },
+        _count: { _all: true },
+      }),
+    null as { _sum: { penalty: number | null }; _count: { _all: number } } | null,
+  );
+  return {
+    penalPoints: agg?._sum.penalty ?? 0,
+    count: agg?._count._all ?? 0,
+  };
+}
+
 export async function computeTrustScore(
   chainId: number,
   subject: TrustSubject,
@@ -132,23 +194,37 @@ export async function computeTrustScore(
       ? (await safe(() => readDividendHistoryServer(chainId, subject.tokenId as bigint), [])).length
       : 0;
 
+  const civic = await civicActivityOf(subject.userId);
+  const penal = await penalRecordOf(subject.userId);
+
   const signals: TrustSignals = {
     isCitizen,
     tenureBlocks,
     referralsBecameCitizens,
     governanceVotes,
     dividendClaims,
+    ...civic,
+    penalPoints: penal.penalPoints,
+    verifiedReportCount: penal.count,
   };
+
+  const civicActivityPoints = Math.min(
+    CIVIC_ACTIVITY_CAP,
+    civic.witnessAttestationsGiven * 2 + civic.certificatesIssued + civic.projectEndorsementsGiven,
+  );
 
   const computed = clamp(
     (isCitizen ? SUBSCORE_CAP : 0) +
       Math.min(SUBSCORE_CAP, Math.floor(tenureBlocks / TENURE_BLOCKS_PER_POINT)) +
       Math.min(SUBSCORE_CAP, referralsBecameCitizens * 4) +
       Math.min(SUBSCORE_CAP, governanceVotes * 4) +
-      Math.min(SUBSCORE_CAP, dividendClaims * 4),
+      Math.min(SUBSCORE_CAP, dividendClaims * 4) +
+      civicActivityPoints,
     0,
     100,
   );
-  const finalScore = clamp(computed + adminAdjustment, 0, 100);
+  // Penal record applies AFTER the 0..100 computed clamp; the statute allows
+  // negative standing, so the final band is -100..100.
+  const finalScore = clamp(computed + adminAdjustment + signals.penalPoints, SCORE_FLOOR, 100);
   return { computed, adminAdjustment, finalScore, signals };
 }

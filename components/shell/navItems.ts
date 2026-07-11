@@ -58,7 +58,10 @@ export const NAV_SECTIONS: readonly NavSection[] = [
   },
   {
     title: "Community",
-    items: [{ href: "/dashboard/referrals", label: "Referrals & trust", icon: "referrals" }],
+    items: [
+      { href: "/dashboard/community", label: "Citizens & messages", icon: "population" },
+      { href: "/dashboard/referrals", label: "Referrals & trust", icon: "referrals" },
+    ],
   },
 ] as const;
 

@@ -116,12 +116,12 @@ describe("GET /api/trust", () => {
     expect((await GET(get())).status).toBe(401);
   });
 
-  it("a walletless member scores 0 with a full six-factor ledger summing to the score", async () => {
+  it("a walletless member scores 0 with a full eight-factor ledger summing to the score", async () => {
     const res = await GET(get({ token }));
     expect(res.status).toBe(200);
     const body = (await res.json()) as TrustPayload;
     expect(body.score).toBe(0);
-    expect(body.factors).toHaveLength(6);
+    expect(body.factors).toHaveLength(8);
     expect(body.factors.reduce((a, f) => a + f.points, 0)).toBe(body.score);
     expect(body.thresholds.referralGate).toBe(50);
     expect(body.referralGatePassed).toBe(false);

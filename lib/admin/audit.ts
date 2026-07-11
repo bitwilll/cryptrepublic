@@ -48,7 +48,8 @@ export type AuditTargetType =
   | "INSURANCE_APPLICATION"
   | "STORE_LISTING"
   | "FUNDRAISING_PROJECT"
-  | "OFFICE_APPOINTMENT";
+  | "OFFICE_APPOINTMENT"
+  | "CITIZEN_REPORT";
 
 /** Per-targetType field ALLOWLIST — the ONLY keys serializeForAudit will emit.
  *  INVARIANT (test-enforced): no allowlist ever contains passwordHash, tokenHash,
@@ -179,6 +180,21 @@ export const AUDIT_FIELD_ALLOWLIST: Record<AuditTargetType, readonly string[]> =
     "appointedAt",
     "revokedAt",
     "revokedBy",
+  ],
+  // Wave 17: conduct-report decisions. The complaint BODY and the REPORTER id
+  // are deliberately excluded — audit snapshots must not expose either.
+  CITIZEN_REPORT: [
+    "id",
+    "subjectUserId",
+    "category",
+    "status",
+    "grade",
+    "penalty",
+    "decidedBy",
+    "deciderOffice",
+    "note",
+    "createdAt",
+    "decidedAt",
   ],
 };
 

@@ -26,6 +26,11 @@ const h = vi.hoisted(() => ({
     { referredUserId: "r5" },
   ],
   resolveAddr: async (_id: string) => ADDR,
+  linkedWallets: async () => [] as { address: string }[],
+  witnessCount: async () => 0,
+  certCount: async () => 0,
+  endorseCount: async () => 0,
+  penalAgg: async () => ({ _sum: { penalty: null as number | null }, _count: { _all: 0 } }),
 }));
 
 vi.mock("@/lib/passport/serverReads", () => ({
@@ -44,7 +49,14 @@ vi.mock("@/lib/applications/applicant", () => ({
   resolveApplicantAddress: (id: string) => h.resolveAddr(id),
 }));
 vi.mock("@/lib/db", () => ({
-  prisma: { referral: { findMany: () => h.referralEdges() } },
+  prisma: {
+    referral: { findMany: () => h.referralEdges() },
+    linkedWallet: { findMany: () => h.linkedWallets() },
+    witnessSignature: { count: () => h.witnessCount() },
+    signedCertificate: { count: () => h.certCount() },
+    projectEndorsement: { count: () => h.endorseCount() },
+    citizenReport: { aggregate: () => h.penalAgg() },
+  },
 }));
 
 import { computeTrustScore } from "./score";
@@ -66,6 +78,11 @@ beforeEach(() => {
     { referredUserId: "r5" },
   ];
   h.resolveAddr = async () => ADDR;
+  h.linkedWallets = async () => [];
+  h.witnessCount = async () => 0;
+  h.certCount = async () => 0;
+  h.endorseCount = async () => 0;
+  h.penalAgg = async () => ({ _sum: { penalty: null }, _count: { _all: 0 } });
 });
 
 describe("computeTrustScore", () => {
@@ -79,11 +96,37 @@ describe("computeTrustScore", () => {
     expect(s.finalScore).toBe(100);
   });
 
-  it("finalScore clamps to [0,100] after folding adminAdjustment", async () => {
+  it("finalScore clamps to [-100,100] after folding adminAdjustment (Wave 17: negative standing allowed)", async () => {
     expect((await computeTrustScore(84532, CITIZEN, 50)).finalScore).toBe(100); // 100+50 → 100
     h.dividendHistory = async () => []; // drop 20 → computed 80
     h.myVote = async () => 0; // drop 20 → computed 60
-    expect((await computeTrustScore(84532, CITIZEN, -70)).finalScore).toBe(0); // 60-70 → 0 (clamped)
+    // The statute ("the score may go negative") replaced the old 0 floor.
+    expect((await computeTrustScore(84532, CITIZEN, -70)).finalScore).toBe(-10); // 60-70 → -10
+    expect((await computeTrustScore(84532, CITIZEN, -500)).finalScore).toBe(-100); // floor -100
+  });
+
+  it("civic activity (Wave 17) adds up to 10 points from DB-real acts", async () => {
+    h.dividendHistory = async () => []; // computed base 80
+    h.linkedWallets = async () => [{ address: ADDR }];
+    h.witnessCount = async () => 2; // 2×2 = 4
+    h.certCount = async () => 3; // +3
+    h.endorseCount = async () => 1; // +1 → 8 civic points
+    const s1 = await computeTrustScore(84532, CITIZEN, 0);
+    expect(s1.signals.witnessAttestationsGiven).toBe(2);
+    expect(s1.computed).toBe(88);
+    h.witnessCount = async () => 50; // way past the cap
+    const s2 = await computeTrustScore(84532, CITIZEN, 0);
+    expect(s2.computed).toBe(90); // 80 + capped 10
+  });
+
+  it("verified conduct reports subtract their penalties and can drive standing negative", async () => {
+    h.dividendHistory = async () => [];
+    h.myVote = async () => 0; // computed 60
+    h.penalAgg = async () => ({ _sum: { penalty: -75 }, _count: { _all: 2 } });
+    const s = await computeTrustScore(84532, CITIZEN, 0);
+    expect(s.signals.penalPoints).toBe(-75);
+    expect(s.signals.verifiedReportCount).toBe(2);
+    expect(s.finalScore).toBe(-15); // 60 - 75, below zero per the statute
   });
 
   it("a non-citizen (no address) zeroes the citizen-dependent signals; adminAdjustment still applies", async () => {
