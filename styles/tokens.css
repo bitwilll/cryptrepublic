@@ -212,6 +212,15 @@ h3 {
   }
 }
 
+/* shared registry empty-state (store grid, certificates, invest, admin desks) */
+.empty-state {
+  border: 1px dashed var(--line);
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
 /* HEADER */
 header.site {
   position: sticky;
