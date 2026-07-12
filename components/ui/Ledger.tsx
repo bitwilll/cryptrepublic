@@ -50,6 +50,7 @@ export function Ledger<Row extends Record<string, unknown>>({
             {columns.map((c) => (
               <th
                 key={c.key}
+                scope="col"
                 style={{
                   textAlign: c.align ?? "left",
                   padding: "10px 10px",

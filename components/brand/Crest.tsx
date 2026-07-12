@@ -9,7 +9,9 @@ export function Crest({
   tone = "dark",
   height,
   className,
-  alt = "CryptRepublic",
+  // Default is DECORATIVE: every default consumer sits beside the wordmark.
+  // Pass an explicit alt only when the crest stands alone.
+  alt = "",
 }: {
   /** Fixed render height in px (width follows the natural aspect). Omit to let a
    *  className control the size (e.g. a width-based watermark) — aspect is

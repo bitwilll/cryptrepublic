@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { Modal } from "@/components/ui/Modal";
 import { WalletUnlockError } from "@/lib/wallet/embedded/vault";
 
 /**
@@ -34,30 +35,8 @@ export function UnlockWalletModal({
   }
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Unlock wallet"
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(15,31,51,0.6)",
-        display: "grid",
-        placeItems: "center",
-        zIndex: 50,
-      }}
-    >
-      <form
-        onSubmit={submit}
-        style={{
-          background: "#fff",
-          border: "1px solid var(--line)",
-          borderRadius: 12,
-          padding: 24,
-          width: "min(420px, 92vw)",
-        }}
-      >
-        <h2 style={{ marginTop: 0 }}>Unlock wallet</h2>
+    <Modal title="Unlock wallet" onClose={onCancel}>
+      <form onSubmit={submit}>
         <label htmlFor="unlock-pass" style={{ display: "block", marginBottom: 8 }}>
           Vault passphrase
         </label>
@@ -83,6 +62,6 @@ export function UnlockWalletModal({
           </button>
         </div>
       </form>
-    </div>
+    </Modal>
   );
 }
