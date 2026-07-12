@@ -52,7 +52,9 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
       className={styles.topbar}
       style={{
         borderBottom: "1px solid var(--line)",
-        background: "#fff",
+        background: "rgba(255, 255, 255, 0.82)",
+        backdropFilter: "blur(16px) saturate(160%)",
+        WebkitBackdropFilter: "blur(16px) saturate(160%)",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
