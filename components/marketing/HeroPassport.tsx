@@ -14,9 +14,6 @@ export function HeroPassport() {
       <div className="wrap">
         <div className="hero-grid">
           <div>
-            <div className="hero-emblem">
-              <Crest tone="dark" height={52} alt="CryptRepublic" />
-            </div>
             <span className="badge" style={{ fontSize: "14px" }}>
               <span className="dot"></span> Ratified by the Cabinet · 48,392 citizens &amp; counting
             </span>

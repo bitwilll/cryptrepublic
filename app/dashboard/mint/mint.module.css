@@ -359,7 +359,8 @@
   --pp-line: #cddef7;
   position: relative;
   overflow: hidden;
-  max-width: 360px;
+  width: 100%;
+  max-width: 400px;
   padding: 0;
   border-radius: 14px;
   background: #ffffff;
@@ -428,9 +429,13 @@
   color: var(--pp-ink);
 }
 .passportTitle span {
-  font-size: 8px;
-  letter-spacing: 0.16em;
+  display: block;
+  font-size: 7.5px;
+  letter-spacing: 0.09em;
   color: var(--pp-blue);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .passportType {
   flex: none;
@@ -542,6 +547,9 @@
 .passportFieldGrid > div {
   min-width: 0;
 }
+.passportFieldWide {
+  grid-column: 1 / -1;
+}
 .passportMrz {
   position: relative;
   margin-top: auto; /* push the MRZ to the bottom edge on the (taller) flip card */
@@ -561,7 +569,7 @@
 .passportFlip {
   display: block;
   width: 100%;
-  max-width: 360px;
+  max-width: 400px;
   padding: 0;
   border: none;
   background: none;
@@ -725,4 +733,27 @@
   color: var(--pp-blue);
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Standalone /dashboard/passport two-column composition: the specimen card on
+   the left, its status + civic id + actions on the right — fills the width so
+   the page reads as an intentional identity dossier, not a card floating in
+   empty space. Stacks below 760px. */
+.passportLayout {
+  display: grid;
+  grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+  margin-top: 24px;
+  max-width: 980px;
+}
+.passportAside {
+  min-width: 0;
+}
+@media (max-width: 760px) {
+  .passportLayout {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    max-width: 480px;
+  }
 }

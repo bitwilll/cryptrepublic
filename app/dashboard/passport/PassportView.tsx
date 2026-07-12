@@ -200,51 +200,56 @@ export default function PassportView(): React.ReactElement {
           <h2 style={{ fontSize: 32, marginTop: 8 }}>
             Your passport — {provisional.label.toLowerCase()}
           </h2>
-          <div
-            data-testid="passport-provisional-status"
-            role="status"
-            style={{
-              display: "inline-block",
-              marginTop: 10,
-              padding: "4px 12px",
-              border: "1px solid var(--gold)",
-              background: "rgba(200, 169, 106, 0.15)",
-              color: "var(--navy)",
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.1em",
-            }}
-          >
-            {provisional.label} · NOT YET ON CHAIN
-          </div>
-          <p style={{ color: "var(--muted)", marginTop: 12, maxWidth: 560, fontSize: 14 }}>
-            {provisional.sublabel} This is a provisional preview from your application — it becomes
-            your real, non-transferable passport only once it is sealed on chain.
-          </p>
-          {chainUnavailable ? (
-            <p
-              data-testid="passport-chain-unavailable"
-              style={{ color: "var(--muted)", marginTop: 6, maxWidth: 560, fontSize: 12.5 }}
-            >
-              On-chain status couldn&rsquo;t be read right now — showing your application details.
-            </p>
-          ) : null}
-          <div style={{ maxWidth: 360, marginTop: 20, opacity: 0.9 }}>
-            <PassportPreview
-              flippable
-              identity={address ?? undefined}
-              no={NEUTRAL}
-              name={provisionalName(application)}
-              domicile={provisionalDomicile(application)}
-              motto={provisionalMotto(application)}
-              issued={provisional.label}
-            />
-          </div>
-          <CivicIdRow />
-          <div style={{ marginTop: 20 }}>
-            <Button as="a" variant="primary" href="/dashboard/mint">
-              {provisional.cta}
-            </Button>
+          <div className={styles.passportLayout}>
+            <div style={{ opacity: 0.9 }}>
+              <PassportPreview
+                flippable
+                identity={address ?? undefined}
+                no={NEUTRAL}
+                name={provisionalName(application)}
+                domicile={provisionalDomicile(application)}
+                motto={provisionalMotto(application)}
+                issued={provisional.label}
+              />
+            </div>
+            <div className={styles.passportAside}>
+              <div
+                data-testid="passport-provisional-status"
+                role="status"
+                style={{
+                  display: "inline-block",
+                  marginTop: 0,
+                  padding: "4px 12px",
+                  border: "1px solid var(--gold)",
+                  background: "rgba(200, 169, 106, 0.15)",
+                  color: "var(--navy)",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.1em",
+                }}
+              >
+                {provisional.label} · NOT YET ON CHAIN
+              </div>
+              <p style={{ color: "var(--muted)", marginTop: 12, maxWidth: 560, fontSize: 14 }}>
+                {provisional.sublabel} This is a provisional preview from your application — it
+                becomes your real, non-transferable passport only once it is sealed on chain.
+              </p>
+              {chainUnavailable ? (
+                <p
+                  data-testid="passport-chain-unavailable"
+                  style={{ color: "var(--muted)", marginTop: 6, maxWidth: 560, fontSize: 12.5 }}
+                >
+                  On-chain status couldn&rsquo;t be read right now — showing your application
+                  details.
+                </p>
+              ) : null}
+              <CivicIdRow />
+              <div style={{ marginTop: 20 }}>
+                <Button as="a" variant="primary" href="/dashboard/mint">
+                  {provisional.cta}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       );
@@ -289,35 +294,39 @@ export default function PassportView(): React.ReactElement {
         Citizen №{tokenId}
         {total !== null ? ` · one of ${total.toString()}` : ""} · non-transferable (soulbound).
       </p>
-      <div style={{ maxWidth: 360, marginTop: 20 }}>
-        <PassportPreview
-          flippable
-          identity={address ?? undefined}
-          no={tokenId}
-          name={`CITIZEN №${tokenId}`}
-          domicile={safeDecode(c?.domicile)}
-          motto={safeDecode(c?.motto)}
-          issued={c ? `BLK ${c.mintBlock.toString()}` : "SEALED"}
-        />
+      <div className={styles.passportLayout}>
+        <div>
+          <PassportPreview
+            flippable
+            identity={address ?? undefined}
+            no={tokenId}
+            name={`CITIZEN №${tokenId}`}
+            domicile={safeDecode(c?.domicile)}
+            motto={safeDecode(c?.motto)}
+            issued={c ? `BLK ${c.mintBlock.toString()}` : "SEALED"}
+          />
+        </div>
+        <div className={styles.passportAside}>
+          <CivicIdRow />
+          {status?.tokenURI ? (
+            <p style={{ marginTop: 16 }}>
+              <a
+                href={status.tokenURI}
+                target="_blank"
+                rel="noreferrer"
+                className={styles.sealingCaption}
+              >
+                VIEW TOKEN METADATA ↗
+              </a>
+            </p>
+          ) : null}
+          <p style={{ marginTop: 24 }}>
+            <Link className="btn btn-ghost" href="/dashboard">
+              ← Back to dashboard
+            </Link>
+          </p>
+        </div>
       </div>
-      <CivicIdRow />
-      {status?.tokenURI ? (
-        <p style={{ marginTop: 16 }}>
-          <a
-            href={status.tokenURI}
-            target="_blank"
-            rel="noreferrer"
-            className={styles.sealingCaption}
-          >
-            VIEW TOKEN METADATA ↗
-          </a>
-        </p>
-      ) : null}
-      <p style={{ marginTop: 24 }}>
-        <Link className="btn btn-ghost" href="/dashboard">
-          ← Back to dashboard
-        </Link>
-      </p>
     </div>
   );
 }

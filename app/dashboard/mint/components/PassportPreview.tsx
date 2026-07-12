@@ -58,13 +58,15 @@ function Field({
   label,
   value,
   no,
+  wide,
 }: {
   label: string;
   value: string;
   no?: boolean;
+  wide?: boolean;
 }): React.ReactElement {
   return (
-    <div>
+    <div className={wide ? styles.passportFieldWide : undefined}>
       <div className={styles.passportFieldLabel}>{label}</div>
       <div className={`${styles.passportFieldValue}${no ? ` ${styles.passportFieldNo}` : ""}`}>
         {value}
@@ -107,10 +109,8 @@ function PassportFace({
   motto,
   issued,
   qrUrl,
-  hint,
 }: Omit<PassportPreviewProps, "identity" | "flippable"> & {
   qrUrl: string | null;
-  hint?: boolean;
 }): React.ReactElement {
   const [mrz1, mrz2] = mrzLines(name, no);
   return (
@@ -158,12 +158,12 @@ function PassportFace({
           <div className={styles.passportFieldLabel}>Surname / Given names</div>
           <div className={styles.passportFieldName}>{name}</div>
           <div className={styles.passportFieldGrid}>
-            <Field label="Nationality" value="CRYPTREPUBLIC" />
+            <Field label="Nationality" value="CRYPTREPUBLIC" wide />
             <Field label="Domicile" value={domicile || "—"} />
-            <Field label="Date of issue" value={issued} />
             <Field label="Passport №" value={no} no />
-            {motto ? <Field label="Motto" value={motto} /> : null}
-            <Field label="Authority" value="THE REPUBLIC" />
+            <Field label="Date of issue" value={issued} wide />
+            {motto ? <Field label="Motto" value={motto} wide /> : null}
+            <Field label="Authority" value="THE REPUBLIC" wide />
           </div>
         </div>
       </div>
@@ -172,12 +172,6 @@ function PassportFace({
         <div>{mrz1}</div>
         <div>{mrz2}</div>
       </div>
-
-      {hint ? (
-        <span className={styles.passportFlipHint} aria-hidden="true">
-          ⟳ FLIP
-        </span>
-      ) : null}
     </div>
   );
 }
@@ -221,9 +215,6 @@ function PassportBack({
         </div>
         <div className={styles.passportBarcode} aria-hidden="true" />
       </div>
-      <span className={styles.passportFlipHint} aria-hidden="true">
-        ⟳ FLIP
-      </span>
     </div>
   );
 }
@@ -275,7 +266,7 @@ export function PassportPreview(props: PassportPreviewProps): React.ReactElement
       onClick={() => setFlipped((f) => !f)}
     >
       <div className={`${styles.passportFlipInner} ${flipped ? styles.flipped : ""}`}>
-        <PassportFace {...face} qrUrl={qrUrl} hint />
+        <PassportFace {...face} qrUrl={qrUrl} />
         <PassportBack no={face.no} motto={face.motto} issued={face.issued} seed={seed} />
       </div>
     </button>
