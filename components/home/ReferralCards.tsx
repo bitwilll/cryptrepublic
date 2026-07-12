@@ -76,14 +76,20 @@ export function ReferralCards({ full = false }: { full?: boolean }) {
 
   if (state.status === "loading") {
     return (
-      <article className="pillar" style={{ padding: 20 }} data-testid="referral-loading">
+      <article
+        style={{ background: "var(--card)", border: "1px solid var(--line)", padding: "24px 28px" }}
+        data-testid="referral-loading"
+      >
         <Skeleton lines={3} />
       </article>
     );
   }
   if (state.status === "error") {
     return (
-      <article className="pillar" style={{ padding: 20 }} data-testid="referral-error">
+      <article
+        style={{ background: "var(--card)", border: "1px solid var(--line)", padding: "24px 28px" }}
+        data-testid="referral-error"
+      >
         <p style={{ color: "var(--muted)", fontSize: 13, margin: 0 }}>Could not load referrals.</p>
         <button className="btn btn-ghost" type="button" onClick={load} style={{ marginTop: 8 }}>
           Retry
@@ -95,8 +101,22 @@ export function ReferralCards({ full = false }: { full?: boolean }) {
   const d = state.data;
   return (
     <>
-      <article className="pillar" style={{ padding: 20 }} data-testid="referral-trust-card">
-        <div className="kicker">TRUST SCORE</div>
+      <article
+        style={{ background: "var(--card)", border: "1px solid var(--line)", padding: "24px 28px" }}
+        data-testid="referral-trust-card"
+      >
+        <div
+          style={{
+            fontFamily: "var(--mono)",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: "var(--muted)",
+          }}
+        >
+          TRUST SCORE
+        </div>
         <div
           data-testid="referral-trust-score"
           style={{
@@ -115,8 +135,22 @@ export function ReferralCards({ full = false }: { full?: boolean }) {
         </p>
       </article>
 
-      <article className="pillar" style={{ padding: 20 }} data-testid="referral-tokens-card">
-        <div className="kicker">REFERRAL TOKENS</div>
+      <article
+        style={{ background: "var(--card)", border: "1px solid var(--line)", padding: "24px 28px" }}
+        data-testid="referral-tokens-card"
+      >
+        <div
+          style={{
+            fontFamily: "var(--mono)",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: "var(--muted)",
+          }}
+        >
+          REFERRAL TOKENS
+        </div>
         <div
           data-testid="referral-token-balance"
           style={{
@@ -162,7 +196,7 @@ export function ReferralCards({ full = false }: { full?: boolean }) {
             {success && (
               <p
                 data-testid="refer-success"
-                style={{ color: "var(--navy)", fontSize: 12, marginTop: 6 }}
+                style={{ color: "var(--success)", fontSize: 12, marginTop: 6 }}
               >
                 {success}
               </p>
@@ -185,8 +219,26 @@ export function ReferralCards({ full = false }: { full?: boolean }) {
       </article>
 
       {full && (
-        <article className="pillar" style={{ padding: 20 }} data-testid="referral-list">
-          <div className="kicker">WHO YOU REFERRED</div>
+        <article
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--line)",
+            padding: "24px 28px",
+          }}
+          data-testid="referral-list"
+        >
+          <div
+            style={{
+              fontFamily: "var(--mono)",
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: "var(--muted)",
+            }}
+          >
+            WHO YOU REFERRED
+          </div>
           {d.referrals.length === 0 ? (
             <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 8 }}>
               You haven&apos;t referred anyone yet.
@@ -209,7 +261,7 @@ export function ReferralCards({ full = false }: { full?: boolean }) {
                   <span style={{ overflowWrap: "anywhere" }}>{r.referredEmail ?? "—"}</span>
                   <span
                     style={{
-                      color: r.becameCitizen ? "var(--navy)" : "var(--muted)",
+                      color: r.becameCitizen ? "var(--success)" : "var(--muted)",
                       fontWeight: 700,
                       whiteSpace: "nowrap",
                     }}

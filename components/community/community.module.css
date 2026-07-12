@@ -23,11 +23,12 @@
 
 .microLabel {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--muted);
+  line-height: 1.55;
 }
 
 .mono {
@@ -179,6 +180,8 @@
 /* conversation list entries are buttons — full-row hit targets */
 .convoBtn {
   appearance: none;
+  font: inherit;
+  color: inherit;
   text-align: left;
   cursor: pointer;
   width: 100%;
@@ -256,7 +259,8 @@
   gap: 4px;
 }
 .bubbleMine {
-  background: var(--paper);
+  background: color-mix(in srgb, var(--blue) 8%, var(--card));
+  border-color: color-mix(in srgb, var(--blue) 35%, var(--line));
   align-self: flex-end;
 }
 .bubbleTheirs {
@@ -397,4 +401,10 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .tab {
+    padding: 12px 10px;
+  }
 }

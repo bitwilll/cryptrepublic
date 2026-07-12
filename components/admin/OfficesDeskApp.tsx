@@ -303,12 +303,14 @@ export function OfficesDeskApp() {
             />
           </Field>
 
-          {searching && <p className={styles.dim}>Searching the registry…</p>}
-          {!selected && !searching && query.trim().length >= 2 && matches.length === 0 && (
-            <p className={styles.dim} data-testid="no-matches">
-              No citizens match.
-            </p>
-          )}
+          <div aria-live="polite" className={styles.searchLive}>
+            {searching && <p className={styles.dim}>Searching the registry…</p>}
+            {!selected && !searching && query.trim().length >= 2 && matches.length === 0 && (
+              <p className={styles.dim} data-testid="no-matches">
+                No citizens match.
+              </p>
+            )}
+          </div>
           {!selected && matches.length > 0 && (
             <ul className={styles.searchResults} data-testid="search-results">
               {matches.map((u) => (

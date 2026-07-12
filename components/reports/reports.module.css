@@ -36,9 +36,9 @@
 
 .microLabel {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -58,6 +58,7 @@
 
 .pillGold {
   color: var(--gold-ink);
+  border-color: var(--gold);
 }
 
 .pillMuted {
@@ -161,9 +162,9 @@
 
 .modeGroup legend {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 8px;

@@ -160,12 +160,12 @@
 
 .revokeBtn {
   min-height: 44px;
-  padding: 0 16px;
+  padding: 0 20px;
   background: #fff;
   border: 1px solid #b04141;
   color: #8b3a3a;
   font-weight: 800;
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
@@ -260,6 +260,9 @@
 }
 .error:empty {
   margin: -14px 0 0; /* collapses to the single 14px form gap */
+}
+.searchLive:empty {
+  min-height: 0;
 }
 
 /* Dialog form bits */

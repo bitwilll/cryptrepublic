@@ -150,6 +150,7 @@ function CivicIdCard({
             <button
               type="button"
               className={styles.actionBtn}
+              aria-live="polite"
               onClick={() => copy(me.data.civicId)}
               data-testid="copy-civic-id"
             >

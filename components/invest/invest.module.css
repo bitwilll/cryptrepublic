@@ -471,3 +471,10 @@
   flex-direction: column;
   gap: 10px;
 }
+
+@media (max-width: 640px) {
+  .tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+}

@@ -21,7 +21,9 @@ export default function ReferralsPage() {
         display: "flex",
         flexDirection: "column",
         gap: 20,
-        maxWidth: 720,
+        maxWidth: 860,
+        margin: 0,
+        alignSelf: "flex-start",
       }}
     >
       <div>

@@ -152,7 +152,7 @@ export function FundraisingDeskApp() {
               audit-logged.
             </p>
             {desk.data.submitted.length === 0 && (
-              <div className={styles.empty}>
+              <div className="empty-state" style={{ marginTop: 16 }}>
                 The queue is clear — no proposals await a decision.
               </div>
             )}

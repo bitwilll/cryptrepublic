@@ -129,7 +129,7 @@ export function PopulationApp() {
           data-testid="world-map-disabled"
           style={{ padding: "24px 28px" }}
         >
-          <h3 style={{ margin: 0, fontSize: 20 }}>The Republic on earth</h3>
+          <h2 style={{ margin: 0, fontSize: 20 }}>The Republic on earth</h2>
           <p style={{ color: "var(--muted)", marginTop: 8, fontSize: 13 }}>
             The world map is disabled by the administration.
           </p>
@@ -179,26 +179,43 @@ function CensusHero({
             flexWrap: "wrap",
           }}
         >
-          <span
-            style={{
-              fontSize: 64,
-              fontWeight: 800,
-              letterSpacing: "-0.04em",
-              fontFamily: "var(--mono)",
-            }}
-          >
-            {total != null ? Number(total).toLocaleString("en-US").replace(/,/g, " ") : "—"}
-          </span>
-          <span
-            style={{
-              fontSize: 16,
-              color: "var(--success)",
-              fontWeight: 700,
-              fontFamily: "var(--mono)",
-            }}
-          >
-            +{delta24h} / 24h
-          </span>
+          {total != null ? (
+            <>
+              <span
+                style={{
+                  fontSize: 64,
+                  fontWeight: 800,
+                  letterSpacing: "-0.04em",
+                  fontFamily: "var(--mono)",
+                }}
+              >
+                {Number(total).toLocaleString("en-US").replace(/,/g, " ")}
+              </span>
+              <span
+                style={{
+                  fontSize: 16,
+                  color: "var(--success)",
+                  fontWeight: 700,
+                  fontFamily: "var(--mono)",
+                }}
+              >
+                +{delta24h} / 24h
+              </span>
+            </>
+          ) : (
+            <span
+              style={{
+                fontFamily: "var(--mono)",
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "var(--muted)",
+              }}
+            >
+              Count unavailable — the chain could not be read
+            </span>
+          )}
         </div>
       )}
       <p style={{ marginTop: 6, color: "var(--muted)", fontSize: 13 }}>
@@ -246,23 +263,26 @@ function GovernmentCard({ state, onRetry }: { state: GovLoad; onRetry: () => voi
   return (
     <article className="pillar" data-testid="government-roster" style={{ padding: "24px 28px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <div
+        <h2
           style={{
+            margin: 0,
             fontSize: 11,
             color: "var(--muted)",
-            letterSpacing: "0.12em",
+            letterSpacing: "0.18em",
             fontWeight: 700,
             fontFamily: "var(--mono)",
           }}
         >
           THE GOVERNMENT
-        </div>
+        </h2>
         <span
           style={{
-            fontSize: 9,
+            fontFamily: "var(--mono)",
+            fontSize: 10,
             fontWeight: 700,
-            letterSpacing: "0.08em",
-            padding: "2px 6px",
+            letterSpacing: "0.1em",
+            padding: "3px 9px",
+            whiteSpace: "nowrap",
             border: "1px solid var(--line)",
             color: "var(--muted)",
           }}
@@ -289,7 +309,7 @@ function GovernmentCard({ state, onRetry }: { state: GovLoad; onRetry: () => voi
         <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 18 }}>
           {groups.map((g) => (
             <section key={g.office} data-testid="office-group">
-              <h2 style={OFFICE_LABEL_STYLE}>{g.label}</h2>
+              <h3 style={OFFICE_LABEL_STYLE}>{g.label}</h3>
               <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 8 }}>
                 {g.holders.map((h) => (
                   <div
@@ -352,13 +372,15 @@ function WorldMap({ cities }: { cities: City[] }) {
   return (
     <article className="pillar" style={{ padding: "24px 28px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <h3 style={{ margin: 0, fontSize: 20 }}>The Republic on earth</h3>
+        <h2 style={{ margin: 0, fontSize: 20 }}>The Republic on earth</h2>
         <span
           style={{
-            fontSize: 9,
+            fontFamily: "var(--mono)",
+            fontSize: 10,
             fontWeight: 700,
-            letterSpacing: "0.08em",
-            padding: "2px 6px",
+            letterSpacing: "0.1em",
+            padding: "3px 9px",
+            whiteSpace: "nowrap",
             border: "1px solid var(--line)",
             color: "var(--muted)",
           }}
@@ -400,8 +422,9 @@ function WorldMap({ cities }: { cities: City[] }) {
                 opacity="0.8"
               />
               <text
-                x={x + r + 6}
+                x={x > 720 ? x - r - 6 : x + r + 6}
                 y={y + 3}
+                textAnchor={x > 720 ? "end" : "start"}
                 fontSize="10"
                 fill="var(--ink)"
                 fontFamily="var(--mono)"
@@ -423,13 +446,15 @@ function TopCitiesCard({ cities }: { cities: City[] }) {
   return (
     <article className="pillar" data-testid="top-cities" style={{ padding: "24px 28px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <h3 style={{ margin: 0, fontSize: 20 }}>Top cities</h3>
+        <h2 style={{ margin: 0, fontSize: 20 }}>Top cities</h2>
         <span
           style={{
-            fontSize: 9,
+            fontFamily: "var(--mono)",
+            fontSize: 10,
             fontWeight: 700,
-            letterSpacing: "0.08em",
-            padding: "2px 6px",
+            letterSpacing: "0.1em",
+            padding: "3px 9px",
+            whiteSpace: "nowrap",
             border: "1px solid var(--line)",
             color: "var(--muted)",
           }}
@@ -449,7 +474,7 @@ function TopCitiesCard({ cities }: { cities: City[] }) {
               data-grid="row"
               style={{
                 display: "grid",
-                gridTemplateColumns: "140px 1fr 150px",
+                gridTemplateColumns: "minmax(84px, 140px) minmax(24px, 1fr) minmax(104px, 150px)",
                 gap: 12,
                 alignItems: "center",
               }}
@@ -467,7 +492,7 @@ function TopCitiesCard({ cities }: { cities: City[] }) {
                   style={{
                     width: `${(c.seededCount / max) * 100}%`,
                     height: "100%",
-                    background: "var(--gold)",
+                    background: "var(--gold-d)",
                   }}
                 />
               </div>
@@ -493,7 +518,7 @@ function RecentInductionsCard({
 }) {
   return (
     <article className="pillar" data-testid="recent-inductions" style={{ padding: "24px 28px" }}>
-      <h3 style={{ margin: 0, fontSize: 20 }}>Recent inductions</h3>
+      <h2 style={{ margin: 0, fontSize: 20 }}>Recent inductions</h2>
       <p style={{ color: "var(--muted)", marginTop: 4, fontSize: 12 }}>
         From CitizenMinted events, newest first.
       </p>

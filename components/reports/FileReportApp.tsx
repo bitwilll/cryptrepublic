@@ -103,7 +103,8 @@ export function FileReportApp() {
       });
       const payload = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        setStatus(payload.error ?? "The registry declined the filing.");
+        setStatus("");
+        setFieldError(payload.error ?? "The registry declined the filing.");
       } else {
         setStatus("Filed. The report awaits verification by a Protector or the Cabinet.");
         setCivicId("");
@@ -111,7 +112,8 @@ export function FileReportApp() {
         void load();
       }
     } catch {
-      setStatus("The registry could not be reached.");
+      setStatus("");
+      setFieldError("The registry could not be reached.");
     } finally {
       setBusy(false);
       setConfirming(false);
@@ -223,22 +225,19 @@ export function FileReportApp() {
           {confirming && (
             <button
               type="button"
+              className="btn btn-ghost"
               onClick={() => setConfirming(false)}
-              style={{
-                minHeight: 44,
-                padding: "10px 16px",
-                background: "transparent",
-                border: "1px solid var(--line)",
-                cursor: "pointer",
-                fontWeight: 700,
-                fontSize: 13,
-              }}
+              style={{ minHeight: 44 }}
             >
               Stand down
             </button>
           )}
         </div>
-        <div className={styles.status} aria-live="polite">
+        <div
+          className={styles.status}
+          aria-live="polite"
+          style={{ minHeight: 16, margin: "8px 0 0" }}
+        >
           {status}
         </div>
       </section>

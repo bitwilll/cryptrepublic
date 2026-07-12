@@ -215,11 +215,3 @@
 }
 
 /* Empty queue — dashed-box empty state */
-.empty {
-  margin-top: 16px;
-  border: 1px dashed var(--line);
-  padding: 20px;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.6;
-}

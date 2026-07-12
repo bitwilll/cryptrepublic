@@ -120,7 +120,7 @@
 }
 
 .status:empty {
-  display: none;
+  min-height: 0;
 }
 
 .statusOk {

@@ -46,13 +46,18 @@ export default function TribunalPage() {
           A verified report&rsquo;s penalty must sit inside its grade&rsquo;s band, inclusive. Grade
           V additionally forfeits every office the subject holds.
         </p>
-        <div className={styles.tableWrap}>
+        <div
+          className={styles.tableWrap}
+          role="region"
+          aria-label="Penal Code bands (scrolls horizontally on narrow screens)"
+          tabIndex={0}
+        >
           <table className={styles.bandTable}>
             <thead>
               <tr>
                 <th scope="col">Grade</th>
-                <th scope="col">Offence</th>
                 <th scope="col">Penalty band</th>
+                <th scope="col">Offence</th>
               </tr>
             </thead>
             <tbody>
@@ -64,11 +69,11 @@ export default function TribunalPage() {
                     <td className={styles.mono} style={{ fontWeight: 700 }}>
                       {g}
                     </td>
-                    <td>{category ? REPORT_CATEGORY_LABELS[category] : "—"}</td>
                     <td className={styles.mono}>
                       {band.min} to {band.max}
                       {g === "V" ? " — offices forfeited" : ""}
                     </td>
+                    <td>{category ? REPORT_CATEGORY_LABELS[category] : "—"}</td>
                   </tr>
                 );
               })}

@@ -28,10 +28,7 @@ export function Ledger<Row extends Record<string, unknown>>({
 }) {
   if (rows.length === 0) {
     return (
-      <div
-        data-testid="ledger-empty"
-        style={{ padding: "20px 0", color: "var(--muted)", fontSize: 13 }}
-      >
+      <div className="empty-state" data-testid="ledger-empty">
         {empty}
       </div>
     );

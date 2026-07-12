@@ -188,7 +188,7 @@ export function ConductDeskApp() {
               every office the subject holds.
             </p>
             {desk.data.submitted.length === 0 && (
-              <div className={styles.empty} data-testid="submitted-empty">
+              <div className="empty-state" style={{ marginTop: 16 }} data-testid="submitted-empty">
                 The queue is clear — no reports await a decision.
               </div>
             )}

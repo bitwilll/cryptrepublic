@@ -117,6 +117,7 @@
 
 .pillGold {
   color: var(--gold-ink);
+  border-color: var(--gold);
 }
 
 .pillMuted {
@@ -126,6 +127,7 @@
 /* Grades I / II — minor offences, gold ink. */
 .gradeLow {
   color: var(--gold-ink);
+  border-color: var(--gold);
 }
 
 /* Grades III / IV — serious offences. */
@@ -186,14 +188,6 @@
 }
 
 /* Empty queue — dashed-box empty state */
-.empty {
-  margin-top: 16px;
-  border: 1px dashed var(--line);
-  padding: 20px;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.6;
-}
 
 /* Statutory footer */
 .footer {

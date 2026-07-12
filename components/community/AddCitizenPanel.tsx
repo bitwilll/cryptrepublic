@@ -85,10 +85,9 @@ export function AddCitizenPanel({ onFiled }: { onFiled: () => void }) {
             id="add-civic-id"
             className={`${styles.input} ${styles.civicInput}`}
             value={civicId}
-            onChange={(e) => setCivicId(normalizeCivicIdInput(e.target.value))}
+            onChange={(e) => setCivicId(normalizeCivicIdInput(e.target.value).slice(0, 12))}
             onBlur={() => setTouched(true)}
             placeholder="CR-XXXX-XXXX"
-            maxLength={12}
             autoComplete="off"
             spellCheck={false}
             aria-invalid={Boolean(touched && idError)}

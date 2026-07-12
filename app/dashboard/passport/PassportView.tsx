@@ -63,7 +63,8 @@ function CivicIdRow(): React.ReactElement | null {
     <div style={{ marginTop: 20, maxWidth: 560 }} data-testid="passport-civic-id-row">
       <div
         style={{
-          fontSize: 11,
+          fontFamily: "var(--mono)",
+          fontSize: 10,
           fontWeight: 700,
           letterSpacing: "0.14em",
           color: "var(--muted)",
@@ -86,7 +87,12 @@ function CivicIdRow(): React.ReactElement | null {
         >
           {civicId}
         </span>
-        <Button variant="ghost" onClick={() => void copy()} data-testid="passport-civic-id-copy">
+        <Button
+          variant="ghost"
+          aria-live="polite"
+          onClick={() => void copy()}
+          data-testid="passport-civic-id-copy"
+        >
           {copied ? "COPIED ✓" : "COPY"}
         </Button>
       </div>

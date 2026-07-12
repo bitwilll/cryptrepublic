@@ -255,6 +255,7 @@ export function ReferralLinksCard(): React.ReactElement {
                     <button
                       type="button"
                       className={`btn btn-ghost ${styles.actionBtn}`}
+                      aria-live="polite"
                       onClick={() => copy(l)}
                       data-testid="reflink-copy"
                     >
