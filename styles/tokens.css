@@ -1633,13 +1633,20 @@ svg text {
 /* Full-page crest watermark — a faint brand backdrop spanning the whole viewport
    behind the content (a light wash; pointer-events none, never intercepts). */
 .page-watermark {
+  /* Anchored just BELOW the gov-strip + frosted header (≈96px) rather than
+     vertically centered, so the engraving is never hidden behind the bar; and
+     capped by max-height so the WHOLE image fits on screen (720×524, aspect
+     1.374) while still filling the page. object-fit keeps it undistorted when
+     a short viewport clamps the height. */
   position: fixed;
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: min(96vw, 1240px);
+  top: 104px;
+  transform: translateX(-50%);
+  width: min(84vw, 1040px);
   height: auto;
-  opacity: 0.09;
+  max-height: calc(100vh - 132px);
+  object-fit: contain;
+  opacity: 0.1;
   pointer-events: none;
   z-index: 2;
 }
