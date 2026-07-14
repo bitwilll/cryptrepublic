@@ -39,36 +39,9 @@ export function useReveal(): void {
       });
     }, 1800);
 
-    // Poster parallax (Athens-26 surface): elements tagged [data-parallax]
-    // drift at data-parallax-speed × scrollY via a CSS var — transform-only,
-    // rAF-throttled, and NEVER enabled under prefers-reduced-motion (the JS
-    // check mirrors the global CSS animation kill).
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const layers = reduced
-      ? []
-      : Array.from(document.querySelectorAll<HTMLElement>("[data-parallax]"));
-    let raf = 0;
-    const onScroll = () => {
-      if (raf) return;
-      raf = window.requestAnimationFrame(() => {
-        raf = 0;
-        const y = window.scrollY;
-        for (const el of layers) {
-          const speed = Number(el.dataset.parallaxSpeed ?? "0.05");
-          el.style.setProperty("--plx", String(y * speed));
-        }
-      });
-    };
-    if (layers.length > 0) {
-      window.addEventListener("scroll", onScroll, { passive: true });
-      onScroll();
-    }
-
     return () => {
       io.disconnect();
       window.clearTimeout(failsafe);
-      if (layers.length > 0) window.removeEventListener("scroll", onScroll);
-      if (raf) window.cancelAnimationFrame(raf);
     };
   }, []);
 }

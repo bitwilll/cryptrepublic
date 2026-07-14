@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, Cinzel, IBM_Plex_Mono } from "next/font/google";
+import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -13,15 +13,6 @@ const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-plex-mono",
-  display: "swap",
-});
-
-// The classical flared display face (Greek-inscription energy) for the
-// marketing poster surfaces — Trajan-adjacent, engraved like the crest.
-const cinzel = Cinzel({
-  subsets: ["latin"],
-  weight: ["400", "700", "900"],
-  variable: "--font-cinzel",
   display: "swap",
 });
 
@@ -42,7 +33,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${archivo.variable} ${plexMono.variable} ${cinzel.variable}`}>
+    <html lang="en" className={`${archivo.variable} ${plexMono.variable}`}>
       <body>{children}</body>
     </html>
   );

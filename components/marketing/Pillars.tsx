@@ -12,8 +12,8 @@ export function Pillars() {
             asset the Republic owns pays its dividends to the people.
           </p>
         </div>
-        <div className="cards3 reveal" data-stagger>
-          <article className="pillar">
+        <div className="cards3">
+          <article className="pillar reveal">
             <div className="icon" aria-hidden="true">
               I
             </div>
@@ -26,7 +26,7 @@ export function Pillars() {
               See the passport →
             </a>
           </article>
-          <article className="pillar">
+          <article className="pillar reveal" style={{ transitionDelay: ".08s" }}>
             <div className="icon" aria-hidden="true">
               II
             </div>
@@ -39,7 +39,7 @@ export function Pillars() {
               Explore governance →
             </a>
           </article>
-          <article className="pillar">
+          <article className="pillar reveal" style={{ transitionDelay: ".16s" }}>
             <div className="icon" aria-hidden="true">
               III
             </div>
