@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SiweMessage } from "siwe";
 import { createWalletClient, custom, getAddress } from "viem";
 import { startAuthentication } from "@simplewebauthn/browser";
 import { QrLoginPanel } from "@/components/auth/QrLoginPanel";
 import styles from "./auth.module.css";
+import { fetchFlags } from "@/lib/flags/client";
+import {
+  flagValue,
+  registrationPolicyFromFlags,
+  type RegistrationPolicy,
+} from "@/lib/flags/defaults";
 
 type Mode = "in" | "up";
 
@@ -33,8 +39,13 @@ export function AuthForm({ refCode: initialRefCode }: { refCode?: string } = {})
   const router = useRouter();
   // Wave 17 — a ?ref=<code> arrival opens on REGISTER and pins the code so it
   // rides the register POST body (silently ignored server-side when invalid).
-  const [refCode] = useState(initialRefCode);
-  const [mode, setMode] = useState<Mode>(refCode ? "up" : "in");
+  // Under the Cabinet's REFERRAL_ONLY policy the code becomes a REQUIRED,
+  // editable field; under CLOSED the register pane is replaced by a notice.
+  // The server (register route + SIWE) is the enforcement authority — this
+  // form only mirrors the policy.
+  const [refCode, setRefCode] = useState(initialRefCode ?? "");
+  const [policy, setPolicy] = useState<RegistrationPolicy>("OPEN");
+  const [mode, setMode] = useState<Mode>(initialRefCode ? "up" : "in");
   const [busy, setBusy] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [twoFactorPending, setTwoFactorPending] = useState(false);
@@ -45,6 +56,21 @@ export function AuthForm({ refCode: initialRefCode }: { refCode?: string } = {})
   const [badName, setBadName] = useState(false);
   const [badEmail, setBadEmail] = useState(false);
   const [badPass, setBadPass] = useState(false);
+  const [badRef, setBadRef] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    void fetchFlags().then((flags) => {
+      if (!alive) return;
+      const eff = (key: string) => (key in flags ? flags[key] : flagValue(key));
+      setPolicy(
+        registrationPolicyFromFlags(eff("registration_open"), eff("registration_referral_only")),
+      );
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const [lines, setLines] = useState<LogLine[]>(
     refCode
@@ -63,6 +89,7 @@ export function AuthForm({ refCode: initialRefCode }: { refCode?: string } = {})
     setBadName(false);
     setBadEmail(false);
     setBadPass(false);
+    setBadRef(false);
     log([
       {
         text: `> mode: ${m === "in" ? "SIGN-IN" : "REGISTRATION"} · awaiting credentials…`,
@@ -78,10 +105,12 @@ export function AuthForm({ refCode: initialRefCode }: { refCode?: string } = {})
     const nameOk = signin ? true : name.trim().length > 1;
     const emailOk = /.+@.+\..+/.test(email);
     const passOk = pass.length >= 12;
+    const refOk = signin || policy !== "REFERRAL_ONLY" || refCode.trim().length > 0;
     setBadName(!nameOk);
     setBadEmail(!emailOk);
     setBadPass(!passOk);
-    if (!nameOk || !emailOk || !passOk) {
+    setBadRef(!refOk);
+    if (!nameOk || !emailOk || !passOk || !refOk) {
       log([{ text: "> validation failed · correct the fields marked in red", tone: "dim" }]);
       return;
     }
@@ -97,7 +126,7 @@ export function AuthForm({ refCode: initialRefCode }: { refCode?: string } = {})
       const endpoint = signin ? "/api/auth/login" : "/api/auth/register";
       const body = signin
         ? { email, passphrase: pass }
-        : { name, email, passphrase: pass, ...(refCode ? { refCode } : {}) };
+        : { name, email, passphrase: pass, ...(refCode.trim() ? { refCode: refCode.trim() } : {}) };
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -289,170 +318,222 @@ export function AuthForm({ refCode: initialRefCode }: { refCode?: string } = {})
       </div>
 
       <div className={styles.fcBody}>
-        <p className={styles.secLabel}>
-          {signin ? "WITH SOVEREIGN WALLET" : "REGISTER WITH WALLET"}
-        </p>
-        <div className={styles.wallets}>
-          {WALLETS.map((w) => (
-            <button
-              key={w.name}
-              className={styles.wallet}
-              type="button"
-              onClick={() => connectWallet(w.name)}
+        {!signin && policy === "CLOSED" ? (
+          <div
+            data-testid="registrations-closed"
+            role="status"
+            style={{
+              border: "1px solid var(--gold)",
+              borderLeft: "3px solid var(--gold)",
+              background: "rgba(200, 169, 106, 0.12)",
+              padding: "18px 20px",
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "var(--mono)",
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.14em",
+                color: "var(--gold-ink)",
+              }}
             >
-              {/* Monogram color per background (Wave 8 A2): the module's white
+              REGISTRATIONS SUSPENDED
+            </div>
+            <p style={{ marginTop: 8, fontSize: 14, color: "var(--ink)" }}>
+              By order of the Cabinet, new citizen registrations are currently closed. Sign-in for
+              existing citizens remains open.
+            </p>
+          </div>
+        ) : (
+          <>
+            <p className={styles.secLabel}>
+              {signin ? "WITH SOVEREIGN WALLET" : "REGISTER WITH WALLET"}
+            </p>
+            <div className={styles.wallets}>
+              {WALLETS.map((w) => (
+                <button
+                  key={w.name}
+                  className={styles.wallet}
+                  type="button"
+                  onClick={() => connectWallet(w.name)}
+                >
+                  {/* Monogram color per background (Wave 8 A2): the module's white
                   text fails WCAG AA on the orange/blue brand tiles (3.1:1 /
                   2.9:1 at 12px); var(--ink) measures 5.4:1 / 5.7:1. Ledger's
                   white-on-navy passes (>14:1) and keeps the default. */}
-              <span
-                className={styles.glyph}
-                style={
-                  w.name === "Ledger"
-                    ? { background: w.glyphBg, border: "1px solid var(--line)" }
-                    : { background: w.glyphBg, color: "var(--ink)" }
-                }
-              >
-                {w.glyph}
-              </span>
-              <span>
-                <b>{w.name}</b>
-                <span>{w.sub}</span>
-              </span>
-              <span className={styles.go}>CONNECT →</span>
-            </button>
-          ))}
-        </div>
-
-        {signin && (
-          <div style={{ marginTop: 12 }}>
-            {twoFactorPending ? (
-              <div data-testid="passkey-2fa-section">
-                <button
-                  className={styles.wallet}
-                  type="button"
-                  data-testid="passkey-2fa-complete"
-                  onClick={passkeyLogin}
-                  disabled={busy}
-                  style={{ width: "100%" }}
-                >
-                  <span className={styles.glyph} style={{ background: "#0a1929" }}>
-                    ⚿
+                  <span
+                    className={styles.glyph}
+                    style={
+                      w.name === "Ledger"
+                        ? { background: w.glyphBg, border: "1px solid var(--line)" }
+                        : { background: w.glyphBg, color: "var(--ink)" }
+                    }
+                  >
+                    {w.glyph}
                   </span>
                   <span>
-                    <b>Finish with your passkey</b>
-                    <span>This account requires a passkey to complete sign-in</span>
+                    <b>{w.name}</b>
+                    <span>{w.sub}</span>
                   </span>
-                  <span className={styles.go}>UNLOCK →</span>
+                  <span className={styles.go}>CONNECT →</span>
                 </button>
-              </div>
-            ) : showQr ? (
-              <div data-testid="qr-login-section">
-                <QrLoginPanel />
-                <div style={{ textAlign: "center", marginTop: 10 }}>
-                  <button type="button" className={styles.swap} onClick={() => setShowQr(false)}>
-                    ← Back to other sign-in options
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <button
-                  className={styles.wallet}
-                  type="button"
-                  data-testid="passkey-login-open"
-                  onClick={passkeyLogin}
-                  disabled={busy}
-                  style={{ width: "100%" }}
-                >
-                  <span className={styles.glyph} style={{ background: "#0a1929" }}>
-                    ⚿
-                  </span>
-                  <span>
-                    <b>Sign in with a passkey</b>
-                    <span>Touch ID, Face ID, or a security key — no password</span>
-                  </span>
-                  <span className={styles.go}>USE →</span>
-                </button>
-                <button
-                  className={styles.wallet}
-                  type="button"
-                  data-testid="qr-login-open"
-                  onClick={() => setShowQr(true)}
-                  style={{ width: "100%", marginTop: 8 }}
-                >
-                  <span className={styles.glyph} style={{ background: "#0a1929" }}>
-                    QR
-                  </span>
-                  <span>
-                    <b>Wallet-QR sign-in</b>
-                    <span>Scan with a device where your wallet is unlocked</span>
-                  </span>
-                  <span className={styles.go}>SCAN →</span>
-                </button>
-              </>
-            )}
-          </div>
-        )}
-
-        <div className={styles.divider}>OR WITH E-MAIL</div>
-
-        <form onSubmit={submitEmail} noValidate>
-          {!signin && (
-            <div className={`${styles.field} ${badName ? styles.bad : ""}`}>
-              <label htmlFor="inName">FULL OR CHOSEN NAME</label>
-              <input
-                id="inName"
-                type="text"
-                autoComplete="name"
-                placeholder="A. Nakadai"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-              <div className={styles.err}>› NAME IS REQUIRED FOR THE CITIZEN RECORD</div>
+              ))}
             </div>
-          )}
-          <div className={`${styles.field} ${badEmail ? styles.bad : ""}`}>
-            <label htmlFor="inEmail">E-MAIL OF RECORD</label>
-            <input
-              id="inEmail"
-              type="email"
-              autoComplete="email"
-              placeholder="citizen@example.org"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <div className={styles.err}>› ENTER A VALID E-MAIL ADDRESS</div>
-          </div>
-          <div className={`${styles.field} ${badPass ? styles.bad : ""}`}>
-            <label htmlFor="inPass">{signin ? "PASSPHRASE" : "CHOOSE A PASSPHRASE"}</label>
-            <input
-              id="inPass"
-              type="password"
-              autoComplete={signin ? "current-password" : "new-password"}
-              placeholder="••••••••••••"
-              value={pass}
-              onChange={(e) => setPass(e.target.value)}
-            />
-            <div className={styles.err}>› PASSPHRASE MUST BE AT LEAST 12 CHARACTERS</div>
-          </div>
-          {/* Busy state (Wave 8 A3): visible label swap + aria-busy while a
+
+            {signin && (
+              <div style={{ marginTop: 12 }}>
+                {twoFactorPending ? (
+                  <div data-testid="passkey-2fa-section">
+                    <button
+                      className={styles.wallet}
+                      type="button"
+                      data-testid="passkey-2fa-complete"
+                      onClick={passkeyLogin}
+                      disabled={busy}
+                      style={{ width: "100%" }}
+                    >
+                      <span className={styles.glyph} style={{ background: "#0a1929" }}>
+                        ⚿
+                      </span>
+                      <span>
+                        <b>Finish with your passkey</b>
+                        <span>This account requires a passkey to complete sign-in</span>
+                      </span>
+                      <span className={styles.go}>UNLOCK →</span>
+                    </button>
+                  </div>
+                ) : showQr ? (
+                  <div data-testid="qr-login-section">
+                    <QrLoginPanel />
+                    <div style={{ textAlign: "center", marginTop: 10 }}>
+                      <button
+                        type="button"
+                        className={styles.swap}
+                        onClick={() => setShowQr(false)}
+                      >
+                        ← Back to other sign-in options
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      className={styles.wallet}
+                      type="button"
+                      data-testid="passkey-login-open"
+                      onClick={passkeyLogin}
+                      disabled={busy}
+                      style={{ width: "100%" }}
+                    >
+                      <span className={styles.glyph} style={{ background: "#0a1929" }}>
+                        ⚿
+                      </span>
+                      <span>
+                        <b>Sign in with a passkey</b>
+                        <span>Touch ID, Face ID, or a security key — no password</span>
+                      </span>
+                      <span className={styles.go}>USE →</span>
+                    </button>
+                    <button
+                      className={styles.wallet}
+                      type="button"
+                      data-testid="qr-login-open"
+                      onClick={() => setShowQr(true)}
+                      style={{ width: "100%", marginTop: 8 }}
+                    >
+                      <span className={styles.glyph} style={{ background: "#0a1929" }}>
+                        QR
+                      </span>
+                      <span>
+                        <b>Wallet-QR sign-in</b>
+                        <span>Scan with a device where your wallet is unlocked</span>
+                      </span>
+                      <span className={styles.go}>SCAN →</span>
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
+            <div className={styles.divider}>OR WITH E-MAIL</div>
+
+            <form onSubmit={submitEmail} noValidate>
+              {!signin && (
+                <div className={`${styles.field} ${badName ? styles.bad : ""}`}>
+                  <label htmlFor="inName">FULL OR CHOSEN NAME</label>
+                  <input
+                    id="inName"
+                    type="text"
+                    autoComplete="name"
+                    placeholder="A. Nakadai"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                  <div className={styles.err}>› NAME IS REQUIRED FOR THE CITIZEN RECORD</div>
+                </div>
+              )}
+              <div className={`${styles.field} ${badEmail ? styles.bad : ""}`}>
+                <label htmlFor="inEmail">E-MAIL OF RECORD</label>
+                <input
+                  id="inEmail"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="citizen@example.org"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <div className={styles.err}>› ENTER A VALID E-MAIL ADDRESS</div>
+              </div>
+              <div className={`${styles.field} ${badPass ? styles.bad : ""}`}>
+                <label htmlFor="inPass">{signin ? "PASSPHRASE" : "CHOOSE A PASSPHRASE"}</label>
+                <input
+                  id="inPass"
+                  type="password"
+                  autoComplete={signin ? "current-password" : "new-password"}
+                  placeholder="••••••••••••"
+                  value={pass}
+                  onChange={(e) => setPass(e.target.value)}
+                />
+                <div className={styles.err}>› PASSPHRASE MUST BE AT LEAST 12 CHARACTERS</div>
+              </div>
+              {!signin && policy === "REFERRAL_ONLY" && (
+                <div className={`${styles.field} ${badRef ? styles.bad : ""}`}>
+                  <label htmlFor="inRef">REFERRAL CODE — REQUIRED BY ORDER OF THE CABINET</label>
+                  <input
+                    id="inRef"
+                    type="text"
+                    autoComplete="off"
+                    spellCheck={false}
+                    placeholder="from a citizen's referral link"
+                    value={refCode}
+                    onChange={(e) => setRefCode(e.target.value)}
+                    style={{ fontFamily: "var(--mono)" }}
+                    data-testid="register-ref-code"
+                  />
+                  <div className={styles.err}>› A REFERRAL CODE FROM A CITIZEN IS REQUIRED</div>
+                </div>
+              )}
+              {/* Busy state (Wave 8 A3): visible label swap + aria-busy while a
               submission is in flight. The IDLE labels must keep matching
               e2e/auth.spec.ts's /AUTHENTICATE/i and /MINT/i clicks. */}
-          <button
-            className={`${styles.submit} ${signin ? "" : styles.gold}`}
-            type="submit"
-            disabled={busy}
-            aria-busy={busy || undefined}
-          >
-            {busy
-              ? signin
-                ? "AUTHENTICATING…"
-                : "TRANSMITTING…"
-              : signin
-                ? "AUTHENTICATE →"
-                : "CREATE RECORD & PROCEED TO MINT →"}
-          </button>
-        </form>
+              <button
+                className={`${styles.submit} ${signin ? "" : styles.gold}`}
+                type="submit"
+                disabled={busy}
+                aria-busy={busy || undefined}
+              >
+                {busy
+                  ? signin
+                    ? "AUTHENTICATING…"
+                    : "TRANSMITTING…"
+                  : signin
+                    ? "AUTHENTICATE →"
+                    : "CREATE RECORD & PROCEED TO MINT →"}
+              </button>
+            </form>
+          </>
+        )}
 
         <div className={styles.console} role="log" aria-live="polite">
           {lines.map((l, i) => (

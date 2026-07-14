@@ -3,6 +3,7 @@ import type { User } from "@prisma/client";
 import { SiweMessage } from "siwe";
 import { getAddress } from "viem";
 import { prisma } from "@/lib/db";
+import { getRegistrationPolicyServer } from "@/lib/flags/server";
 import { generateSessionToken } from "./tokens";
 
 export const SIWE_NONCE_TTL_MS = 5 * 60 * 1000;
@@ -123,6 +124,17 @@ export async function verifySiwe(message: string, signature: string): Promise<Si
 
   // Unknown wallet at LOGIN → a fresh wallet-native account. (Linking a wallet
   // to an EXISTING email account is the separate /api/wallet/link flow.)
+  // Wallet-native creation IS a registration — the Cabinet's policy applies.
+  // Existing wallets above are sign-ins and are never affected.
+  const policy = await getRegistrationPolicyServer();
+  if (policy === "CLOSED") {
+    throw new SiweError("Registrations are closed by order of the Cabinet. Sign-in remains open.");
+  }
+  if (policy === "REFERRAL_ONLY") {
+    throw new SiweError(
+      "Registration is by referral only — register with e-mail and a referral code first, then link your wallet.",
+    );
+  }
   const user = await prisma.user.create({
     data: {
       linkedWallets: { create: { address, chain: "EVM", verifiedAt: new Date() } },

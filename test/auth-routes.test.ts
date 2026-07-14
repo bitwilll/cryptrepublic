@@ -1,10 +1,11 @@
 // @vitest-environment node
-import { describe, it, expect, afterAll } from "vitest";
+import { describe, it, expect, afterAll, beforeEach } from "vitest";
 import { prisma } from "@/lib/db";
 import { POST as register } from "@/app/api/auth/register/route";
 import { POST as login } from "@/app/api/auth/login/route";
 import { POST as logout } from "@/app/api/auth/logout/route";
 import { MAX_FAILED } from "@/lib/auth/lockout";
+import { __resetRateLimit } from "@/lib/auth/ratelimit";
 
 const APP = "http://localhost:3000";
 const post = (body: unknown, origin = APP) =>
@@ -146,6 +147,86 @@ describe("email auth routes", () => {
       expect(res.status).toBe(200);
       const user = await prisma.user.findUniqueOrThrow({ where: { email: revokedEmail } });
       expect(await prisma.referral.count({ where: { referredUserId: user.id } })).toBe(0);
+    });
+
+    describe("registration policy (Cabinet flags)", () => {
+      // Flag rows are GLOBAL test-db state; this is the ONLY suite that calls
+      // the register route (grep-verified), and vitest runs tests within a
+      // file sequentially — each test sets the policy it needs and afterAll
+      // deletes the rows, restoring the declared OPEN defaults.
+      beforeEach(() => __resetRateLimit());
+      const setPolicy = async (open: boolean, referralOnly: boolean) => {
+        await prisma.featureFlag.upsert({
+          where: { key: "registration_open" },
+          update: { enabled: open },
+          create: { key: "registration_open", enabled: open },
+        });
+        await prisma.featureFlag.upsert({
+          where: { key: "registration_referral_only" },
+          update: { enabled: referralOnly },
+          create: { key: "registration_referral_only", enabled: referralOnly },
+        });
+      };
+
+      it("CLOSED: 403 with the Cabinet message; no user is created", async () => {
+        await setPolicy(false, false);
+        const em = `closed${Date.now()}@auth-routes.example`;
+        const res = await register(post({ email: em, passphrase: pass, name: "C" }));
+        expect(res.status).toBe(403);
+        const body = (await res.json()) as { error?: string };
+        expect(body.error).toMatch(/closed by order of the cabinet/i);
+        expect(await prisma.user.findUnique({ where: { email: em } })).toBeNull();
+      });
+
+      it("REFERRAL_ONLY: 403 without a code, with an unknown code, and with a revoked code", async () => {
+        await setPolicy(true, true);
+        const em = `refonly${Date.now()}@auth-routes.example`;
+        for (const refCode of [undefined, "nosuchcode99", revokedCode]) {
+          const res = await register(
+            post({ email: em, passphrase: pass, name: "R", ...(refCode ? { refCode } : {}) }),
+          );
+          expect(res.status).toBe(403);
+          const body = (await res.json()) as { error?: string };
+          expect(body.error).toMatch(/by referral only/i);
+        }
+        expect(await prisma.user.findUnique({ where: { email: em } })).toBeNull();
+      });
+
+      it("REFERRAL_ONLY: a VALID code registers and binds the referral edge", async () => {
+        await setPolicy(true, true);
+        const em = `refok${Date.now()}@auth-routes.example`;
+        const res = await register(
+          post({ email: em, passphrase: pass, name: "OK", refCode: liveCode }),
+        );
+        expect(res.status).toBe(200);
+        const user = await prisma.user.findUniqueOrThrow({ where: { email: em } });
+        const edge = await prisma.referral.findUniqueOrThrow({
+          where: {
+            referrerUserId_referredUserId: {
+              referrerUserId: linkOwnerId,
+              referredUserId: user.id,
+            },
+          },
+        });
+        expect(edge.viaLinkId).toBe(liveLinkId);
+        await prisma.user.delete({ where: { id: user.id } });
+      });
+
+      it("back to OPEN: an unknown code is silently ignored again", async () => {
+        await setPolicy(true, false);
+        const em = `reopen${Date.now()}@auth-routes.example`;
+        const res = await register(
+          post({ email: em, passphrase: pass, name: "O", refCode: "nosuchcode99" }),
+        );
+        expect(res.status).toBe(200);
+        await prisma.user.delete({ where: { email: em } });
+      });
+
+      afterAll(async () => {
+        await prisma.featureFlag.deleteMany({
+          where: { key: { in: ["registration_open", "registration_referral_only"] } },
+        });
+      });
     });
 
     it("400 when refCode exceeds 32 chars (schema bound)", async () => {

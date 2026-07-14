@@ -5,6 +5,7 @@ import { createSession } from "@/lib/auth/session";
 import { isAllowedOrigin } from "@/lib/auth/csrf";
 import { rateLimit } from "@/lib/auth/ratelimit";
 import { prisma } from "@/lib/db";
+import { getRegistrationPolicyServer } from "@/lib/flags/server";
 import {
   json,
   badRequest,
@@ -13,9 +14,11 @@ import {
   withSessionCookie,
 } from "@/lib/http/responses";
 
-// Wave 17 — signup may carry an OPTIONAL referral-link code (?ref= plumbed
-// through the auth form). An unknown or revoked code is SILENTLY ignored:
-// registration must never fail because of a bad ref code.
+// Wave 17 — signup may carry a referral-link code (?ref= plumbed through the
+// auth form). Under the OPEN policy an unknown or revoked code is SILENTLY
+// ignored (registration must never fail because of a bad ref code); under
+// REFERRAL_ONLY (Cabinet flag) a VALID code is REQUIRED, and under CLOSED no
+// registration is accepted at all. Sign-in is never affected.
 const registerWithRefSchema = registerSchema.extend({
   refCode: z.string().max(32).optional(),
 });
@@ -38,6 +41,26 @@ export async function POST(req: Request): Promise<Response> {
   const parsed = registerWithRefSchema.safeParse(body);
   if (!parsed.success) return badRequest("Please check the form fields.");
 
+  const policy = await getRegistrationPolicyServer();
+  if (policy === "CLOSED") {
+    return json(
+      { error: "Registrations are closed by order of the Cabinet. Sign-in remains open." },
+      { status: 403 },
+    );
+  }
+  const refCode = parsed.data.refCode?.trim() || undefined;
+  const link = refCode ? await prisma.referralLink.findUnique({ where: { code: refCode } }) : null;
+  const linkValid = link !== null && link.revokedAt === null;
+  if (policy === "REFERRAL_ONLY" && !linkValid) {
+    return json(
+      {
+        error:
+          "Registration is by referral only — enter a valid referral code from a citizen of the Republic.",
+      },
+      { status: 403 },
+    );
+  }
+
   const email = normalizeEmail(parsed.data.email);
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -46,7 +69,6 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const passwordHash = await hashPassword(parsed.data.passphrase);
-  const refCode = parsed.data.refCode;
   const user = await prisma.$transaction(async (tx) => {
     const created = await tx.user.create({
       data: {
@@ -58,16 +80,19 @@ export async function POST(req: Request): Promise<Response> {
     });
     // Wave 17 — bind a ?ref= signup to the link owner as a Referral edge, in
     // the SAME transaction as the user row. Self/duplicate are impossible (the
-    // user is brand new); unknown/revoked codes are silently ignored.
-    if (refCode) {
-      const link = await tx.referralLink.findUnique({ where: { code: refCode } });
-      if (link && !link.revokedAt) {
+    // user is brand new). The link was resolved above: under OPEN an invalid
+    // code was silently ignored; under REFERRAL_ONLY it already gated the 403.
+    // Re-check revocation INSIDE the transaction so a code revoked between the
+    // policy gate and the write never binds an edge.
+    if (link) {
+      const fresh = await tx.referralLink.findUnique({ where: { id: link.id } });
+      if (fresh && !fresh.revokedAt) {
         await tx.referral.create({
           data: {
-            referrerUserId: link.ownerUserId,
+            referrerUserId: fresh.ownerUserId,
             referredUserId: created.id,
             whenTokenConsumed: false,
-            viaLinkId: link.id,
+            viaLinkId: fresh.id,
           },
         });
       }

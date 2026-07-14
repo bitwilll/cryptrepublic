@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { registrationPolicyFromFlags, type RegistrationPolicy } from "@/lib/flags/defaults";
 import { Skeleton, CardError, Field, inputStyle, type Load } from "./bits";
 
 /**
@@ -34,6 +35,8 @@ interface FlagsPayload {
 export function FlagsApp() {
   const [state, setState] = useState<Load<FlagView[]>>({ status: "loading" });
   const [mutError, setMutError] = useState<string | null>(null);
+  const [policyDraft, setPolicyDraft] = useState<RegistrationPolicy | null>(null);
+  const [policySaving, setPolicySaving] = useState(false);
   const [newKey, setNewKey] = useState("");
   const [newEnabled, setNewEnabled] = useState(false);
   const [newDescription, setNewDescription] = useState("");
@@ -90,6 +93,133 @@ export function FlagsApp() {
       style={{ padding: "32px 0", display: "flex", flexDirection: "column", gap: 24 }}
     >
       <div className="kicker">FEATURE FLAGS</div>
+
+      <article
+        className="pillar"
+        style={{ padding: "24px 28px" }}
+        data-testid="registration-policy"
+      >
+        <h2 style={{ margin: 0, fontSize: 20 }}>Registration policy</h2>
+        <p style={{ color: "var(--muted)", marginTop: 6, fontSize: 12 }}>
+          Who may register a new citizen record. Enforced server-side on e-mail registration AND
+          wallet-native sign-up; sign-in for existing citizens is never affected. Backed by the
+          audited flags below (<code>registration_open</code> /{" "}
+          <code>registration_referral_only</code>).
+        </p>
+        {state.status === "ok" &&
+          (() => {
+            const eff = (key: string) => state.data.find((f) => f.key === key)?.effective ?? false;
+            const current = registrationPolicyFromFlags(
+              eff("registration_open"),
+              eff("registration_referral_only"),
+            );
+            const selected = policyDraft ?? current;
+            const OPTIONS: Array<{ value: RegistrationPolicy; label: string; sub: string }> = [
+              {
+                value: "OPEN",
+                label: "Open",
+                sub: "Anyone may register. Referral codes remain optional.",
+              },
+              {
+                value: "REFERRAL_ONLY",
+                label: "By referral only",
+                sub: "A valid referral code from a citizen or office holder is required.",
+              },
+              {
+                value: "CLOSED",
+                label: "Closed",
+                sub: "No new registrations. Sign-in for existing citizens stays open.",
+              },
+            ];
+            async function savePolicy() {
+              if (policySaving || selected === current) return;
+              setPolicySaving(true);
+              await mutate("/api/admin/flags", "POST", {
+                key: "registration_open",
+                enabled: selected !== "CLOSED",
+                description: "Registration policy — false closes new registrations entirely.",
+              });
+              await mutate("/api/admin/flags", "POST", {
+                key: "registration_referral_only",
+                enabled: selected === "REFERRAL_ONLY",
+                description:
+                  "Registration policy — true requires a valid referral code to register.",
+              });
+              setPolicyDraft(null);
+              setPolicySaving(false);
+            }
+            return (
+              <div style={{ marginTop: 14 }}>
+                <div role="radiogroup" aria-label="Registration policy">
+                  {OPTIONS.map((o) => (
+                    <label
+                      key={o.value}
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 10,
+                        padding: "10px 12px",
+                        border: "1px solid var(--line)",
+                        borderLeft:
+                          selected === o.value ? "3px solid var(--blue)" : "1px solid var(--line)",
+                        background: selected === o.value ? "var(--paper)" : "var(--card)",
+                        cursor: "pointer",
+                        marginTop: 8,
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="registration-policy"
+                        value={o.value}
+                        checked={selected === o.value}
+                        onChange={() => setPolicyDraft(o.value)}
+                        data-testid={`policy-${o.value.toLowerCase()}`}
+                        style={{ marginTop: 3 }}
+                      />
+                      <span>
+                        <b style={{ fontSize: 14 }}>{o.label}</b>
+                        {current === o.value && (
+                          <span
+                            style={{
+                              marginLeft: 8,
+                              fontFamily: "var(--mono)",
+                              fontSize: 9,
+                              fontWeight: 700,
+                              letterSpacing: "0.1em",
+                              color: "var(--success)",
+                            }}
+                          >
+                            IN FORCE
+                          </span>
+                        )}
+                        <span
+                          style={{
+                            display: "block",
+                            color: "var(--muted)",
+                            fontSize: 12,
+                            marginTop: 2,
+                          }}
+                        >
+                          {o.sub}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={() => void savePolicy()}
+                  disabled={policySaving || selected === current}
+                  style={{ marginTop: 14, minHeight: 44 }}
+                  data-testid="policy-save"
+                >
+                  {policySaving ? "Entering into force…" : "Enter into force"}
+                </button>
+              </div>
+            );
+          })()}
+      </article>
 
       <article className="pillar" style={{ padding: "24px 28px" }}>
         <h2 style={{ margin: 0, fontSize: 20 }}>Flags</h2>

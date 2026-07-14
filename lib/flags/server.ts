@@ -1,6 +1,11 @@
 import "server-only";
 import { prisma } from "@/lib/db";
-import { FLAG_DEFAULTS, flagValue } from "./defaults";
+import {
+  FLAG_DEFAULTS,
+  flagValue,
+  registrationPolicyFromFlags,
+  type RegistrationPolicy,
+} from "./defaults";
 
 /**
  * Server-side flag read (Server Components / route handlers). NEVER throws:
@@ -15,4 +20,15 @@ export async function flagEnabledServer(key: string): Promise<boolean> {
   } catch {
     return FLAG_DEFAULTS[key] ?? false;
   }
+}
+
+/** The Cabinet's registration policy, resolved from the two declared flags.
+ *  Degrades to OPEN exactly like every other flag read — a DB failure must
+ *  never lock the Republic's door by accident. */
+export async function getRegistrationPolicyServer(): Promise<RegistrationPolicy> {
+  const [open, referralOnly] = await Promise.all([
+    flagEnabledServer("registration_open"),
+    flagEnabledServer("registration_referral_only"),
+  ]);
+  return registrationPolicyFromFlags(open, referralOnly);
 }
