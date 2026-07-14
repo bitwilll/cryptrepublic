@@ -12,48 +12,78 @@ export function HeroPassport() {
   return (
     <section className="hero" id="top" data-screen-label="Hero">
       <div className="wrap">
-        <div className="hero-grid">
-          <div>
-            <span className="badge" style={{ fontSize: "14px" }}>
-              <span className="dot"></span> Ratified by the Cabinet · 48,392 citizens &amp; counting
+        <div className="hero-poster">
+          <span className="badge" style={{ fontSize: "14px" }}>
+            <span className="dot"></span> Ratified by the Cabinet · 48,392 citizens &amp; counting
+          </span>
+
+          {/* The engraved masthead. The h1 must keep containing "NETWORK STATE"
+              (e2e/home.spec.ts) — the ghost line carries it. */}
+          <h1 className="display-title">
+            <span className="mask-line">
+              <span style={{ animationDelay: "0.05s" }}>CRYPT</span>
             </span>
-            <h1>
-              Become a citizen of the world&apos;s first <em>network state.</em>
-            </h1>
-            <p className="lede">
-              CryptRepublic is a sovereign collective without territory. Mint a soulbound passport,
-              vote on every law, share in the Republic&apos;s assets, and reside in 27 embassies
-              worldwide.
-            </p>
-            <div className="hero-ctas">
-              <a className="btn btn-primary" href="/dashboard">
-                Mint your passport →
-              </a>
-              <a className="btn btn-ghost" href="#how">
-                See how it works
-              </a>
+            <span className="mask-line">
+              <span style={{ animationDelay: "0.16s" }}>REPUBLIC</span>
+            </span>
+            <span className="mask-line">
+              <span className="display-ghost" style={{ animationDelay: "0.3s" }}>
+                The first network state.
+              </span>
+            </span>
+          </h1>
+
+          <div className="hero-lede-row">
+            <div className="hero-facts" data-parallax data-parallax-speed="-0.04">
+              <div className="facts-head">THE FACTS</div>
+              <dl>
+                <div className="fact">
+                  <dt>C.</dt>
+                  <dd>
+                    <LiveNumber value={48392} /> citizens
+                  </dd>
+                </div>
+                <div className="fact">
+                  <dt>N.</dt>
+                  <dd>
+                    <LiveNumber value={91} /> countries
+                  </dd>
+                </div>
+                <div className="fact">
+                  <dt>E.</dt>
+                  <dd>
+                    <LiveNumber value={27} /> embassies
+                  </dd>
+                </div>
+                <div className="fact">
+                  <dt>A.</dt>
+                  <dd>
+                    <LiveNumber value={428} prefix="$" suffix="M" /> sovereign assets
+                  </dd>
+                </div>
+                <div className="fact">
+                  <dt>R.</dt>
+                  <dd>Ratified MMXXVI</dd>
+                </div>
+              </dl>
             </div>
-            <div className="hero-stats">
-              <div>
-                <LiveNumber value={48392} />
-                <span>Citizens</span>
-              </div>
-              <div>
-                <LiveNumber value={91} />
-                <span>Countries</span>
-              </div>
-              <div>
-                <LiveNumber value={27} />
-                <span>Embassies</span>
-              </div>
-              <div>
-                <LiveNumber value={428} prefix="$" suffix="M" />
-                <span>Sovereign assets</span>
+            <div>
+              <p className="lede">
+                A sovereign collective without territory. Mint a soulbound passport, vote on every
+                law, share in the Republic&apos;s assets, and reside in 27 embassies worldwide.
+              </p>
+              <div className="hero-ctas">
+                <a className="btn btn-primary" href="/dashboard">
+                  Mint your passport →
+                </a>
+                <a className="btn btn-ghost" href="#how">
+                  See how it works
+                </a>
               </div>
             </div>
           </div>
 
-          <div className="passport-stage">
+          <div className="hero-sticker passport-stage" data-parallax data-parallax-speed="0.06">
             <div className="pb-float">
               <div
                 className={`passport-book${open ? " open" : ""}`}

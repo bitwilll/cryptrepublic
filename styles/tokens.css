@@ -9,6 +9,12 @@
   --gold-d: #9d8246;
   --gold-ink: #806a38; /* gold at text strength: 5.20:1 on #fff, 4.85:1 on --paper */
   --paper: #f6f7f9;
+  /* Athens-26-inspired poster surface (marketing only — the dashboard keeps
+     --paper). Warm bone ground, exhibit-panel line, ghost-blue display ink. */
+  --bone: #eae7e0;
+  --bone-2: #f1efe9;
+  --panel-line: #d9d5ca;
+  --blue-ghost: rgba(25, 87, 211, 0.3);
   --card: #ffffff;
   --line: #e5eaef;
   --muted: #5a6a7d;
@@ -20,6 +26,7 @@
   --sans: var(--font-archivo), system-ui, sans-serif;
   --serif: var(--font-archivo), system-ui, sans-serif;
   --mono: var(--font-plex-mono), ui-monospace, monospace;
+  --display: var(--font-cinzel), var(--font-archivo), serif;
   --maxw: 1200px;
 }
 
@@ -168,10 +175,38 @@ h3 {
 /* reveal on scroll */
 .reveal {
   opacity: 0;
-  transform: translateY(22px);
+  transform: translateY(36px);
   transition:
-    opacity 0.7s ease,
-    transform 0.7s cubic-bezier(0.2, 0.7, 0.3, 1);
+    opacity 0.9s ease,
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* staggered children: mark the PARENT .reveal[data-stagger]; direct children
+   inherit the rise with a per-index delay (poster-style cascade). */
+.reveal[data-stagger] > * {
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity 0.85s ease,
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal[data-stagger].in > * {
+  opacity: 1;
+  transform: none;
+}
+.reveal[data-stagger].in > *:nth-child(2) {
+  transition-delay: 0.08s;
+}
+.reveal[data-stagger].in > *:nth-child(3) {
+  transition-delay: 0.16s;
+}
+.reveal[data-stagger].in > *:nth-child(4) {
+  transition-delay: 0.24s;
+}
+.reveal[data-stagger].in > *:nth-child(5) {
+  transition-delay: 0.32s;
+}
+.reveal[data-stagger].in > *:nth-child(6) {
+  transition-delay: 0.4s;
 }
 .reveal.in {
   opacity: 1;
@@ -1668,4 +1703,205 @@ svg text {
 .pb-inside > *:not(.dp-watermark) {
   position: relative;
   z-index: 1;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   POSTER SURFACE (Athens-26-inspired, 2026-07) — the marketing home becomes
+   an editorial poster: warm bone ground, engraved flared display type in
+   Republic blue, the passport specimen as the sticker centerpiece, and
+   exhibit panels. The DASHBOARD keeps --paper; nothing here leaks past the
+   marketing classes. Squared retheme + reduced-motion kill both apply.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.hero {
+  background-color: var(--bone);
+  background-image: radial-gradient(
+      1100px 660px at 50% -12%,
+      rgba(200, 169, 106, 0.22),
+      transparent 62%
+    ),
+    radial-gradient(780px 480px at -8% 112%, rgba(25, 87, 211, 0.1), transparent 60%);
+}
+
+.hero-poster {
+  position: relative;
+  padding: 56px 0 64px;
+}
+
+/* The engraved masthead: flared classical caps, edge-to-edge, Republic blue.
+   Line 3 is the ghost line — the h1 still CONTAINS "NETWORK STATE" (e2e). */
+.display-title {
+  font-family: var(--display);
+  font-weight: 900;
+  color: var(--blue);
+  line-height: 0.94;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  font-size: clamp(58px, 11.5vw, 164px);
+  margin: 18px 0 0;
+}
+.display-title .display-ghost {
+  display: block;
+  font-size: clamp(26px, 4.4vw, 62px);
+  font-weight: 700;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--blue-ghost);
+  letter-spacing: 0.05em;
+  margin-top: 12px;
+  max-width: 72%;
+  line-height: 1.05;
+}
+.mask-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.mask-line > span {
+  display: block;
+  transform: translateY(112%);
+  animation: rise-line 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes rise-line {
+  to {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mask-line > span {
+    transform: none;
+  }
+}
+
+/* The passport sticker — overlaps the masthead like the amphora. */
+.hero-sticker {
+  position: absolute;
+  right: 3%;
+  top: 26px;
+  z-index: 3;
+  scale: 0.88;
+  transform-origin: top right;
+  transform: rotate(6deg);
+  animation: sticker-in 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.35s;
+  filter: drop-shadow(0 0 0 transparent) drop-shadow(0 30px 40px rgba(15, 31, 51, 0.28));
+}
+@keyframes sticker-in {
+  from {
+    opacity: 0;
+    transform: rotate(10deg) translateY(46px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(6deg) translateY(0) scale(1);
+  }
+}
+
+.hero-lede-row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+  gap: 48px;
+  align-items: end;
+  margin-top: 44px;
+}
+
+/* THE FACTS — the reference's ledgered fact panel, in government grammar. */
+.hero-facts {
+  background: var(--card);
+  border: 1px solid var(--panel-line);
+  padding: 22px 24px;
+}
+.hero-facts .facts-head {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.22em;
+  color: var(--blue);
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--panel-line);
+}
+.hero-facts dl {
+  margin: 12px 0 0;
+}
+.hero-facts .fact {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 18px;
+  padding: 7px 0;
+}
+.hero-facts dt {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+.hero-facts dd {
+  margin: 0;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--blue-d);
+  text-align: right;
+}
+
+/* Exhibit-panel hover physics (poster cards breathe on approach). */
+.pillar,
+.hero-facts {
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.45s ease,
+    box-shadow 0.45s ease;
+}
+.pillar:hover {
+  transform: translateY(-6px);
+  border-color: var(--blue);
+  box-shadow: 0 24px 48px -30px rgba(15, 31, 51, 0.35);
+}
+
+/* Link underline sweep (nav + .more links). */
+.nav-links a,
+.more {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-size: 0% 1.5px;
+  background-position: 0 100%;
+  transition:
+    background-size 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.15s;
+}
+.nav-links a:hover,
+.more:hover {
+  background-size: 100% 1.5px;
+}
+
+/* Parallax layers (JS sets --plx via rAF; reduced-motion never enables it). */
+[data-parallax] {
+  transform: translate3d(0, calc(var(--plx, 0) * 1px), 0);
+  will-change: transform;
+}
+
+@media (max-width: 900px) {
+  .hero-sticker {
+    position: static;
+    transform: rotate(3deg);
+    margin: 34px auto 0;
+    width: fit-content;
+    animation-name: sticker-in-flat;
+  }
+  @keyframes sticker-in-flat {
+    from {
+      opacity: 0;
+      transform: rotate(3deg) translateY(40px);
+    }
+    to {
+      opacity: 1;
+      transform: rotate(3deg) translateY(0);
+    }
+  }
+  .hero-lede-row {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
 }
