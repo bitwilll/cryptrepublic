@@ -213,7 +213,8 @@ h3 {
   transform: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .reveal {
+  .reveal,
+  .reveal[data-stagger] > * {
     opacity: 1;
     transform: none;
     transition: none;
@@ -526,9 +527,10 @@ header.site {
 
 /* TICKER */
 .ticker {
-  background: var(--navy);
-  color: #cfe0f5;
-  border-top: 1px solid var(--navy);
+  background: var(--blue);
+  color: #ffffff;
+  border-top: 1px solid var(--blue-d);
+  border-bottom: 1px solid var(--blue-d);
   overflow: hidden;
 }
 .ticker-track {
@@ -542,9 +544,11 @@ header.site {
   display: inline-flex;
   align-items: center;
   gap: 26px;
-  padding: 13px 13px;
+  padding: 16px 13px;
   font-family: var(--mono);
-  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  font-size: 13px;
   letter-spacing: 0.08em;
 }
 .ticker i {
@@ -564,13 +568,32 @@ header.site {
 section.block {
   padding: clamp(64px, 9vw, 110px) 0;
 }
+/* Poster ground for the HOME strips only (scoped by id/class so the bone
+   never leaks into the dashboard shell or registry pages, and the navy
+   .holdings/.cta gradients stay untouched). */
+#why.block,
+#state-services.block,
+#embassies.block,
+section.block.gov {
+  background: var(--bone-2);
+}
 .sec-head {
   max-width: 760px;
   margin-bottom: clamp(34px, 5vw, 56px);
 }
 .sec-head h2 {
-  font-size: clamp(30px, 4.4vw, 52px);
-  margin-top: 10px;
+  font-family: var(--display);
+  font-weight: 900;
+  color: var(--blue);
+  letter-spacing: 0.01em;
+  line-height: 0.98;
+  font-size: clamp(34px, 5.4vw, 72px);
+  margin-top: 12px;
+}
+.sec-head h2 em {
+  font-style: normal;
+  color: transparent;
+  -webkit-text-stroke: 1.3px var(--blue-ghost);
 }
 .sec-head h2 em {
   font-family: var(--serif);
@@ -592,8 +615,8 @@ section.block {
   gap: 20px;
 }
 .pillar {
-  background: var(--paper);
-  border: 1px solid var(--line);
+  background: var(--card);
+  border: 1px solid var(--panel-line);
   border-radius: 18px;
   padding: 30px 28px;
   transition:
